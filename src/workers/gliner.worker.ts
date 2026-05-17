@@ -8,7 +8,7 @@
  *
  *   { type: 'predict', payload: { id: string, chunkText: string,
  *                                 entityLabels?: string[], threshold?: number } }
- *     → { type: 'result', id, entities: NerEntity[] }
+ *     → { type: 'result', id, entities: NerDetection[] }
  *     | { type: 'error',  id, error: string }
  *
  *   { type: 'terminate' }
@@ -19,6 +19,40 @@
  * `onnxruntime-web` / `@xenova/transformers` modules being eagerly loaded
  * during Vitest runs (which only exercise the equivalence harness in mock
  * mode).
+ *
+ * ─── ONNX I/O contract (GLiNER UniEncoderSpan ONNX export) ────────────────
+ *
+ * Inputs the exported graph expects — names verified against
+ *   gliner.model.UniEncoderSpanGLiNER._get_onnx_input_spec() in upstream
+ *   (https://github.com/urchade/GLiNER, gliner/model.py L1879):
+ *
+ *   input_ids            : int64  [B, L_sub]          subword token ids
+ *   attention_mask       : int64  [B, L_sub]          1 for valid, 0 for pad
+ *   words_mask           : int64  [B, L_sub]          1..N word index of the
+ *                                                     subtoken's parent word
+ *                                                     (after skipping prompt
+ *                                                     words); 0 for special
+ *                                                     tokens, continuation
+ *                                                     subtokens, and prompt
+ *                                                     tokens themselves
+ *   text_lengths         : int64  [B, 1]              number of *words* in the
+ *                                                     text (NOT subtokens)
+ *   span_idx             : int64  [B, L_word*K, 2]    enumerated (start,end)
+ *                                                     word indices, inclusive
+ *   span_mask            : bool   [B, L_word*K]       true where the span
+ *                                                     fits inside the text
+ *
+ * Outputs:
+ *   logits               : float  [B, L_word, K, C]   raw scores
+ *                                                     L_word = num words
+ *                                                     K      = max_width (12)
+ *                                                     C      = num labels
+ *
+ * Decode: prob = sigmoid(logit); for each (b,s,k,c) where prob > threshold and
+ * (s+k+1) <= num_words, emit a span [word s … word s+k] with class c+1 (the
+ * 0 class is reserved for <pad>).
+ *
+ * ─── Threshold tiers ──────────────────────────────────────────────────────
  *
  * Threshold tiers — preserved verbatim from the Python reference
  * (`MHC-L/gate-local/tools/anonymize.py::_predict_chunk`):
@@ -65,8 +99,29 @@ const TIERS: Array<{ threshold: number; labels: string[] }> = [
   },
 ]
 
+/**
+ * Default max span width — must match the exported model's `max_width`
+ * config (gliner_config.json). All current urchade GLiNER variants ship with
+ * `max_width=12`. We hard-code rather than fetch the config because the
+ * worker doesn't otherwise depend on it; if a future export uses a different
+ * value, change here.
+ */
+const MAX_WIDTH = 12
+
+/** Default GLiNER prompt special tokens (urchade v2.x convention). */
+const ENT_TOKEN = '<<ENT>>'
+const SEP_TOKEN = '<<SEP>>'
+
 let session: any = null
 let tokenizer: any = null
+/**
+ * `<<ENT>>` / `<<SEP>>` token ids resolved at init time. If the tokenizer
+ * exposes them as single special tokens we use those directly; otherwise we
+ * fall back to encoding the literal strings (which may produce multiple
+ * subtokens — accounted for in the words_mask logic).
+ */
+let entTokenIds: number[] = []
+let sepTokenIds: number[] = []
 
 /**
  * Sentinel error codes the main thread can pattern-match on to differentiate
@@ -157,20 +212,205 @@ async function init(modelUrl: string): Promise<void> {
   // Tokenizer name resolution: derive from modelUrl directory.
   const tokenizerDir = new URL('./', modelUrl).toString()
   tokenizer = await (transformers as any).AutoTokenizer.from_pretrained(tokenizerDir)
+
+  // Resolve the special prompt tokens. Some GLiNER checkpoints register them
+  // as proper added_tokens (single id); older ones don't, in which case we
+  // fall back to encoding the literal string without special tokens — that
+  // may produce multiple subwords which is fine: words_mask handles them as
+  // skipped prompt tokens regardless of count.
+  entTokenIds = tokenizer.encode(ENT_TOKEN, null, { add_special_tokens: false })
+  sepTokenIds = tokenizer.encode(SEP_TOKEN, null, { add_special_tokens: false })
+  if (!entTokenIds?.length) entTokenIds = [tokenizer.unk_token_id ?? 0]
+  if (!sepTokenIds?.length) sepTokenIds = [tokenizer.sep_token_id ?? 0]
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Word splitting — direct port of GLiNER's `WhitespaceTokenSplitter`
+ * (gliner/data_processing/tokenizer.py):
+ *   self.whitespace_pattern = re.compile(r"\w+(?:[-_]\w+)*|\S")
+ *
+ * Python's `\w` is Unicode-aware in default mode (Python 3). JS RegExp needs
+ * the `u` flag and the Unicode property class `\p{L}\p{N}_` to mirror that.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+type WordRecord = { token: string; start: number; end: number }
+
+const WORD_SPLIT_RE = /[\p{L}\p{N}_]+(?:[-_][\p{L}\p{N}_]+)*|[^\s]/gu
+
+function splitWords(text: string): WordRecord[] {
+  const out: WordRecord[] = []
+  WORD_SPLIT_RE.lastIndex = 0
+  let m: RegExpExecArray | null
+  while ((m = WORD_SPLIT_RE.exec(text)) !== null) {
+    out.push({ token: m[0], start: m.index, end: m.index + m[0].length })
+  }
+  return out
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Build the six ONNX feeds for a single text + label set.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+type FeedPack = {
+  feeds: Record<string, any>
+  words: WordRecord[]
+  numWords: number
+  numSubtokens: number
+}
+
+function bigInt64(arr: number[] | BigInt64Array): BigInt64Array {
+  if (arr instanceof BigInt64Array) return arr
+  const out = new BigInt64Array(arr.length)
+  for (let i = 0; i < arr.length; i += 1) {
+    const v = arr[i] ?? 0
+    out[i] = BigInt(v | 0)
+  }
+  return out
+}
+
+async function buildFeeds(
+  ort: any,
+  text: string,
+  labels: string[],
+): Promise<FeedPack> {
+  // 1. Word-level split of the text.
+  const words = splitWords(text)
+  const numWords = words.length
+
+  // Edge case: empty / whitespace-only chunk → skip.
+  if (numWords === 0) {
+    return { feeds: {}, words, numWords: 0, numSubtokens: 0 }
+  }
+
+  // 2. Assemble the full subtoken sequence:
+  //      [CLS] (<<ENT>> labelᵢ)* <<SEP>> word₁ … wordₙ [SEP]
+  //    - Labels are tokenized as text (potentially multi-subtoken — words_mask
+  //      treats every prompt subtoken as 0, so this is safe).
+  //    - Words are encoded one-by-one so we can record where each word starts
+  //      in the subtoken stream (the equivalent of HF's word_ids()).
+  const clsId: number =
+    tokenizer.cls_token_id ?? tokenizer.bos_token_id ?? null
+  const sepId: number =
+    tokenizer.sep_token_id ?? tokenizer.eos_token_id ?? null
+
+  const inputIds: number[] = []
+  const wordsMask: number[] = []
+
+  if (clsId !== null) {
+    inputIds.push(clsId)
+    wordsMask.push(0)
+  }
+
+  // Prompt: for each label, push <<ENT>> + label subtokens.
+  for (const label of labels) {
+    for (const id of entTokenIds) {
+      inputIds.push(id)
+      wordsMask.push(0)
+    }
+    const labelIds: number[] = tokenizer.encode(label, null, {
+      add_special_tokens: false,
+    })
+    for (const id of labelIds) {
+      inputIds.push(id)
+      wordsMask.push(0)
+    }
+  }
+  // Closing <<SEP>> between prompt and text.
+  for (const id of sepTokenIds) {
+    inputIds.push(id)
+    wordsMask.push(0)
+  }
+
+  // Words. Each word's first subtoken is marked with its 1-based word index
+  // (after prompt skip); continuation subtokens get 0 (per
+  // `prepare_word_mask(..., token_level=False)`).
+  for (let i = 0; i < words.length; i += 1) {
+    const wordRec = words[i]!
+    const wordIds: number[] = tokenizer.encode(wordRec.token, null, {
+      add_special_tokens: false,
+    })
+    if (wordIds.length === 0) {
+      // Vocab dropped this word entirely — fall back to UNK so the word
+      // index doesn't desync. (Shouldn't happen with SentencePiece, but be
+      // defensive.)
+      const unk =
+        tokenizer.unk_token_id ?? tokenizer.pad_token_id ?? 0
+      inputIds.push(unk)
+      wordsMask.push(i + 1)
+    } else {
+      for (let s = 0; s < wordIds.length; s += 1) {
+        const id = wordIds[s] ?? 0
+        inputIds.push(id)
+        wordsMask.push(s === 0 ? i + 1 : 0)
+      }
+    }
+  }
+
+  if (sepId !== null) {
+    inputIds.push(sepId)
+    wordsMask.push(0)
+  }
+
+  const numSubtokens = inputIds.length
+
+  // attention_mask: all 1s since this is a single-example batch (no padding).
+  const attentionMask = new Array(numSubtokens).fill(1)
+
+  // 3. span_idx + span_mask: enumerate all (start_word, start_word+width)
+  //    pairs for width in [0..MAX_WIDTH).
+  const numSpans = numWords * MAX_WIDTH
+  const spanIdx = new BigInt64Array(numSpans * 2)
+  const spanMaskBool = new Uint8Array(numSpans) // ort bool tensor is byte-backed
+  let wIdx = 0
+  for (let s = 0; s < numWords; s += 1) {
+    for (let w = 0; w < MAX_WIDTH; w += 1) {
+      const end = s + w
+      spanIdx[wIdx * 2] = BigInt(s)
+      spanIdx[wIdx * 2 + 1] = BigInt(end)
+      // valid iff the inclusive end stays within the text (mirror of
+      // `valid_span_mask = spans_idx[:, 1] > num_tokens - 1` inverted in
+      // prepare_span_labels — i.e. end <= numWords-1).
+      spanMaskBool[wIdx] = end <= numWords - 1 ? 1 : 0
+      wIdx += 1
+    }
+  }
+
+  // 4. text_lengths: [1, 1] — single batch, scalar word count.
+  const textLengths = new BigInt64Array([BigInt(numWords)])
+
+  const feeds = {
+    input_ids: new ort.Tensor('int64', bigInt64(inputIds), [1, numSubtokens]),
+    attention_mask: new ort.Tensor(
+      'int64',
+      bigInt64(attentionMask),
+      [1, numSubtokens],
+    ),
+    words_mask: new ort.Tensor('int64', bigInt64(wordsMask), [1, numSubtokens]),
+    text_lengths: new ort.Tensor('int64', textLengths, [1, 1]),
+    span_idx: new ort.Tensor('int64', spanIdx, [1, numSpans, 2]),
+    span_mask: new ort.Tensor('bool', spanMaskBool, [1, numSpans]),
+  }
+
+  return { feeds, words, numWords, numSubtokens }
+}
+
+/**
+ * Numerically stable sigmoid.
+ */
+function sigmoid(x: number): number {
+  if (x >= 0) {
+    const e = Math.exp(-x)
+    return 1 / (1 + e)
+  }
+  const e = Math.exp(x)
+  return e / (1 + e)
 }
 
 /**
  * Run a single GLiNER prediction pass at the given threshold for the given
- * label set. Returns raw `{start, end, label, text, score}` spans (no
- * overlap filtering yet — that happens after all tiers merge).
- *
- * NOTE: The actual GLiNER inference graph (zero-shot span scoring with label
- * embeddings) is implementation-defined per ONNX export. This wrapper assumes
- * the exported graph follows the canonical `urchade/gliner_multi-v2.1`
- * signature: inputs `input_ids`, `attention_mask`, `entity_type_ids`; output
- * `logits` shape `[batch, num_spans, num_entity_types]`. If the founder's
- * actual export uses a different signature, this function needs adjustment —
- * but the protocol surface stays stable.
+ * label set. Returns raw `{start, end, label, text, score}` spans in char
+ * offsets of the input text (no overlap filtering yet — that happens after
+ * all tiers merge).
  */
 async function predictTier(
   text: string,
@@ -181,56 +421,57 @@ async function predictTier(
     throw new Error('GLiNER worker not initialized — call init() first')
   }
 
-  const encoded = await tokenizer(text, {
-    return_tensors: 'np',
-    add_special_tokens: true,
-    truncation: true,
-    max_length: 512,
-  })
+  // ort is already loaded by init(); re-import is a cache hit.
+  const ort = await import('onnxruntime-web')
 
-  // Reshape entity labels as the model expects (one tokenized prompt per label).
-  const labelInputs = await Promise.all(
-    labels.map((l) =>
-      tokenizer(l, { return_tensors: 'np', add_special_tokens: true }),
-    ),
-  )
+  const pack = await buildFeeds(ort, text, labels)
+  if (pack.numWords === 0) return []
 
-  // Run inference. The output keys depend on the exported graph; we accept
-  // either `logits` or `scores`.
-  const feeds: Record<string, any> = {
-    input_ids: encoded.input_ids,
-    attention_mask: encoded.attention_mask,
-    entity_ids: labelInputs.map((l) => l.input_ids),
+  const output = await session.run(pack.feeds)
+  // Output spec: { logits: float32 [B, L_word, K, C] }
+  const logitsTensor: any = output.logits ?? output.scores
+  if (!logitsTensor) {
+    throw new Error(
+      `GLiNER ONNX output missing 'logits'. Got keys: ${Object.keys(output).join(',')}`,
+    )
   }
-  const output = await session.run(feeds)
-  const scoresTensor: any = output.logits ?? output.scores
-  const scoresData: Float32Array = scoresTensor.data
-  const [, numSpans, numLabels] = scoresTensor.dims as [number, number, number]
-
-  // Reconstruct char offsets via the tokenizer's offset_mapping if available.
-  const offsets: Array<[number, number]> = (encoded.offset_mapping?.[0] ??
-    encoded.offset_mapping ?? []) as Array<[number, number]>
+  const data: Float32Array = logitsTensor.data
+  const dims = logitsTensor.dims as number[]
+  // Be tolerant of either [B, L, K, C] (current export) or a flattened
+  // variant. We strictly require 4 dims here — anything else means the
+  // graph has changed and we want a loud failure.
+  if (dims.length !== 4) {
+    throw new Error(
+      `GLiNER ONNX logits expected 4D, got dims=[${dims.join(',')}]`,
+    )
+  }
+  const [, L, K, C] = dims as [number, number, number, number]
+  const numWords = pack.numWords
 
   const out: NerDetection[] = []
-  // Each span position i corresponds to tokens [start_token, end_token];
-  // GLiNER span scoring conventionally enumerates contiguous spans up to a
-  // max width. We approximate by reading the diagonal (single-token spans)
-  // first and then iterating widths if the model exposes them as a flat
-  // [num_spans] dimension.
-  for (let s = 0; s < numSpans; s += 1) {
-    for (let l = 0; l < numLabels; l += 1) {
-      const score = scoresData[s * numLabels + l] ?? 0
-      if (score < threshold) continue
-      const tokenIdx = s % offsets.length
-      const [start, end] = offsets[tokenIdx] ?? [0, 0]
-      if (end <= start) continue
-      out.push({
-        start,
-        end,
-        label: labels[l] ?? 'unknown',
-        text: text.slice(start, end),
-        score,
-      })
+  // Iterate (s, k, c) and emit anything above threshold. We rely on
+  // span_mask to be zero outside the valid region — the model is already
+  // trained to put no signal there — but we also enforce numerically.
+  for (let s = 0; s < L && s < numWords; s += 1) {
+    for (let k = 0; k < K; k += 1) {
+      const endWord = s + k
+      if (endWord >= numWords) break // span runs past the text
+      const base = ((s * K) + k) * C
+      for (let c = 0; c < C; c += 1) {
+        const raw = data[base + c] ?? 0
+        const score = sigmoid(raw)
+        if (score < threshold) continue
+        const label = labels[c] ?? 'unknown'
+        const startChar = pack.words[s]!.start
+        const endChar = pack.words[endWord]!.end
+        out.push({
+          start: startChar,
+          end: endChar,
+          label,
+          text: text.slice(startChar, endChar),
+          score,
+        })
+      }
     }
   }
   return out

@@ -50,12 +50,12 @@ function nextId(): string {
  * cross the worker boundary in the same way.
  */
 const PRODUCTION_MODEL_URL =
-  'https://mhc.micheleloi.pro/recode-it/models/gliner_multi_v2.1_q8.onnx'
+  'https://mhc.micheleloi.pro/recode-it/models/gliner_small_v2.1_q8.onnx'
 
 const DEFAULT_MODEL_URL =
   (import.meta.env.VITE_GLINER_MODEL_URL as string | undefined) ||
   (import.meta.env.DEV
-    ? '/models/gliner_multi_v2.1_q8.onnx'
+    ? '/models/gliner_small_v2.1_q8.onnx'
     : PRODUCTION_MODEL_URL)
 
 /**

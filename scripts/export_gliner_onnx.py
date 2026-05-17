@@ -1,14 +1,23 @@
 """
-Export urchade/gliner_multi-v2.1 to ONNX (fp32 + int8 quantized) using GLiNER's
-native export_to_onnx method (gliner >= 0.2.x).
+Export a GLiNER model to ONNX (fp32 + int8 quantized) using GLiNER's native
+`export_to_onnx` method (gliner >= 0.2.x).
 
-Output:
-  scripts/gliner_onnx_fp32/model.onnx                 (~300 MB)
-  scripts/gliner_onnx_fp32/model_quantized.onnx       (~120 MB)  -- copied to scripts/gliner_multi_v2.1_q8.onnx
-  + tokenizer + gliner_config.json + spm.model
+The active variant is `urchade/gliner_small-v2.1` — picked over
+`urchade/gliner_multi-v2.1` because (a) the int8 file size is roughly 1/4
+(important for browser WASM cold-load), and (b) GLiNER's zero-shot scoring
+generalises across languages even from an English-primary checkpoint thanks to
+the underlying DeBERTa-v3-small encoder. Italian-language support is therefore
+"good enough for v1" — if quality on IT legal text degrades materially, the
+fallback is `urchade/gliner_multi-v2.1` (re-run this script with MODEL_NAME
+flipped back).
 
-The quantized file is renamed/copied to scripts/gliner_multi_v2.1_q8.onnx for
-upload to the VPS.
+Output layout under `scripts/`:
+  gliner_onnx_fp32/model.onnx                  fp32 export (kept for reference)
+  gliner_onnx_fp32/model_quantized.onnx        int8 quantised export
+  + tokenizer + gliner_config.json + spm.model artefacts (saved by gliner)
+
+The quantised file is then copied to `scripts/<FINAL_Q8_NAME>` for upload to
+the VPS / for placement under `public/models/` for the Vite dev server.
 """
 from __future__ import annotations
 
@@ -18,12 +27,16 @@ from pathlib import Path
 
 from gliner import GLiNER
 
+# --- variant selection -----------------------------------------------------
+MODEL_NAME = "urchade/gliner_small-v2.1"
+FINAL_Q8_NAME = "gliner_small_v2.1_q8.onnx"
+
 OUT_DIR = Path(__file__).parent / "gliner_onnx_fp32"
 OUT_DIR.mkdir(exist_ok=True)
-FINAL_Q8 = Path(__file__).parent / "gliner_multi_v2.1_q8.onnx"
+FINAL_Q8 = Path(__file__).parent / FINAL_Q8_NAME
 
-print("Loading urchade/gliner_multi-v2.1 ...", flush=True)
-model = GLiNER.from_pretrained("urchade/gliner_multi-v2.1")
+print(f"Loading {MODEL_NAME} ...", flush=True)
+model = GLiNER.from_pretrained(MODEL_NAME)
 model.eval()
 
 print(f"Running export_to_onnx(quantize=True) -> {OUT_DIR} ...", flush=True)
@@ -49,8 +62,9 @@ else:
     print("ERROR: quantized model not produced", flush=True)
     sys.exit(2)
 
-# Save tokenizer artefacts alongside (for completeness — VPS deployment focuses
-# on the .onnx file per the task spec)
+# Save tokenizer / gliner_config alongside the ONNX so the worker can fetch
+# them from the same directory (transformers.js AutoTokenizer.from_pretrained
+# expects tokenizer.json / spm.model / etc. next to the model).
 try:
     model.save_pretrained(str(OUT_DIR))
     print(f"Tokenizer/config saved to {OUT_DIR}", flush=True)
