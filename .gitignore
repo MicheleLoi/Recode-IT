@@ -33,9 +33,13 @@ __pycache__/
 .pytest_cache/
 .venv/
 venv/
+scripts/.venv-gliner-export/
+scripts/gliner_onnx_fp32/
+scripts/*.onnx
 
 # Cached models / large binaries
 public/models/*.onnx
+*.onnx
 
 # ort wasm runtime — copied at vite buildStart from node_modules
 # (see copyOrtWasmPlugin in vite.config.ts)

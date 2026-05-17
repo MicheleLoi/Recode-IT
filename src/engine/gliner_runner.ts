@@ -36,7 +36,27 @@ function nextId(): string {
   return `req-${_idCounter}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-const DEFAULT_MODEL_URL = '/models/gliner_multi_v2.1_q8.onnx'
+/**
+ * Default model URL — env-aware:
+ *
+ *   1. `VITE_GLINER_MODEL_URL` (set in .env / .env.production / .env.local)
+ *      always wins when defined.
+ *   2. In dev (`import.meta.env.DEV`) fall back to `/models/...` so Vite's
+ *      static-asset server picks it up from `public/models/`.
+ *   3. In production builds, fall back to the founder's VPS canonical URL.
+ *
+ * Kept inside `gliner_runner.ts` (not the worker) so the env var resolves at
+ * main-thread bundle time — Vite's `import.meta.env` substitution does not
+ * cross the worker boundary in the same way.
+ */
+const PRODUCTION_MODEL_URL =
+  'https://mhc.micheleloi.pro/recode-it/models/gliner_multi_v2.1_q8.onnx'
+
+const DEFAULT_MODEL_URL =
+  (import.meta.env.VITE_GLINER_MODEL_URL as string | undefined) ||
+  (import.meta.env.DEV
+    ? '/models/gliner_multi_v2.1_q8.onnx'
+    : PRODUCTION_MODEL_URL)
 
 /**
  * Split text into chunks of at most `maxChars` characters, snapping on
