@@ -1,0 +1,19 @@
+# Recode-IT backend Phase 3 dependencies.
+#
+# Stdlib-first design: SQLite via stdlib, no SQLAlchemy. Crypto and HTTP are
+# the only non-stdlib deps. Email delivery (resend SDK) is loaded lazily so
+# it's optional for tests / local dev.
+
+starlette>=0.36,<1.0
+httpx>=0.27          # required by starlette.testclient
+PyJWT>=2.8,<3.0
+argon2-cffi>=23.1
+bcrypt>=4.1
+
+# Dev / test
+pytest>=8.0
+pytest-asyncio>=0.23
+
+# Optional: email backend used in production (Resend). Imported lazily.
+# Uncomment when wiring the live email path.
+# resend>=0.7

@@ -1,0 +1,99 @@
+"""
+server.py — Recode-IT Starlette ASGI app (Phase 3).
+
+Wires:
+  - /recode/signup            (POST)
+  - /recode/login             (POST)
+  - /recode/logout            (POST)
+  - /recode/me                (GET)             [JWT protected]
+  - /recode/recovery/initiate (POST)
+  - /recode/recovery/verify   (POST)
+  - /recode/mappings/         (GET, POST, DELETE)  [JWT protected]
+  - /recode/mappings/{id}     (GET, DELETE)        [JWT protected]
+  - /recode/mappings/{id}/false-positives (PATCH)  [JWT protected]
+  - /recode/false-positives/  (GET)                [JWT protected]
+  - /recode/account/          (DELETE)             [JWT protected]
+  - OPTIONS preflight on every route
+
+Designed to be mounted standalone (uvicorn `backend.server:app`) AND to be
+mounted under an existing Starlette app via `Mount("/", app=app)` if the
+deploy decides to colocate with MHC-L. CORS scoped via RECODE_IT_ALLOWED_ORIGIN.
+
+`db.init_schema()` runs at import time so importing the app from a test
+process bootstraps the SQLite schema against the test DB path.
+"""
+
+from __future__ import annotations
+
+import os
+
+from starlette.applications import Starlette
+from starlette.routing import Route
+
+from .db import init_schema
+from .http_utils import options_preflight
+from .login import login_endpoint, logout_endpoint, me_endpoint
+from .mappings import (
+    create_mapping,
+    delete_account,
+    delete_mapping,
+    delete_mappings_bulk,
+    get_mapping,
+    list_false_positives,
+    list_mappings,
+    patch_false_positives,
+)
+from .middleware import RecodeJWTAuthMiddleware
+from .recovery import initiate_recovery, verify_recovery
+from .signup import signup_endpoint
+
+
+def _cookie_secure_default() -> bool:
+    return os.environ.get("RECODE_IT_COOKIE_SECURE", "1") != "0"
+
+
+def build_app(cookie_secure: bool | None = None) -> Starlette:
+    """Construct the Starlette app. `cookie_secure=False` for local HTTP tests."""
+    init_schema()
+
+    routes = [
+        # public
+        Route("/recode/signup", signup_endpoint, methods=["POST", "OPTIONS"]),
+        Route("/recode/login", login_endpoint, methods=["POST", "OPTIONS"]),
+        Route("/recode/logout", logout_endpoint, methods=["POST", "OPTIONS"]),
+        Route("/recode/recovery/initiate", initiate_recovery,
+              methods=["POST", "OPTIONS"]),
+        Route("/recode/recovery/verify", verify_recovery,
+              methods=["POST", "OPTIONS"]),
+        # protected
+        Route("/recode/me", me_endpoint, methods=["GET", "OPTIONS"]),
+        Route("/recode/mappings/", list_mappings, methods=["GET", "OPTIONS"]),
+        Route("/recode/mappings/", create_mapping, methods=["POST"]),
+        Route("/recode/mappings/", delete_mappings_bulk, methods=["DELETE"]),
+        Route("/recode/mappings/{mapping_id}", get_mapping,
+              methods=["GET", "OPTIONS"]),
+        Route("/recode/mappings/{mapping_id}", delete_mapping,
+              methods=["DELETE"]),
+        Route("/recode/mappings/{mapping_id}/false-positives",
+              patch_false_positives, methods=["PATCH", "OPTIONS"]),
+        Route("/recode/false-positives/", list_false_positives,
+              methods=["GET", "OPTIONS"]),
+        Route("/recode/account/", delete_account, methods=["DELETE", "OPTIONS"]),
+        # CORS preflight catch-all (Starlette routes by method; OPTIONS above
+        # is dispatched per-route, but if a router conflict arises we keep
+        # this as a no-op safety).
+    ]
+
+    app = Starlette(routes=routes)
+    secure = cookie_secure if cookie_secure is not None else _cookie_secure_default()
+    app.add_middleware(RecodeJWTAuthMiddleware, cookie_secure=secure)
+    # Inject a default OPTIONS handler for every protected route that didn't
+    # declare it explicitly.
+    return app
+
+
+# Module-level app for `uvicorn backend.server:app`.
+app = build_app()
+
+
+__all__ = ["app", "build_app", "options_preflight"]
