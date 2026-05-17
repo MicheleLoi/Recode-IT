@@ -68,21 +68,91 @@ const TIERS: Array<{ threshold: number; labels: string[] }> = [
 let session: any = null
 let tokenizer: any = null
 
+/**
+ * Sentinel error codes the main thread can pattern-match on to differentiate
+ * UX between "the ort runtime itself failed to boot" (real bug) and "the model
+ * file isn't deployed yet" (expected, founder-side step).
+ */
+const ERR_MODEL_NOT_FOUND = 'ERR_MODEL_NOT_FOUND'
+const ERR_BACKEND_INIT = 'ERR_BACKEND_INIT'
+
 async function init(modelUrl: string): Promise<void> {
   // Dynamic imports — kept lazy so test environments without the heavyweight
-  // WASM runtime never touch them.
-  const ort = await import(/* @vite-ignore */ 'onnxruntime-web')
-  const transformers = await import(/* @vite-ignore */ '@xenova/transformers')
+  // WASM runtime never touch them. NOTE: do NOT add /* @vite-ignore */ here —
+  // Vite must resolve and code-split these modules so the worker bundle and
+  // the lazily-loaded ort chunk share a single `onnxruntime-common` instance.
+  // Without that, ort's backend registration writes into one module copy and
+  // the consumer reads from another, surfacing as
+  //   "Cannot read properties of undefined (reading 'registerBackend')"
+  // at the first `InferenceSession.create` call.
+  let ort: any
+  let transformers: any
+  try {
+    ort = await import('onnxruntime-web')
+    transformers = await import('@xenova/transformers')
+  } catch (err) {
+    throw new Error(`${ERR_BACKEND_INIT}: ${(err as Error).message ?? String(err)}`)
+  }
+
+  // Point ort at the wasm runtime files copied into `public/ort/` by the
+  // `copyOrtWasmPlugin` in vite.config.ts. Without an explicit wasmPaths,
+  // ort tries to resolve wasm via the importing module's URL — which in a
+  // Vite module-worker context resolves to a hashed asset path that doesn't
+  // host the wasm files, leading to silent fetch failures and the
+  // "registerBackend on undefined" error downstream.
+  if (ort?.env?.wasm) {
+    ort.env.wasm.wasmPaths = '/ort/'
+    // Multi-threaded wasm needs SharedArrayBuffer, which needs COOP/COEP.
+    // The dev server sets those headers (vite.config.ts); fall back to
+    // single-threaded if SAB isn't actually available at runtime.
+    if (typeof SharedArrayBuffer === 'undefined') {
+      ort.env.wasm.numThreads = 1
+    }
+  }
 
   // Configure transformers.js to NOT auto-download models from HF — we serve
   // tokenizer artefacts alongside our ONNX file.
   ;(transformers as any).env.allowRemoteModels = false
   ;(transformers as any).env.localModelPath = new URL('./', modelUrl).toString()
 
-  session = await ort.InferenceSession.create(modelUrl, {
-    executionProviders: ['wasm'],
-    graphOptimizationLevel: 'all',
-  })
+  // Probe the model URL first so we can emit a distinct, friendly error when
+  // the founder has not yet deployed the .onnx file. ort itself would
+  // otherwise throw a generic "failed to load model" that's hard for the UI
+  // to discriminate from a real backend failure.
+  //
+  // Note: Vite's dev server SPA fallback returns 200 + text/html for any
+  // missing route, so a bare status check isn't enough — we sniff the
+  // content-type and require an octet-stream-ish response.
+  try {
+    const head = await fetch(modelUrl, { method: 'HEAD' })
+    const ct = head.headers.get('content-type') ?? ''
+    const isMissing =
+      head.status === 404 ||
+      (head.ok && (ct.startsWith('text/html') || ct.startsWith('text/plain')))
+    if (isMissing) {
+      throw new Error(`${ERR_MODEL_NOT_FOUND}: ${modelUrl}`)
+    }
+  } catch (err) {
+    const msg = (err as Error)?.message ?? String(err)
+    if (msg.startsWith(ERR_MODEL_NOT_FOUND)) throw err
+    // network errors / HEAD-not-allowed: fall through to ort, which will
+    // surface its own diagnostic
+  }
+
+  try {
+    session = await ort.InferenceSession.create(modelUrl, {
+      executionProviders: ['wasm'],
+      graphOptimizationLevel: 'all',
+    })
+  } catch (err) {
+    const msg = (err as Error)?.message ?? String(err)
+    // ort signals model fetch failure with messages mentioning the URL +
+    // "failed to fetch" / a 404 status. Promote those to ERR_MODEL_NOT_FOUND.
+    if (/404|not.?found|failed to fetch/i.test(msg)) {
+      throw new Error(`${ERR_MODEL_NOT_FOUND}: ${modelUrl}`)
+    }
+    throw new Error(`${ERR_BACKEND_INIT}: ${msg}`)
+  }
 
   // Tokenizer name resolution: derive from modelUrl directory.
   const tokenizerDir = new URL('./', modelUrl).toString()

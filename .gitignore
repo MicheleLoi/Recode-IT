@@ -34,3 +34,7 @@ __pycache__/
 
 # Cached models / large binaries
 public/models/*.onnx
+
+# ort wasm runtime — copied at vite buildStart from node_modules
+# (see copyOrtWasmPlugin in vite.config.ts)
+public/ort/

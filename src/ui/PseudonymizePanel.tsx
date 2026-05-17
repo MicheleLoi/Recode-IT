@@ -160,13 +160,27 @@ export function PseudonymizePanel({
     } catch (err) {
       runnerRef.current = null
       setNerStatus('unavailable')
-      setError(
-        'Modello NER non disponibile. La pseudonimizzazione resta attiva ' +
-          'per CF, IBAN, email e altri identificatori strutturati; nomi di ' +
-          'persona, luoghi e organizzazioni potrebbero non essere riconosciuti. ' +
-          'Riprova più tardi o ricarica la pagina. ' +
-          `(Dettaglio tecnico: ${(err as Error).message ?? 'errore sconosciuto'})`,
-      )
+      const rawMsg = (err as Error).message ?? 'errore sconosciuto'
+
+      // The worker tags init failures with a sentinel prefix so the UI can
+      // distinguish "model file not deployed yet" (operational, expected
+      // until founder runs scripts/prepare_gliner_model.md) from "ort/wasm
+      // backend itself failed to load" (technical bug).
+      if (rawMsg.includes('ERR_MODEL_NOT_FOUND')) {
+        setError(
+          'Modello NER non disponibile. La pseudonimizzazione resta attiva ' +
+            'per CF, IBAN, email e altri identificatori strutturati. Per ' +
+            'riconoscere automaticamente nomi di persona, luoghi e ' +
+            'organizzazioni serve il deploy del modello GLiNER ' +
+            '(vedi scripts/prepare_gliner_model.md).',
+        )
+      } else {
+        setError(
+          'Errore tecnico nel caricamento del runtime NER. La ' +
+            'pseudonimizzazione regex resta attiva (CF, IBAN, email, ecc.). ' +
+            `Dettaglio: ${rawMsg.replace(/^ERR_BACKEND_INIT:\s*/, '')}`,
+        )
+      }
     }
 
     runRegexOnly(userFalsePositives, nerDetections)
