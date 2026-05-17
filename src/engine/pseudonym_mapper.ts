@@ -1,0 +1,338 @@
+/**
+ * pseudonym_mapper.ts — port of `PseudonymMapper` from
+ * `MHC-L/gate-local/tools/anonymize.py`.
+ *
+ * Includes the three documented production bug fixes — they are the heart of
+ * the port:
+ *   - A-1 (surname collision): three-tier `getPerson` lookup with the
+ *     `ITALIAN_ARTICLES` carve-out and first-write surname-map registration.
+ *   - A-2 (de cuius exemption): `markSkip` / `_skipSet` consulted before any
+ *     pseudonym allocation; matching names returned unchanged.
+ *   - A-3 (elided title): `TITLE_RE` (imported from stoplist.ts) strips
+ *     `L'Avv.`, `L’Ing.`, `Notaio`, etc. before keying the surname index.
+ *
+ * All keys are lowercase-normalized for case-insensitive lookup. The mapper is
+ * in-RAM only; the surrounding pipeline never persists this state.
+ */
+
+import { ITALIAN_ARTICLES, stripTitle } from './stoplist'
+import { CITY_POOL, COMPANY_POOL, PERSON_POOL, STREET_POOL } from './pools'
+
+export class PseudonymMapper {
+  private readonly personMap = new Map<string, string>()
+  private readonly surnameMap = new Map<string, string>()
+  private readonly companyMap = new Map<string, string>()
+  private readonly companyBase = new Map<string, string>()
+  private readonly cityMap = new Map<string, string>()
+  private readonly streetMap = new Map<string, string>()
+  private readonly courtCityMap = new Map<string, string>()
+  private readonly orgMap = new Map<string, string>()
+  private readonly skipSet = new Set<string>()
+
+  private personIdx = 0
+  private companyIdx = 0
+  private cityIdx = 0
+  private streetIdx = 0
+
+  // -------------------------------------------------------------------------
+  // Internal pool allocators — same overflow pattern as the Python reference
+  // (`{pool[0]}_{idx + 1}` once the pool is exhausted).
+  // -------------------------------------------------------------------------
+
+  private nextPerson(): string {
+    const idx = this.personIdx
+    this.personIdx += 1
+    if (idx < PERSON_POOL.length) return PERSON_POOL[idx] as string
+    return `${PERSON_POOL[0]}_${idx + 1}`
+  }
+
+  private nextCompany(): string {
+    const idx = this.companyIdx
+    this.companyIdx += 1
+    if (idx < COMPANY_POOL.length) return COMPANY_POOL[idx] as string
+    return `${COMPANY_POOL[0]}_${idx + 1}`
+  }
+
+  private nextCity(): string {
+    const idx = this.cityIdx
+    this.cityIdx += 1
+    if (idx < CITY_POOL.length) return CITY_POOL[idx] as string
+    return `${CITY_POOL[0]}_${idx + 1}`
+  }
+
+  private nextStreet(): string {
+    const idx = this.streetIdx
+    this.streetIdx += 1
+    if (idx < STREET_POOL.length) return STREET_POOL[idx] as string
+    return `${STREET_POOL[0]}_${idx + 1}`
+  }
+
+  // -------------------------------------------------------------------------
+  // A-2 — De cuius exemption
+  // -------------------------------------------------------------------------
+
+  /** Mark `name` (whole or partial) as exempt from pseudonymization. */
+  markSkip(name: string): void {
+    this.skipSet.add(name.trim().toLowerCase())
+  }
+
+  /** Read-only view of the skip set — exposed for tests / drift checks. */
+  getSkipSet(): ReadonlySet<string> {
+    return this.skipSet
+  }
+
+  // -------------------------------------------------------------------------
+  // Person allocation — A-1 three-tier lookup (see DESIGN.md §8.3).
+  // -------------------------------------------------------------------------
+
+  private static extractSurname(name: string): string | null {
+    const parts = name.trim().split(/\s+/).filter(Boolean)
+    if (parts.length >= 2) {
+      const last = parts[parts.length - 1]
+      return last ? last.toLowerCase() : null
+    }
+    return null
+  }
+
+  /**
+   * Resolve a person mention to a pseudonym.
+   *
+   * Tier 1 — exact full-name match.
+   * Tier 2 — surname lookup restricted to (a) single-word inputs, or
+   *          (b) 2-word inputs whose first word is an Italian article.
+   * Tier 3 — allocate a fresh pseudonym; register the surname *only on first
+   *          occurrence* (subsequent collisions get their own pseudonym but
+   *          do NOT overwrite the surname index — this is the A-1 fix).
+   *
+   * Names in `_skipSet` are returned unchanged (A-2 exemption).
+   */
+  getPerson(original: string): string {
+    const { title, bare } = stripTitle(original)
+    const key = bare.toLowerCase()
+
+    if (this.skipSet.has(key)) {
+      return original
+    }
+
+    // 1. Exact match
+    if (this.personMap.has(key)) {
+      const pseudo = this.personMap.get(key) as string
+      return title ? `${title} ${pseudo}` : pseudo
+    }
+
+    const words = bare.split(/\s+/).filter(Boolean)
+
+    // 2. Surname lookup — restricted (A-1 fix).
+    if (words.length === 1) {
+      if (this.surnameMap.has(key)) {
+        const pseudo = this.surnameMap.get(key) as string
+        this.personMap.set(key, pseudo)
+        return title ? `${title} ${pseudo}` : pseudo
+      }
+    } else if (
+      words.length === 2 &&
+      ITALIAN_ARTICLES.has((words[0] as string).toLowerCase())
+    ) {
+      const surname = (words[1] as string).toLowerCase()
+      if (this.surnameMap.has(surname)) {
+        const pseudo = this.surnameMap.get(surname) as string
+        this.personMap.set(key, pseudo)
+        return title ? `${title} ${pseudo}` : pseudo
+      }
+    }
+
+    // 3. New person
+    const pseudo = this.nextPerson()
+    this.personMap.set(key, pseudo)
+
+    const surname = PseudonymMapper.extractSurname(bare)
+    if (surname) {
+      if (!this.surnameMap.has(surname)) {
+        this.surnameMap.set(surname, pseudo)
+      }
+    }
+
+    // Single-word input: also seed the surname index under the bare key so
+    // future article-prefixed references coalesce. Mirrors the Python:
+    //     if len(words) == 1 and key not in self._surname_map:
+    //         self._surname_map[key] = pseudo
+    if (words.length === 1 && !this.surnameMap.has(key)) {
+      this.surnameMap.set(key, pseudo)
+    }
+
+    return title ? `${title} ${pseudo}` : pseudo
+  }
+
+  // -------------------------------------------------------------------------
+  // Company allocation
+  // -------------------------------------------------------------------------
+
+  getCompany(original: string): string {
+    const text = original.trim()
+    const suffixRe = /(S\.r\.l\.|S\.p\.A\.|S\.n\.c\.|S\.a\.s\.)\s*$/i
+    const suffixMatch = suffixRe.exec(text)
+    const suffix = suffixMatch ? suffixMatch[0].trim() : ''
+    const base = suffixMatch ? text.slice(0, suffixMatch.index).trim() : text
+    const baseKey = base.toLowerCase()
+
+    if (this.companyBase.has(baseKey)) {
+      const pseudoBase = this.companyBase.get(baseKey) as string
+      const result = suffix ? `${pseudoBase} ${suffix}` : pseudoBase
+      return result
+    }
+
+    const pseudoBase = this.nextCompany()
+    this.companyBase.set(baseKey, pseudoBase)
+    const result = suffix ? `${pseudoBase} ${suffix}` : pseudoBase
+    this.companyMap.set(text.toLowerCase(), result)
+    return result
+  }
+
+  // -------------------------------------------------------------------------
+  // City / street / court / org
+  // -------------------------------------------------------------------------
+
+  getCity(original: string): string {
+    const key = original.trim().toLowerCase()
+    if (!this.cityMap.has(key)) {
+      this.cityMap.set(key, this.nextCity())
+    }
+    return this.cityMap.get(key) as string
+  }
+
+  getStreet(original: string): string {
+    const key = original.trim().toLowerCase()
+    if (!this.streetMap.has(key)) {
+      this.streetMap.set(key, this.nextStreet())
+    }
+    return this.streetMap.get(key) as string
+  }
+
+  private getPseudoCity(realCity: string): string {
+    const key = realCity.trim().toLowerCase()
+    if (!this.courtCityMap.has(key)) {
+      if (this.cityMap.has(key)) {
+        this.courtCityMap.set(key, this.cityMap.get(key) as string)
+      } else {
+        const pseudo = this.nextCity()
+        this.courtCityMap.set(key, pseudo)
+        this.cityMap.set(key, pseudo)
+      }
+    }
+    return this.courtCityMap.get(key) as string
+  }
+
+  getCourt(original: string): string {
+    const text = original.trim()
+    const cityRe = /(?:Tribunale\s+(?:Ordinario\s+)?di\s+|Foro\s+di\s+)(.+)$/i
+    const cityMatch = cityRe.exec(text)
+    if (cityMatch && cityMatch[1]) {
+      const realCity = cityMatch[1].trim()
+      const pseudoCity = this.getPseudoCity(realCity)
+      if (/^foro\s+di/i.test(text)) {
+        return `Foro di ${pseudoCity}`
+      }
+      return `Tribunale Ordinario di ${pseudoCity}`
+    }
+    if (/^sezione\s+/i.test(text)) return text
+    if (/tribunale\s+adito/i.test(text)) return text
+    return `Tribunale di ${this.getPseudoCity('unknown')}`
+  }
+
+  getOrg(original: string): string {
+    const text = original.trim()
+    const key = text.toLowerCase()
+    if (this.orgMap.has(key)) return this.orgMap.get(key) as string
+
+    let city = ''
+    const cityMatch = /\bdi\s+(\w[\w\s]*)$/i.exec(text)
+    if (cityMatch && cityMatch[1]) city = cityMatch[1].trim()
+
+    const pseudoCity = city
+      ? this.getPseudoCity(city)
+      : this.getPseudoCity('sede')
+
+    let result: string
+    if (
+      /ordine\s+(?:degli\s+)?(?:ingegneri|avvocati|architetti|geometri)/i.test(
+        text,
+      )
+    ) {
+      result = `Ordine Professionale di ${pseudoCity}`
+    } else if (/camera\s+di\s+commercio/i.test(text)) {
+      result = `Camera di Commercio di ${pseudoCity}`
+    } else if (/organismo\s+di\s+mediazione/i.test(text)) {
+      result = `Organismo di Mediazione di ${pseudoCity}`
+    } else if (/agenzia\s+delle\s+entrate/i.test(text)) {
+      result = `Agenzia delle Entrate di ${pseudoCity}`
+    } else if (/arpa/i.test(text)) {
+      result = `ARPA ${pseudoCity}`
+    } else if (/(banca|sanpaolo|credito|intesa)/i.test(text)) {
+      result = `Banca di Credito di ${pseudoCity}`
+    } else {
+      if (this.companyBase.has(key)) {
+        result = this.companyBase.get(key) as string
+      } else {
+        let assigned: string | null = null
+        for (const [compKey, compPseudo] of this.companyBase.entries()) {
+          if (compKey.includes(key) || key.includes(compKey)) {
+            this.orgMap.set(key, compPseudo)
+            assigned = compPseudo
+            break
+          }
+        }
+        if (assigned) return assigned
+        result = `Ente di ${pseudoCity}`
+      }
+    }
+
+    this.orgMap.set(key, result)
+    return result
+  }
+
+  // -------------------------------------------------------------------------
+  // Inspection helpers — used by tests and the drift-detection layer.
+  // -------------------------------------------------------------------------
+
+  /** Read-only view of personMap (lowercased full-name → pseudonym). */
+  getPersonMap(): ReadonlyMap<string, string> {
+    return this.personMap
+  }
+
+  /** Read-only view of surnameMap (lowercased surname → pseudonym). */
+  getSurnameMap(): ReadonlyMap<string, string> {
+    return this.surnameMap
+  }
+
+  /** Read-only view of cityMap (lowercased city → pseudonym). */
+  getCityMap(): ReadonlyMap<string, string> {
+    return this.cityMap
+  }
+
+  /** Read-only view of companyBase (lowercased base → pseudonym). */
+  getCompanyBase(): ReadonlyMap<string, string> {
+    return this.companyBase
+  }
+
+  /**
+   * Return any pseudonym mapped to more than one distinct full-name key in
+   * `_personMap`. Shape: `Map<pseudonym, fullNames[]>`. An empty map means no
+   * collisions — the post-fix state required by the MHC-L regression suite.
+   */
+  detectCollisions(): Map<string, string[]> {
+    const inverse = new Map<string, string[]>()
+    for (const [key, pseudo] of this.personMap.entries()) {
+      const list = inverse.get(pseudo)
+      if (list) {
+        list.push(key)
+      } else {
+        inverse.set(pseudo, [key])
+      }
+    }
+    const collisions = new Map<string, string[]>()
+    for (const [pseudo, names] of inverse.entries()) {
+      if (names.length > 1) collisions.set(pseudo, names)
+    }
+    return collisions
+  }
+}

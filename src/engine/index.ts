@@ -1,18 +1,41 @@
 /**
- * Engine package entrypoint.
+ * Engine package entrypoint — Phase 1.
  *
- * Phase 0 ships only a trivial placeholder so the build pipeline and Vitest
- * have something to compile and exercise. Phase 1 will replace this with the
- * TypeScript port of `MHC-L/gate-local/tools/anonymize.py` plus the regression
- * suite covering bug fixes A-1 / A-2 / A-3 (see IMPLEMENTATION_PLAN.md §Phase 1).
+ * Phase 1 delivers the TypeScript port of `MHC-L/gate-local/tools/anonymize.py`
+ * (regex layer + PseudonymMapper with A-1 / A-2 / A-3 fixes) and the recode
+ * primitive from `recode_gui.py`. NER lives in Phase 4 — `anonymize` accepts a
+ * forward-compatible `nerDetections` option that is ignored here.
  */
 
-export const ENGINE_VERSION = '0.1.0-phase0'
+export const ENGINE_VERSION = '0.1.0-phase1'
 
-/**
- * Placeholder helper — exists solely so Vitest has a real symbol to test in
- * Phase 0. Do not build on top of this; it disappears in Phase 1.
- */
-export function engineGreeting(name: string): string {
-  return `recode-it engine ${ENGINE_VERSION} ready (hello ${name})`
-}
+export { anonymize } from './engine'
+export { recodeText } from './recode'
+export { applyRegexRules, REGEX_RULES } from './regex'
+export {
+  DE_CUIUS_RE,
+  FALSE_POSITIVE_PATTERNS,
+  findDeCuiusNames,
+  isStoplist,
+  ITALIAN_ARTICLES,
+  LEGAL_STOPLIST,
+  stripTitle,
+  TITLE_RE,
+} from './stoplist'
+export {
+  CITY_POOL,
+  COMPANY_POOL,
+  PERSON_POOL,
+  STREET_POOL,
+  VOCAB_RAW,
+} from './pools'
+export { PseudonymMapper } from './pseudonym_mapper'
+export { VocabAllocator, VOCAB_CATEGORIES } from './vocab'
+export type { VocabCategory } from './vocab'
+export type {
+  AnonymizeOptions,
+  AnonymizeResult,
+  MappingEntry,
+  NerDetection,
+  RegexDetection,
+} from '../types/engine'

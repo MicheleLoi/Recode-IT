@@ -1,0 +1,18 @@
+{
+  "language": "it",
+  "persona": [
+    "Tizio", "Caia", "Sempronio", "Mevio", "Filano",
+    "Calpurnio", "Cornelia", "Numerio", "Lucio", "Servilia",
+    "Tullio", "Attilia", "Porzia", "Decio", "Flavio", "Valeria"
+  ],
+  "luogo": [
+    "Borgopiano", "Colleverde", "Vallesecca", "Fontebuona",
+    "Casanova", "Montenero", "Campochiaro", "Rivalta",
+    "Villarosa", "Metropoli", "Pietralunga", "Serravalle"
+  ],
+  "organizzazione": [
+    "Alfa", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta"
+  ],
+  "data": null,
+  "identificativo": null
+}
