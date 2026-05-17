@@ -1,0 +1,285 @@
+{
+  "source": "doc_00_appalto_edilizio.md",
+  "pipeline_version": "anonymize.py@0a4c5e0",
+  "person_map": {
+    "marco ferrari": "Tizio",
+    "giulia romano": "Caio",
+    "paolo bianchi": "Sempronio",
+    "": "Mevio",
+    "cliente": "Filano",
+    "controparte": "Calpurnio",
+    "ferrari": "Tizio",
+    "romano": "Caio",
+    "bianchi": "Sempronio"
+  },
+  "surname_map": {
+    "ferrari": "Tizio",
+    "romano": "Caio",
+    "bianchi": "Sempronio",
+    "cliente": "Filano",
+    "controparte": "Calpurnio"
+  },
+  "skip_set": [],
+  "collisions": {
+    "Tizio": [
+      "ferrari",
+      "marco ferrari"
+    ],
+    "Caio": [
+      "giulia romano",
+      "romano"
+    ],
+    "Sempronio": [
+      "bianchi",
+      "paolo bianchi"
+    ]
+  },
+  "regex_substitutions": [
+    {
+      "pattern": "CF",
+      "count": 4
+    },
+    {
+      "pattern": "IBAN",
+      "count": 2
+    },
+    {
+      "pattern": "P.IVA",
+      "count": 2
+    }
+  ],
+  "ner_entities": [
+    {
+      "start": 182,
+      "end": 186,
+      "label": "avvocato",
+      "text": "avv.",
+      "score": 0.743
+    },
+    {
+      "start": 189,
+      "end": 196,
+      "label": "persona",
+      "text": "cliente",
+      "score": 0.704
+    },
+    {
+      "start": 199,
+      "end": 210,
+      "label": "persona",
+      "text": "controparte",
+      "score": 0.6
+    },
+    {
+      "start": 292,
+      "end": 305,
+      "label": "persona",
+      "text": "Marco Ferrari",
+      "score": 0.986
+    },
+    {
+      "start": 349,
+      "end": 356,
+      "label": "persona",
+      "text": "Ferrari",
+      "score": 0.454
+    },
+    {
+      "start": 376,
+      "end": 389,
+      "label": "persona",
+      "text": "Giulia Romano",
+      "score": 0.989
+    },
+    {
+      "start": 431,
+      "end": 437,
+      "label": "persona",
+      "text": "Romano",
+      "score": 0.488
+    },
+    {
+      "start": 457,
+      "end": 463,
+      "label": "persona",
+      "text": "Romano",
+      "score": 0.498
+    },
+    {
+      "start": 469,
+      "end": 482,
+      "label": "persona",
+      "text": "Paolo Bianchi",
+      "score": 0.986
+    },
+    {
+      "start": 561,
+      "end": 591,
+      "label": "organizzazione",
+      "text": "Costruzioni Meridionali S.r.l.",
+      "score": 0.913
+    },
+    {
+      "start": 1023,
+      "end": 1042,
+      "label": "tribunale",
+      "text": "Tribunale di Torino",
+      "score": 0.91
+    },
+    {
+      "start": 1045,
+      "end": 1062,
+      "label": "tribunale",
+      "text": "Sezione II Civile",
+      "score": 0.789
+    },
+    {
+      "start": 1066,
+      "end": 1084,
+      "label": "avvocato",
+      "text": "Avv. Marco Ferrari",
+      "score": 0.676
+    },
+    {
+      "start": 1110,
+      "end": 1116,
+      "label": "luogo",
+      "text": "Torino",
+      "score": 0.8
+    },
+    {
+      "start": 1132,
+      "end": 1148,
+      "label": "luogo",
+      "text": "Via Garibaldi 12",
+      "score": 0.923
+    },
+    {
+      "start": 1150,
+      "end": 1156,
+      "label": "luogo",
+      "text": "Torino",
+      "score": 0.922
+    },
+    {
+      "start": 1173,
+      "end": 1186,
+      "label": "persona",
+      "text": "Giulia Romano",
+      "score": 0.979
+    },
+    {
+      "start": 1207,
+      "end": 1213,
+      "label": "luogo",
+      "text": "Milano",
+      "score": 0.61
+    },
+    {
+      "start": 1246,
+      "end": 1259,
+      "label": "luogo",
+      "text": "Via Mazzini 5",
+      "score": 0.92
+    },
+    {
+      "start": 1261,
+      "end": 1267,
+      "label": "luogo",
+      "text": "Genova",
+      "score": 0.848
+    },
+    {
+      "start": 1308,
+      "end": 1338,
+      "label": "organizzazione",
+      "text": "Costruzioni Meridionali S.r.l.",
+      "score": 0.857
+    },
+    {
+      "start": 1368,
+      "end": 1379,
+      "label": "luogo",
+      "text": "Via Roma 10",
+      "score": 0.921
+    },
+    {
+      "start": 1381,
+      "end": 1387,
+      "label": "luogo",
+      "text": "Torino",
+      "score": 0.933
+    },
+    {
+      "start": 1431,
+      "end": 1444,
+      "label": "persona",
+      "text": "Paolo Bianchi",
+      "score": 0.645
+    },
+    {
+      "start": 1528,
+      "end": 1558,
+      "label": "organizzazione",
+      "text": "Costruzioni Meridionali S.r.l.",
+      "score": 0.778
+    },
+    {
+      "start": 1660,
+      "end": 1667,
+      "label": "persona",
+      "text": "Ferrari",
+      "score": 0.888
+    },
+    {
+      "start": 1688,
+      "end": 1694,
+      "label": "persona",
+      "text": "Romano",
+      "score": 0.966
+    },
+    {
+      "start": 1718,
+      "end": 1741,
+      "label": "organizzazione",
+      "text": "Costruzioni Meridionali",
+      "score": 0.968
+    },
+    {
+      "start": 1833,
+      "end": 1840,
+      "label": "persona",
+      "text": "Bianchi",
+      "score": 0.92
+    },
+    {
+      "start": 1910,
+      "end": 1933,
+      "label": "organizzazione",
+      "text": "Costruzioni Meridionali",
+      "score": 0.964
+    },
+    {
+      "start": 2056,
+      "end": 2075,
+      "label": "tribunale",
+      "text": "Tribunale di Torino",
+      "score": 0.968
+    },
+    {
+      "start": 2085,
+      "end": 2108,
+      "label": "organizzazione",
+      "text": "Costruzioni Meridionali",
+      "score": 0.818
+    },
+    {
+      "start": 2163,
+      "end": 2169,
+      "label": "persona",
+      "text": "Romano",
+      "score": 0.968
+    }
+  ],
+  "pseudonymized_text": "# Atto di Citazione — Appalto Edilizio\n\n**Tipo documento:** Atto di citazione  \n**Usato in:** `test_full_pipeline.py` (smoke test pipeline completa)  \n**Entity pattern:** 3 persone (avv. Mevio + Filano + Calpurnio), 1 azienda S.r.l., 4 città, CF × 2, P.IVA, IBAN\n\n<!-- GROUND TRUTH\nPersone:\n  - Tizio (avvocato)     → test: \"Avv. Ferrari\", \"il Tizio\", \"Il Ferrari\"\n  - Caio (parte attrice) → test: \"Romano\", \"della Caio\", \"in favore della Caio\"\n  - Sempronio (controparte)   → test: \"Bianchi\", \"sig. Bianchi\", \"del Bianchi\"\nAziende:\n  - Alfa S.r.l. → test: con/senza suffisso S.r.l.\nCodici da anonimizzare (regex):\n  - CF: <DS>, <DS>\n  - P.IVA: <P.IVA>\n  - IBAN: <IBAN>\nDa preservare:\n  - Date: 15 agosto 1985, 15 gennaio 2025, 10 luglio 2025, 5 agosto 2025\n  - Importi: Euro 3.500,00 / 21.000,00 / 7.000,00 / 14.000,00\n  - Articolo: art. 1284 c.c.\nEdge case: surname-only refs (\"Romano\", \"Ferrari\", \"Bianchi\") dopo prima intro completa\n-->\n\n---\n\n## Documento\n\nATTO DI CITAZIONE\n\nTribunale Ordinario di Borgo Antico — Sezione II Civile\n\nL'Avv. Tizio (C.F. <DS>), del Foro di Borgo Antico,\ncon studio in Via del Sole 8, Borgo Antico, difensore di:\n\nCaio (C.F. <DS>), nata a Campochiaro il 15 agosto 1985,\nresidente in Corso della Liberta' 22, Villarosa,\n\n— di seguito \"parte attrice\" —\n\nCITA\n\nAlfa S.r.l. (P.IVA <P.IVA>), con sede in Via dei Fiori 1,\nBorgo Antico, in persona del legale rappresentante sig. Sempronio,\n\n— di seguito \"parte convenuta\" —\n\nIN FATTO\n\n1. In data 15 gennaio 2025, Romano e Alfa S.r.l. stipulavano\n   un contratto di locazione commerciale per un importo di Euro 3.500,00 mensili.\n\n2. Il Tizio, quale difensore di Caio, diffidava formalmente Alfa\n   a pagare il canone arretrato di Euro 21.000,00 con raccomandata del 10 luglio 2025.\n\n3. Sempronio, in rappresentanza della convenuta, rispondeva negativamente.\n\n4. La Alfa versò un acconto di Euro 7.000,00 tramite\n   bonifico (IBAN <IBAN>) in data 5 agosto 2025.\n\nCONCLUSIONI\n\nSi chiede che il Tribunale Ordinario di Borgo Antico condanni Alfa S.r.l. al pagamento\ndi Euro 14.000,00 in favore della Caio, oltre interessi ex art. 1284 c.c.\n"
+}

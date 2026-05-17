@@ -1,0 +1,7 @@
+node_modules
+dist
+# Phase 3 work-in-progress — auth + backend, not Phase 4 scope.
+src/api
+src/auth
+src/ui/auth
+backend

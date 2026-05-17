@@ -1,0 +1,228 @@
+{
+  "source": "doc_A_fendipista.md",
+  "pipeline_version": "anonymize.py@0a4c5e0",
+  "person_map": {
+    "vittima donna": "Tizio",
+    "sciatore straniero": "Caio",
+    "giorgio pellizzon": "Sempronio",
+    "silvana oberti": "Mevio",
+    "marco fuentes": "Filano",
+    "la oberti": "Mevio",
+    "pellizzon": "Sempronio",
+    "ctu": "Calpurnio",
+    "fuentes": "Filano",
+    "oberti": "Mevio"
+  },
+  "surname_map": {
+    "donna": "Tizio",
+    "straniero": "Caio",
+    "pellizzon": "Sempronio",
+    "oberti": "Mevio",
+    "fuentes": "Filano",
+    "ctu": "Calpurnio"
+  },
+  "skip_set": [],
+  "collisions": {
+    "Sempronio": [
+      "giorgio pellizzon",
+      "pellizzon"
+    ],
+    "Mevio": [
+      "la oberti",
+      "oberti",
+      "silvana oberti"
+    ],
+    "Filano": [
+      "fuentes",
+      "marco fuentes"
+    ]
+  },
+  "regex_substitutions": [
+    {
+      "pattern": "CF",
+      "count": 6
+    },
+    {
+      "pattern": "P.IVA",
+      "count": 2
+    }
+  ],
+  "ner_entities": [
+    {
+      "start": 43,
+      "end": 53,
+      "label": "luogo",
+      "text": "Fendipista",
+      "score": 0.718
+    },
+    {
+      "start": 201,
+      "end": 204,
+      "label": "persona",
+      "text": "CTU",
+      "score": 0.724
+    },
+    {
+      "start": 207,
+      "end": 220,
+      "label": "persona",
+      "text": "vittima donna",
+      "score": 0.713
+    },
+    {
+      "start": 223,
+      "end": 241,
+      "label": "persona",
+      "text": "sciatore straniero",
+      "score": 0.702
+    },
+    {
+      "start": 254,
+      "end": 260,
+      "label": "organizzazione",
+      "text": "S.p.A.",
+      "score": 0.753
+    },
+    {
+      "start": 308,
+      "end": 325,
+      "label": "persona",
+      "text": "Giorgio Pellizzon",
+      "score": 0.985
+    },
+    {
+      "start": 411,
+      "end": 425,
+      "label": "persona",
+      "text": "Silvana Oberti",
+      "score": 0.983
+    },
+    {
+      "start": 603,
+      "end": 616,
+      "label": "persona",
+      "text": "Marco Fuentes",
+      "score": 0.98
+    },
+    {
+      "start": 751,
+      "end": 757,
+      "label": "organizzazione",
+      "text": "S.p.A.",
+      "score": 0.8
+    },
+    {
+      "start": 1228,
+      "end": 1234,
+      "label": "organizzazione",
+      "text": "S.p.A.",
+      "score": 0.763
+    },
+    {
+      "start": 1463,
+      "end": 1483,
+      "label": "tribunale",
+      "text": "Tribunale di Belluno",
+      "score": 0.882
+    },
+    {
+      "start": 1505,
+      "end": 1528,
+      "label": "avvocato",
+      "text": "Dott. Giorgio Pellizzon",
+      "score": 0.889
+    },
+    {
+      "start": 1641,
+      "end": 1655,
+      "label": "persona",
+      "text": "Silvana Oberti",
+      "score": 0.967
+    },
+    {
+      "start": 1676,
+      "end": 1683,
+      "label": "luogo",
+      "text": "Bolzano",
+      "score": 0.88
+    },
+    {
+      "start": 1776,
+      "end": 1783,
+      "label": "luogo",
+      "text": "Cortina",
+      "score": 0.868
+    },
+    {
+      "start": 1796,
+      "end": 1828,
+      "label": "organizzazione",
+      "text": "Impianti Alpini Bellunesi S.p.A.",
+      "score": 0.954
+    },
+    {
+      "start": 1872,
+      "end": 1885,
+      "label": "persona",
+      "text": "Marco Fuentes",
+      "score": 0.966
+    },
+    {
+      "start": 1906,
+      "end": 1912,
+      "label": "luogo",
+      "text": "Madrid",
+      "score": 0.774
+    },
+    {
+      "start": 1990,
+      "end": 1998,
+      "label": "organizzazione",
+      "text": "RC terzi",
+      "score": 0.759
+    },
+    {
+      "start": 2001,
+      "end": 2010,
+      "label": "persona",
+      "text": "La Oberti",
+      "score": 0.871
+    },
+    {
+      "start": 2140,
+      "end": 2147,
+      "label": "persona",
+      "text": "Fuentes",
+      "score": 0.721
+    },
+    {
+      "start": 2286,
+      "end": 2301,
+      "label": "persona",
+      "text": "Dott. Pellizzon",
+      "score": 0.855
+    },
+    {
+      "start": 2327,
+      "end": 2333,
+      "label": "persona",
+      "text": "Oberti",
+      "score": 0.804
+    },
+    {
+      "start": 2507,
+      "end": 2514,
+      "label": "persona",
+      "text": "Fuentes",
+      "score": 0.725
+    },
+    {
+      "start": 2532,
+      "end": 2564,
+      "label": "organizzazione",
+      "text": "Impianti Alpini Bellunesi S.p.A.",
+      "score": 0.944
+    }
+  ],
+  "pseudonymized_text": "# Perizia e Ricorso — Incidente Sciistico (Rivalta)\n\n**Tipo documento:** Perizia medico-legale + ricorso per risarcimento  \n**Usato in:** `test_drift.py` scenario A  \n**Entity pattern:** 3 persone (Calpurnio + Tizio + Caio), 1 azienda Alfa S.p.A., CF × 3, P.IVA\n\n<!-- GROUND TRUTH\nPersone:\n  - Sempronio (CTU / medico legale) → test: \"Dott. Pellizzon\", \"il Pellizzon\", \"del Pellizzon\"\n  - Mevio (vittima, donna)          → test: \"la Oberti\", \"dalla Oberti\", \"della Oberti\"\n                                                      articoli FEMMINILI — stress test critico\n  - Filano (sciatore, cognome straniero) → test: \"il Fuentes\", \"del Fuentes\", NER su cognome non italiano\nAziende:\n  - Impianti Alpini Bellunesi Alfa S.p.A.         → test: nome lungo, suffisso S.p.A. (non S.r.l.)\nCodici da anonimizzare (regex):\n  - CF: <DS>, <DS>, <DS>\n  - P.IVA: <P.IVA>\nDa preservare:\n  - Date: 1 febbraio 1978, 1 maggio 1985, 15 gennaio 2025\n  - Importi: Euro 87.400,00 / 124.000,00 / 211.400,00\n  - Percentuali: 18%, 60%, 40%\nEdge case:\n  - Articoli femminili: \"la Oberti\", \"dalla Oberti\" (NER e recode devono ignorare il genere grammaticale)\n  - Cognome straniero \"Fuentes\": verifica rilevamento NER\n  - Alfa S.p.A. invece di S.r.l.: verifica regex suffisso nelle misure\n  - Responsabilità ripartita: più soggetti con percentuali → non anonimizzare le percentuali\n-->\n\n---\n\n## Documento\n\nPERIZIA MEDICO-LEGALE E RICORSO PER RISARCIMENTO DANNI\n\nTribunale Ordinario di Fontebuona — Sezione Civile\n\nIl Dott. Sempronio (C.F. <DS>), medico legale iscritto\nall'Ordine di Venezia, nominato CTU dal Tribunale, certifica quanto segue.\n\nMevio (C.F. <DS>), nata a Campochiaro il 1 febbraio 1978,\nha riportato frattura scomposta del femore destro sulle piste da sci di\nVillarosa, gestite da Beta S.p.A. (P.IVA <P.IVA>),\nin data 15 gennaio 2025.\n\nFilano (C.F. <DS>), nato a Borgo Antico il 1 maggio 1985,\nsciatore responsabile del sinistro, risulta assicurato per Alfa.\n\nMevio ha riportato: frattura del femore destro, trauma cranico lieve,\nprognosi di 180 giorni con postumi permanenti stimati al 18%.\nIl Filano ha dichiarato di procedere a velocita' moderata al momento\ndell'impatto, dichiarazione confutata dalla testimonianza di tre presenti.\n\nIl Dott. Sempronio quantifica i danni della Mevio in Euro 87.400,00 per\ninvalidita' temporanea e in Euro 124.000,00 per invalidita' permanente,\ntotale Euro 211.400,00. La responsabilita' risulta ripartita: 60% a carico\ndel Filano, 40% a carico di Beta S.p.A. per carenze\nnella sorveglianza delle piste.\n"
+}

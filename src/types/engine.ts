@@ -55,4 +55,14 @@ export type AnonymizeResult = {
   skipSet: Set<string>
   /** Count of substitutions per regex category. */
   regexSubstitutionCounts: Record<string, number>
+  /**
+   * Snapshot of the internal `PseudonymMapper._personMap` after the run.
+   * Lowercased full-name → pseudonym. Exposed for the Phase 4 equivalence
+   * harness; not consumed by the UI.
+   */
+  personMap: Map<string, string>
+  /**
+   * Snapshot of `PseudonymMapper._surnameMap`. Lowercased surname → pseudonym.
+   */
+  surnameMap: Map<string, string>
 }

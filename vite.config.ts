@@ -19,6 +19,16 @@ export default defineConfig({
   define: {
     __GIT_SHA__: JSON.stringify(getGitSha()),
   },
+  // The GLiNER worker dynamically imports onnxruntime-web + Transformers.js;
+  // those are code-split chunks, which requires ES (not IIFE) workers.
+  worker: {
+    format: 'es',
+  },
+  // Exclude the heavy WASM-backed modules from Vite's optimizeDeps scan: they
+  // are loaded only inside the worker via dynamic import.
+  optimizeDeps: {
+    exclude: ['onnxruntime-web', '@xenova/transformers'],
+  },
   server: {
     headers: {
       // COOP/COEP required for SharedArrayBuffer (multi-threaded WASM in later phases).

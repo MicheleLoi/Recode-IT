@@ -8,9 +8,10 @@
  * disabled placeholder until Phase 3 (auth + server-side encrypted storage).
  */
 
-import { useCallback, useRef, useState, type DragEvent, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type DragEvent, type ChangeEvent } from 'react'
 import { anonymize } from '../engine/engine'
-import type { MappingEntry } from '../types/engine'
+import { GlinerRunner } from '../engine/gliner_runner'
+import type { MappingEntry, NerDetection } from '../types/engine'
 import { EntityReviewList } from './EntityReviewList'
 import type { ReviewEntity, SwitchableCategory } from './types'
 
@@ -45,7 +46,18 @@ export function PseudonymizePanel({
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle')
+  const [nerStatus, setNerStatus] = useState<'idle' | 'loading' | 'running' | 'unavailable'>(
+    'idle',
+  )
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const runnerRef = useRef<GlinerRunner | null>(null)
+
+  useEffect(() => {
+    return () => {
+      runnerRef.current?.terminate()
+      runnerRef.current = null
+    }
+  }, [])
 
   const handleFiles = useCallback(
     async (files: FileList | null) => {
@@ -97,26 +109,68 @@ export function PseudonymizePanel({
     void handleFiles(e.target.files)
   }
 
-  const handlePseudonymize = () => {
+  /** Run anonymize() and push the result up. Pure sync — no NER. */
+  const runRegexOnly = useCallback(
+    (userFalsePositives: Set<string>, nerDetections?: NerDetection[]) => {
+      const result = anonymize(originalText, { userFalsePositives, nerDetections })
+      onResult({
+        originalText,
+        pseudonymizedText: result.pseudonymizedText,
+        mapping: result.mappingEntries,
+      })
+    },
+    [originalText, onResult],
+  )
+
+  const handlePseudonymize = async () => {
     setError(null)
     if (!originalText.trim()) {
       setError('Inserisci del testo o trascina un file prima di pseudonimizzare.')
       return
     }
-    // Phase 2: collect false positives across runs so the user's decisions
-    // stick. The engine accepts this option even though regex-only mode
-    // doesn't yet wire it up — Phase 4 GLiNER will honor it.
     const userFalsePositives = new Set(
       entities
         .filter((e) => e.status === 'falsePositive')
         .map((e) => e.realValue),
     )
-    const result = anonymize(originalText, { userFalsePositives })
-    onResult({
-      originalText,
-      pseudonymizedText: result.pseudonymizedText,
-      mapping: result.mappingEntries,
-    })
+
+    // Fast path — environments without a real Worker (jsdom / SSR / very old
+    // browsers): immediate regex-only pseudonymization, no spinner, no error.
+    // The UI still shows the regex masks (`<DS>`, `<IBAN>`, …) which is the
+    // Phase 2 contract.
+    const workerSupported =
+      typeof Worker !== 'undefined' && nerStatus !== 'unavailable'
+
+    if (!workerSupported) {
+      runRegexOnly(userFalsePositives)
+      return
+    }
+
+    // Phase 4 path: try to load GLiNER (lazy — first click only). On failure,
+    // gracefully degrade to regex-only with a forensic-sober notice.
+    let nerDetections: NerDetection[] | undefined
+    try {
+      if (!runnerRef.current) {
+        setNerStatus('loading')
+        runnerRef.current = new GlinerRunner()
+        await runnerRef.current.init()
+      }
+      setNerStatus('running')
+      nerDetections = await runnerRef.current.predict(originalText)
+    } catch (err) {
+      runnerRef.current = null
+      setNerStatus('unavailable')
+      setError(
+        'Modello NER non disponibile. La pseudonimizzazione resta attiva ' +
+          'per CF, IBAN, email e altri identificatori strutturati; nomi di ' +
+          'persona, luoghi e organizzazioni potrebbero non essere riconosciuti. ' +
+          'Riprova più tardi o ricarica la pagina. ' +
+          `(Dettaglio tecnico: ${(err as Error).message ?? 'errore sconosciuto'})`,
+      )
+    }
+
+    runRegexOnly(userFalsePositives, nerDetections)
+    if (nerStatus === 'running') setNerStatus('idle')
   }
 
   const handleCopy = async () => {
@@ -187,10 +241,17 @@ export function PseudonymizePanel({
         <button
           type="button"
           className="btn btn--primary"
-          onClick={handlePseudonymize}
+          onClick={() => {
+            void handlePseudonymize()
+          }}
+          disabled={nerStatus === 'loading' || nerStatus === 'running'}
           data-testid="pseudonymize-btn"
         >
-          Pseudonimizza
+          {nerStatus === 'loading'
+            ? 'Caricamento modello NER…'
+            : nerStatus === 'running'
+              ? 'Riconoscimento entità in corso…'
+              : 'Pseudonimizza'}
         </button>
         <button
           type="button"
@@ -210,6 +271,14 @@ export function PseudonymizePanel({
           Salva mapping
         </button>
       </div>
+
+      {(nerStatus === 'loading' || nerStatus === 'running') && (
+        <div className="ner-status" role="status" data-testid="ner-status">
+          {nerStatus === 'loading'
+            ? 'Caricamento del modello NER (può richiedere 5-10 secondi al primo avvio).'
+            : 'Riconoscimento entità in corso…'}
+        </div>
+      )}
 
       {error && (
         <div className="error" role="alert" data-testid="pseudo-error">

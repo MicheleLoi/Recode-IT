@@ -1,0 +1,235 @@
+{
+  "source": "doc_B_eredita.md",
+  "pipeline_version": "anonymize.py@0a4c5e0",
+  "person_map": {
+    "rossella amadori": "Tizio",
+    "erminia vanzetti": "Caio",
+    "tarcisio vanzetti": "Sempronio",
+    "carlo brambilla": "Mevio",
+    "amadori": "Tizio",
+    "brambilla": "Mevio"
+  },
+  "surname_map": {
+    "amadori": "Tizio",
+    "vanzetti": "Caio",
+    "brambilla": "Mevio"
+  },
+  "skip_set": [
+    "arturo vanzetti"
+  ],
+  "collisions": {
+    "Tizio": [
+      "amadori",
+      "rossella amadori"
+    ],
+    "Mevio": [
+      "brambilla",
+      "carlo brambilla"
+    ]
+  },
+  "regex_substitutions": [
+    {
+      "pattern": "CF",
+      "count": 8
+    }
+  ],
+  "ner_entities": [
+    {
+      "start": 299,
+      "end": 315,
+      "label": "persona",
+      "text": "Rossella Amadori",
+      "score": 0.975
+    },
+    {
+      "start": 392,
+      "end": 408,
+      "label": "persona",
+      "text": "Erminia Vanzetti",
+      "score": 0.987
+    },
+    {
+      "start": 475,
+      "end": 492,
+      "label": "persona",
+      "text": "Tarcisio Vanzetti",
+      "score": 0.975
+    },
+    {
+      "start": 515,
+      "end": 524,
+      "label": "organizzazione",
+      "text": "EDGE CASE",
+      "score": 0.811
+    },
+    {
+      "start": 544,
+      "end": 560,
+      "label": "persona",
+      "text": "Erminia Vanzetti",
+      "score": 0.935
+    },
+    {
+      "start": 722,
+      "end": 737,
+      "label": "persona",
+      "text": "Carlo Brambilla",
+      "score": 0.963
+    },
+    {
+      "start": 856,
+      "end": 871,
+      "label": "persona",
+      "text": "Arturo Vanzetti",
+      "score": 0.711
+    },
+    {
+      "start": 920,
+      "end": 923,
+      "label": "organizzazione",
+      "text": "NER",
+      "score": 0.709
+    },
+    {
+      "start": 1441,
+      "end": 1456,
+      "label": "persona",
+      "text": "Arturo Vanzetti",
+      "score": 0.695
+    },
+    {
+      "start": 1480,
+      "end": 1483,
+      "label": "organizzazione",
+      "text": "NER",
+      "score": 0.664
+    },
+    {
+      "start": 1690,
+      "end": 1709,
+      "label": "tribunale",
+      "text": "Tribunale di Milano",
+      "score": 0.855
+    },
+    {
+      "start": 1740,
+      "end": 1756,
+      "label": "avvocato",
+      "text": "Rossella Amadori",
+      "score": 0.801
+    },
+    {
+      "start": 1782,
+      "end": 1788,
+      "label": "luogo",
+      "text": "Milano",
+      "score": 0.796
+    },
+    {
+      "start": 1805,
+      "end": 1821,
+      "label": "persona",
+      "text": "Erminia Vanzetti",
+      "score": 0.979
+    },
+    {
+      "start": 1842,
+      "end": 1847,
+      "label": "luogo",
+      "text": "Lecco",
+      "score": 0.858
+    },
+    {
+      "start": 1886,
+      "end": 1901,
+      "label": "persona",
+      "text": "Arturo Vanzetti",
+      "score": 0.862
+    },
+    {
+      "start": 1969,
+      "end": 1986,
+      "label": "persona",
+      "text": "Tarcisio Vanzetti",
+      "score": 0.976
+    },
+    {
+      "start": 2007,
+      "end": 2013,
+      "label": "luogo",
+      "text": "Milano",
+      "score": 0.822
+    },
+    {
+      "start": 2344,
+      "end": 2361,
+      "label": "persona",
+      "text": "Tarcisio Vanzetti",
+      "score": 0.967
+    },
+    {
+      "start": 2387,
+      "end": 2403,
+      "label": "persona",
+      "text": "Erminia Vanzetti",
+      "score": 0.976
+    },
+    {
+      "start": 2409,
+      "end": 2423,
+      "label": "persona",
+      "text": "L'Avv. Amadori",
+      "score": 0.828
+    },
+    {
+      "start": 2461,
+      "end": 2476,
+      "label": "persona",
+      "text": "Arturo Vanzetti",
+      "score": 0.747
+    },
+    {
+      "start": 2565,
+      "end": 2581,
+      "label": "avvocato",
+      "text": "Notaio Brambilla",
+      "score": 0.824
+    },
+    {
+      "start": 2601,
+      "end": 2613,
+      "label": "avvocato",
+      "text": "Avv. Amadori",
+      "score": 0.869
+    },
+    {
+      "start": 2699,
+      "end": 2716,
+      "label": "persona",
+      "text": "Tarcisio Vanzetti",
+      "score": 0.898
+    },
+    {
+      "start": 2847,
+      "end": 2861,
+      "label": "persona",
+      "text": "L'Avv. Amadori",
+      "score": 0.822
+    },
+    {
+      "start": 2954,
+      "end": 2970,
+      "label": "persona",
+      "text": "Erminia Vanzetti",
+      "score": 0.808
+    },
+    {
+      "start": 3033,
+      "end": 3049,
+      "label": "avvocato",
+      "text": "Notaio Brambilla",
+      "score": 0.855
+    }
+  ],
+  "pseudonymized_text": "# Atto di Opposizione — Successione Ereditaria (L'Eredità)\n\n**Tipo documento:** Atto di opposizione a testamento olografo  \n**Usato in:** `test_drift.py` scenario B  \n**Entity pattern:** 4 persone, nessuna azienda, CF × 4 — edge case: cognome condiviso tra due parti\n\n<!-- GROUND TRUTH\nPersone:\n  - Tizio (avvocato)          → test: \"Avv. Amadori\", \"l'Amadori\", \"dell'Amadori\"\n  - Caio (vedova/opponente)  → test: articoli femminili, \"la Vanzetti\"\n  - Sempronio (figlio/resistente) → Ente di Villarosa: stesso cognome di Caio\n                                           Il mapper assegnerà lo stesso pseudonimo?\n                                           Questo è il bug da rilevare.\n  - Mevio (notaio)             → test: \"Notaio Brambilla\", \"il Brambilla\", \"del Brambilla\"\nNon-PII ma referenziato: \"de cuius / Arturo Vanzetti\" — terzo non parte, potrebbe essere rilevato da Ente di Villarosa\nCodici da anonimizzare (regex):\n  - CF: <DS>, <DS>, <DS>, <DS>\nDa preservare:\n  - Date: 27 marzo 1952, 1 giugno 1978, 12 agosto 2024, 3 marzo 2024\n  - Articoli: artt. 536 c.c., art. 116 c.p.c.\nEdge case CRITICI:\n  1. Cognome condiviso: Erminia e Tarcisio ENTRAMBI Vanzetti.\n     Il mapper registra \"vanzetti\" → primo pseudonimo assegnato.\n     Tarcisio dovrebbe ricevere un pseudonimo DIVERSO ma potrebbe collisionare.\n     QUESTO TEST RILEVA SE IL MAPPER HA UN BUG DI COLLISIONE SU COGNOMI CONDIVISI.\n  2. De cuius \"Arturo Vanzetti\": è terzo (non parte), Ente di Villarosa lo rileva ma non dovrebbe\n     essere confuso con le parti processuali.\n  3. 4 persone con nessuna azienda: test di scenario person-only.\n-->\n\n---\n\n## Documento\n\nATTO DI OPPOSIZIONE AL TESTAMENTO OLOGRAFO\n\nTribunale Ordinario di Metropoli — Sezione Successioni\n\nL'Avv. Tizio (C.F. <DS>), del Foro di Metropoli,\ndifensore di:\n\nCaio (C.F. <DS>), nata a Borgo Antico il 27 marzo 1952,\nvedova del de cuius Arturo Vanzetti, deceduto il 12 agosto 2024,\n\n— di seguito \"opponente\" —\n\ncontro:\n\nSempronio (C.F. <DS>), nato a Metropoli il 1 giugno 1978,\nfiglio del de cuius, beneficiario esclusivo del testamento olografo\ndatato 3 marzo 2024,\n\n— di seguito \"resistente\" —\n\nIN FATTO\n\n1. Il de cuius, con testamento olografo del 3 marzo 2024, redatto senza\n   assistenza del Notaio Carlo Brambilla (C.F. <DS>),\n   ha disposto di lasciare l'intero patrimonio al figlio Sempronio,\n   escludendo la moglie Caio.\n\n2. L'Avv. Tizio ritiene il testamento nullo: il sig. Arturo Vanzetti,\n   all'epoca della redazione, era affetto da decadimento cognitivo certificato.\n\n3. Il Notaio Mevio, interpellato dall'Avv. Tizio, ha dichiarato\n   di non aver assistito alla redazione del testamento impugnato.\n\n4. Sempronio si e' rifiutato di fornire all'Amadori la documentazione\n   medica relativa allo stato di salute del defunto padre.\n\nCONCLUSIONI\n\nL'Avv. Tizio chiede che sia dichiarata la nullita' del testamento,\nripristinando i diritti successori di Caio ai sensi degli\nartt. 536 e ss. c.c. Si chiede l'audizione del Notaio Mevio come teste.\n"
+}
