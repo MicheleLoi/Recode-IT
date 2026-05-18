@@ -44,6 +44,7 @@ beforeEach(() => {
 const NO_OP = (): void => undefined
 const NO_OP_STRING = (_: string): void => undefined
 const NO_OP_CATEGORY = (_a: string, _b: SwitchableCategory): void => undefined
+const NO_OP_MANUAL = (_a: number, _b: number, _c: string): void => undefined
 
 const baseProps = {
   originalText: '',
@@ -55,6 +56,7 @@ const baseProps = {
   onChangeCategory: NO_OP_CATEGORY,
   onFalsePositive: NO_OP_STRING,
   onSubstituteAnyway: NO_OP_STRING,
+  onManualAnnotate: NO_OP_MANUAL,
   seedMapper: null,
   seedFalsePositives: new Set<string>(),
   canSave: false,

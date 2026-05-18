@@ -18,6 +18,7 @@ import { useActiveMapping } from '../auth/active-mapping-context'
 import { useAuth } from '../auth/auth-context'
 import { ApiError } from '../api/client'
 import { PseudonymMapper } from '../engine/pseudonym_mapper'
+import { manualAnnotate, type ManualCategory } from '../engine/manual_annotate'
 
 function buildReviewEntities(mapping: MappingEntry[]): ReviewEntity[] {
   return mapping.map((entry, idx) => ({
@@ -297,6 +298,100 @@ export function ClipboardWidget(): JSX.Element {
     })
   }
 
+  /**
+   * Manual annotation gesture (Priority C, MHC-L parity). The avvocato
+   * selects a span in the original textarea, picks a category, clicks the
+   * "Anonimizza la selezione" button — PseudonymizePanel surfaces the
+   * (start, end, category) triple here.
+   *
+   * We delegate to `manualAnnotate` (engine) which: extracts the realValue,
+   * allocates a pseudonym from the local PseudonymMapper (shared with the
+   * `handleSubstituteAnyway` path so the pools stay coherent), and rebuilds
+   * the pseudonymized text.
+   */
+  const handleManualAnnotate = (
+    start: number,
+    end: number,
+    category: ManualCategory,
+  ) => {
+    if (!originalText) return
+    if (start >= end || start < 0 || end > originalText.length) return
+
+    // Lazy-init the local mapper the same way handleSubstituteAnyway does.
+    let mapper = localMapperRef.current
+    if (mapper === null) {
+      if (active?.mapper instanceof PseudonymMapper) {
+        mapper = active.mapper
+      } else {
+        mapper = new PseudonymMapper()
+      }
+      localMapperRef.current = mapper
+    }
+
+    // Build the input list for manualAnnotate: it expects ALL substitution
+    // entries (regex + NER + previous manuals) so its text-rebuild step
+    // reproduces the full pseudonymized output. FP and preserved entries are
+    // filtered inside manualAnnotate.
+    const baseEntries: MappingEntry[] = entities.map((e) => ({
+      pseudonym: e.pseudonym,
+      realValue: e.realValue,
+      category: e.category,
+      isFalsePositive: e.status === 'falsePositive',
+      isPreserved: e.isPreserved,
+      pass: e.pass,
+      source: e.source,
+    }))
+
+    let result
+    try {
+      result = manualAnnotate(
+        originalText,
+        start,
+        end,
+        category,
+        mapper,
+        baseEntries,
+      )
+    } catch {
+      // Invalid selection (empty after trim, out-of-bounds, etc.) — silently
+      // ignore. The button should already be disabled in this case.
+      return
+    }
+
+    // De-cuius corner case: the engine returns an empty pseudonymizedText to
+    // signal "no rewrite, no new entry" (the name was in the skip set).
+    if (result.pseudonymizedText === '') return
+
+    setPseudonymizedText(result.pseudonymizedText)
+
+    // Build the new review entities from the merged entry list. Preserve
+    // the existing review status (accepted / falsePositive) for entries
+    // already in the list; the new manual entry comes in as 'pending'.
+    const statusByKey = new Map<string, ReviewEntity['status']>()
+    for (const e of entities) {
+      statusByKey.set(`${e.category}::${e.realValue.toLowerCase()}`, e.status)
+    }
+    const nextEntities: ReviewEntity[] = result.entries.map((entry, idx) => {
+      const key = `${entry.category}::${entry.realValue.toLowerCase()}`
+      const prevStatus = statusByKey.get(key)
+      return {
+        pseudonym: entry.pseudonym,
+        realValue: entry.realValue,
+        category: entry.category,
+        isFalsePositive: entry.isFalsePositive,
+        isPreserved: entry.isPreserved,
+        pass: entry.pass,
+        source: entry.source,
+        id: `${entry.category}::${entry.realValue}::${idx}`,
+        status: entry.isFalsePositive
+          ? 'falsePositive'
+          : prevStatus ?? 'pending',
+      }
+    })
+    setEntities(nextEntities)
+    pushEntriesToActive(nextEntities)
+  }
+
   const userFalsePositiveTerms = useMemo<Set<string>>(() => {
     // Carry forward FP markers from the active mapping so a re-run on a new
     // document keeps "Emilia" un-pseudonymized (DESIGN §8.7, R-06).
@@ -379,6 +474,7 @@ export function ClipboardWidget(): JSX.Element {
         onChangeCategory={handleChangeCategory}
         onFalsePositive={handleFalsePositive}
         onSubstituteAnyway={handleSubstituteAnyway}
+        onManualAnnotate={handleManualAnnotate}
         seedMapper={active?.mapper ?? null}
         seedFalsePositives={userFalsePositiveTerms}
         canSave={canSave}

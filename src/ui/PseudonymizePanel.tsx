@@ -19,6 +19,16 @@ import { NerRunner } from '../engine/ner_runner'
 import type { NerProgressEvent } from '../engine/ner_runner'
 import type { PseudonymMapper } from '../engine/pseudonym_mapper'
 import type { MappingEntry, NerDetection } from '../types/engine'
+import type { ManualCategory } from '../engine/manual_annotate'
+
+/** Categories the avvocato can pick from in the manual-annotation dropdown. */
+const MANUAL_CATEGORIES: ReadonlyArray<{ value: ManualCategory; label: string }> = [
+  { value: 'persona', label: 'Persona' },
+  { value: 'luogo', label: 'Luogo' },
+  { value: 'organizzazione', label: 'Organizzazione' },
+  { value: 'tribunale', label: 'Tribunale' },
+  { value: 'altro', label: 'Altro (maschera generica)' },
+]
 
 /**
  * localStorage key for the variante-β toggle preference (opt-in
@@ -67,6 +77,15 @@ type Props = {
   /** Variante β: flip a preserved entity to substituted (per-entity opt-in). */
   onSubstituteAnyway: (id: string) => void
   /**
+   * Manual annotation gesture (Priority C — MHC-L parity with
+   * `pseudonymize_gui_local.py::_pseudonymize_selection`). The avvocato
+   * selects a span in the original-text textarea, picks a category from the
+   * dropdown next to the button, clicks "Anonimizza la selezione"; this
+   * callback receives the selection offsets + chosen category. The parent
+   * widget owns the engine call and entry-list mutation.
+   */
+  onManualAnnotate: (start: number, end: number, category: ManualCategory) => void
+  /**
    * Phase-3 wiring — when the user has an active saved mapping open, the
    * seeded PseudonymMapper carries pseudonym↔original allocations across
    * documents of the same case. Passing it here puts the engine in EXTEND
@@ -108,6 +127,7 @@ export function PseudonymizePanel({
   onChangeCategory,
   onFalsePositive,
   onSubstituteAnyway,
+  onManualAnnotate,
   seedMapper = null,
   seedFalsePositives,
   canSave,
@@ -150,6 +170,15 @@ export function PseudonymizePanel({
   } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const runnerRef = useRef<NerRunner | null>(null)
+  /**
+   * Ref to the "Testo originale" textarea — used by the manual-annotation
+   * gesture (Priority C) to read `selectionStart` / `selectionEnd` at click
+   * time. We also poll the selection on the textarea's `select` event so
+   * the "Anonimizza la selezione" button enables/disables in lockstep.
+   */
+  const originalTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const [manualCategory, setManualCategory] = useState<ManualCategory>('persona')
+  const [hasSelection, setHasSelection] = useState(false)
 
   /**
    * Eager NER init at mount: the model is ~67 MB so we want the download to
@@ -368,6 +397,39 @@ export function PseudonymizePanel({
     runRegexOnly(userFalsePositives, nerDetections)
   }
 
+  /**
+   * Manual annotation handler — reads the current selection range from the
+   * originalText textarea ref, validates non-empty, then bubbles the
+   * `(start, end, category)` triple to the parent via `onManualAnnotate`.
+   * The parent owns the engine call.
+   */
+  const handleManualAnnotate = () => {
+    const ta = originalTextareaRef.current
+    if (!ta) return
+    const start = ta.selectionStart
+    const end = ta.selectionEnd
+    if (start === end) return
+    onManualAnnotate(start, end, manualCategory)
+    // Clear the selection visually so a second click doesn't re-annotate.
+    ta.setSelectionRange(end, end)
+    setHasSelection(false)
+  }
+
+  /**
+   * Track selection presence so the button enables/disables in lockstep.
+   * Listen to `select`, `keyup`, `click`, and `focus` — covers keyboard
+   * selection, mouse drag, and re-focus on a textarea that still has a
+   * selection from a previous interaction.
+   */
+  const updateSelectionState = () => {
+    const ta = originalTextareaRef.current
+    if (!ta) {
+      setHasSelection(false)
+      return
+    }
+    setHasSelection(ta.selectionStart !== ta.selectionEnd)
+  }
+
   const handleIncludePlacesChange = (next: boolean) => {
     setIncludePlaces(next)
     writeIncludePlacesPref(next)
@@ -430,14 +492,58 @@ export function PseudonymizePanel({
       <label className="field">
         <span className="field__label">Testo originale</span>
         <textarea
+          ref={originalTextareaRef}
           className="field__textarea"
           value={originalText}
-          onChange={(e) => onOriginalChange(e.target.value)}
+          onChange={(e) => {
+            onOriginalChange(e.target.value)
+            updateSelectionState()
+          }}
+          onSelect={updateSelectionState}
+          onKeyUp={updateSelectionState}
+          onClick={updateSelectionState}
+          onFocus={updateSelectionState}
           placeholder="Incolla qui il documento da pseudonimizzare…"
           rows={10}
           data-testid="original-textarea"
         />
       </label>
+
+      <div className="manual-annotate" data-testid="manual-annotate">
+        <label className="manual-annotate__category">
+          <span className="manual-annotate__label">Categoria</span>
+          <select
+            value={manualCategory}
+            onChange={(e) => setManualCategory(e.target.value as ManualCategory)}
+            data-testid="manual-annotate-category"
+            aria-label="Categoria per anonimizzazione manuale"
+          >
+            {MANUAL_CATEGORIES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          className="btn btn--secondary"
+          onClick={handleManualAnnotate}
+          disabled={!hasSelection || !originalText}
+          title={
+            !hasSelection
+              ? 'Seleziona una porzione di testo originale per anonimizzarla manualmente.'
+              : 'Aggiunge l\'entità selezionata al mapping con la categoria scelta.'
+          }
+          data-testid="manual-annotate-btn"
+        >
+          Anonimizza la selezione
+        </button>
+        <p className="manual-annotate__hint">
+          Se il modello NER non ha riconosciuto un&apos;entità, selezionala nel
+          testo originale, scegli la categoria e premi questo bottone.
+        </p>
+      </div>
 
       {activeLabel && (
         <div className="active-badge" data-testid="active-badge-inline">
