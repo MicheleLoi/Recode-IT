@@ -60,6 +60,15 @@ export type MappingEntry = {
    * UI surface; legacy entries default to `1`.
    */
   pass?: 1 | 2
+  /**
+   * Provenance of the entry. `'gliner'` = produced by the NER worker;
+   * `'regex'` = produced by the deterministic regex layer; `'manual'` =
+   * added by the avvocato via the manual-annotation affordance in the UI
+   * (parity with MHC-L `pseudonymize_gui_local.py::_pseudonymize_selection`).
+   * Optional — legacy entries serialized before the field was introduced
+   * have no source and are treated as `'gliner' | 'regex'` indistinguishably.
+   */
+  source?: 'gliner' | 'regex' | 'manual'
 }
 
 export type AnonymizeOptions = {

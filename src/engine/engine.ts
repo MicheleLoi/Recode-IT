@@ -344,6 +344,7 @@ function applyNerWithPseudonyms(
         category: preservedCategory,
         isPreserved: true,
         pass: 2,
+        source: 'gliner',
       })
       continue
     }
@@ -406,6 +407,7 @@ function applyNerWithPseudonyms(
       category,
       pass: PASS_2_LABELS.has(label) ? 2 : 1,
       isPreserved: false,
+      source: 'gliner',
     })
   }
   return { text: result, mappingEntries }
@@ -452,6 +454,7 @@ export function anonymize(
       pseudonym,
       realValue: det.match,
       category: det.category,
+      source: 'regex',
     })
   }
 
