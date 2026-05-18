@@ -15,7 +15,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import type { MeResponse } from '../../../api/client'
 
 // vi.hoisted so the spies are constructed before the mock factory runs.
@@ -146,73 +146,39 @@ describe('AccountDashboard — tier=free', () => {
     expect(helper.textContent).toMatch(/recode\.micheleloi\.pro/)
   })
 
-  // --- Pro request funnel (Phase 1: request-then-invite) ---
+  // --- Pro request: Phase 1 minimal email-only funnel (no Stripe wiring yet) ---
+  // Founder decision 2026-05-19: full request-then-invite Stripe flow is built
+  // in backend + api/client (10 commit) but UI exposes only an email contact.
+  // When the founder activates Stripe + env vars, revert this override and the
+  // form returns. Tests below check only the email-only minimal version.
 
-  it('mostra la sezione "Richiedi accesso al piano pro" con il form', async () => {
+  it('mostra la sezione "Richiedi accesso al piano pro" con email contact', async () => {
     renderDashboard()
     await waitFor(() => {
       expect(screen.getByTestId('pro-request-section')).toBeInTheDocument()
     })
-    expect(screen.getByTestId('pro-request-form')).toBeInTheDocument()
-    expect(screen.getByTestId('pro-request-reason')).toBeInTheDocument()
-    expect(screen.getByTestId('pro-request-submit')).toBeDisabled()
-  })
-
-  it('disabilita submit con reason < 25 caratteri', async () => {
-    renderDashboard()
-    await waitFor(() => {
-      expect(screen.getByTestId('pro-request-form')).toBeInTheDocument()
-    })
-    const textarea = screen.getByTestId('pro-request-reason') as HTMLTextAreaElement
-    fireEvent.change(textarea, { target: { value: 'troppo corto' } })
-    expect(screen.getByTestId('pro-request-submit')).toBeDisabled()
+    const emailBlock = screen.getByTestId('pro-request-email')
+    expect(emailBlock).toBeInTheDocument()
+    expect(emailBlock.textContent).toMatch(/mhcl@micheleloi\.pro/)
+    // Niente form (Phase 1 minimal). I 10 commit funnel completo restano nel
+    // codice ma non sono esposti finché Stripe non è configurato.
+    expect(screen.queryByTestId('pro-request-form')).toBeNull()
+    expect(screen.queryByTestId('pro-request-reason')).toBeNull()
+    expect(screen.queryByTestId('pro-request-submit')).toBeNull()
     expect(apiMocks.requestProInviteMock).not.toHaveBeenCalled()
   })
 
-  it('invia la richiesta con reason valida e mostra stato pending', async () => {
-    apiMocks.requestProInviteMock.mockResolvedValue({
-      request_id: 42,
-      status: 'pending',
-      requested_at: '2026-05-19T10:00:00+00:00',
-    })
+  it('il link mailto include un subject pre-compilato', async () => {
     renderDashboard()
     await waitFor(() => {
-      expect(screen.getByTestId('pro-request-form')).toBeInTheDocument()
+      expect(screen.getByTestId('pro-request-email')).toBeInTheDocument()
     })
-    const textarea = screen.getByTestId('pro-request-reason') as HTMLTextAreaElement
-    fireEvent.change(textarea, {
-      target: {
-        value: 'Avvocato civilista a Milano, uso Claude per atti complessi.',
-      },
-    })
-    fireEvent.click(screen.getByTestId('pro-request-submit'))
-    await waitFor(() => {
-      expect(apiMocks.requestProInviteMock).toHaveBeenCalledOnce()
-    })
-    await waitFor(() => {
-      expect(screen.getByTestId('pro-request-pending')).toBeInTheDocument()
-    })
-    // Form sparisce dopo submit-pending.
-    expect(screen.queryByTestId('pro-request-form')).toBeNull()
-  })
-
-  it('se my-request ritorna status=pending mostra subito lo stato, niente form', async () => {
-    apiMocks.getMyProRequestMock.mockResolvedValue({
-      request: {
-        request_id: 7,
-        status: 'pending',
-        requested_at: '2026-05-19T10:00:00+00:00',
-        approved_at: null,
-        claimed_at: null,
-        rejected_at: null,
-        invite_expires_at: null,
-      },
-    })
-    renderDashboard()
-    await waitFor(() => {
-      expect(screen.getByTestId('pro-request-pending')).toBeInTheDocument()
-    })
-    expect(screen.queryByTestId('pro-request-form')).toBeNull()
+    const link = screen
+      .getByTestId('pro-request-email')
+      .querySelector('a') as HTMLAnchorElement
+    expect(link).not.toBeNull()
+    expect(link.href).toMatch(/^mailto:mhcl@micheleloi\.pro/)
+    expect(decodeURIComponent(link.href)).toMatch(/subject=Recode IT/i)
   })
 })
 

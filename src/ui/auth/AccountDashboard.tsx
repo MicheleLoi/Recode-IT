@@ -17,25 +17,24 @@
  *     elimina account con copy adattata + helper testo browser data.
  */
 
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ApiError,
   deleteAccount,
   deleteMapping,
   deleteMappingsBulk,
   getFalsePositives,
-  getMyProRequest,
   listMappings,
-  requestProInvite,
   type FalsePositiveEntry,
   type MappingMetadata,
-  type ProInviteRequestRow,
 } from '../../api/client'
 import { useAuth } from '../../auth/auth-context'
 import { useActiveMapping } from '../../auth/active-mapping-context'
 
-const PRO_REASON_MIN = 25
-const PRO_REASON_MAX = 1000
+// Phase 1 funnel pro: Stripe + invite endpoints (backend + api/client) restano
+// committed dietro a env vars; UI espone solo un contatto email finché il
+// founder non attiva il flow completo. Reattivazione: revert di questo commit
+// e reintroduzione di getMyProRequest/requestProInvite + state + form.
 
 type Props = {
   onBack?: () => void
@@ -66,12 +65,6 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
   const [unlockPassword, setUnlockPassword] = useState('')
   const [unlockingId, setUnlockingId] = useState<string | null>(null)
   const [openingId, setOpeningId] = useState<string | null>(null)
-  // Pro upgrade funnel (visible only to tier='free').
-  const [proReason, setProReason] = useState('')
-  const [proSubmitting, setProSubmitting] = useState(false)
-  const [proError, setProError] = useState<string | null>(null)
-  const [proRequest, setProRequest] = useState<ProInviteRequestRow | null>(null)
-
   const refresh = useCallback(async () => {
     // tier='free': nessuna risorsa cloud-side da fetchare — i mapping vivono
     // in IndexedDB del browser e la dashboard è informativa.
@@ -102,56 +95,6 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
   useEffect(() => {
     void refresh()
   }, [refresh])
-
-  // Hydrate the pro-invite request status (free tier only) so a returning user
-  // doesn't see the request form again after submitting.
-  useEffect(() => {
-    if (isPro) return
-    let cancelled = false
-    void (async () => {
-      try {
-        const { request } = await getMyProRequest()
-        if (!cancelled) setProRequest(request)
-      } catch {
-        // Non-fatal — the form simply stays in its default state.
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [isPro])
-
-  async function onSubmitProRequest(ev: FormEvent) {
-    ev.preventDefault()
-    setProError(null)
-    const reason = proReason.trim()
-    if (reason.length < PRO_REASON_MIN) {
-      setProError(
-        `Spiega in almeno ${PRO_REASON_MIN} caratteri come pensi di usare Recode IT.`,
-      )
-      return
-    }
-    try {
-      setProSubmitting(true)
-      const created = await requestProInvite(reason)
-      setProRequest({
-        request_id: created.request_id,
-        status: created.status,
-        requested_at: created.requested_at,
-        approved_at: null,
-        claimed_at: null,
-        rejected_at: null,
-        invite_expires_at: null,
-      })
-      setProReason('')
-    } catch (err) {
-      setProError(
-        err instanceof ApiError ? err.message : 'Errore di rete. Riprova.',
-      )
-    } finally {
-      setProSubmitting(false)
-    }
-  }
 
   async function onDeleteOne(id: string) {
     try {
@@ -380,67 +323,17 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
           <p>
             Il piano pro sblocca: gestione mapping multipli con etichette,
             cloud cifrato zero-knowledge cross-device, recovery codes. Costo
-            previsto: <strong>€25 una tantum</strong>. In Phase 1 (su invito
-            gratuito).
+            previsto: <strong>€25 una tantum</strong>. In Phase 1 l'accesso è
+            su invito gratuito.
           </p>
-          {proRequest && proRequest.status === 'pending' && (
-            <p className="hint" data-testid="pro-request-pending">
-              Richiesta ricevuta — ti contattiamo via email. Stato:{' '}
-              <strong>in attesa</strong>.
-            </p>
-          )}
-          {proRequest && proRequest.status === 'approved' && (
-            <p className="hint" data-testid="pro-request-approved">
-              Invito approvato — controlla la tua email per il link al
-              checkout.
-            </p>
-          )}
-          {proRequest && proRequest.status === 'rejected' && (
-            <p className="hint" data-testid="pro-request-rejected">
-              La richiesta precedente è stata declinata. Puoi inviarne una
-              nuova.
-            </p>
-          )}
-          {(!proRequest ||
-            proRequest.status === 'rejected' ||
-            proRequest.status === 'expired') && (
-            <form
-              onSubmit={(e) => void onSubmitProRequest(e)}
-              data-testid="pro-request-form"
-            >
-              <label className="field">
-                <span className="field__label">
-                  Spiega brevemente come pensi di usare Recode IT (almeno{' '}
-                  {PRO_REASON_MIN} caratteri).
-                </span>
-                <textarea
-                  value={proReason}
-                  onChange={(e) => setProReason(e.target.value)}
-                  className="auth-input"
-                  rows={5}
-                  maxLength={PRO_REASON_MAX}
-                  data-testid="pro-request-reason"
-                  placeholder="Es: avvocato civilista a Milano, uso Claude per analisi atti, mi serve il cloud cross-device…"
-                />
-                <span className="muted" data-testid="pro-request-counter">
-                  {proReason.trim().length} / {PRO_REASON_MAX} caratteri
-                </span>
-              </label>
-              {proError && (
-                <p className="error" data-testid="pro-request-error">
-                  {proError}
-                </p>
-              )}
-              <button
-                type="submit"
-                className="btn btn--primary"
-                disabled={proSubmitting || proReason.trim().length < PRO_REASON_MIN}
-                data-testid="pro-request-submit"
-              >
-                {proSubmitting ? 'Invio…' : 'Invia richiesta'}
-              </button>
-            </form>
-          )}
+          <p data-testid="pro-request-email">
+            Se sei interessato, scrivi a{' '}
+            <a href="mailto:mhcl@micheleloi.pro?subject=Recode%20IT%20%E2%80%94%20richiesta%20accesso%20al%20piano%20pro">
+              <code>mhcl@micheleloi.pro</code>
+            </a>
+            {' '}— spiega brevemente come pensi di usare Recode IT e ti
+            contattiamo per l'invito.
+          </p>
         </section>
       )}
 
