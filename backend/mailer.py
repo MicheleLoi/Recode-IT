@@ -64,6 +64,52 @@ def send_verification_email(to_email: str, token: str) -> dict[str, Any]:
     return _send(to_email, "Conferma il tuo indirizzo email — Recode-IT", body)
 
 
+def send_invite_request_received_email(to_email: str, name: str) -> dict[str, Any]:
+    """Notifica all'utente che la richiesta di accesso pro è stata ricevuta.
+
+    Inviata immediatamente dopo POST /recode/pro/request-invite. Body in
+    italiano, tono conciso e umano (founder = Michele Loi).
+    """
+    saluto = f"Ciao {name}" if name else "Ciao"
+    body = (
+        f"{saluto},\n\n"
+        "abbiamo ricevuto la tua richiesta di accesso al piano pro di "
+        "Recode IT. Ti contatteremo a breve via email con la nostra "
+        "risposta.\n\n"
+        "In Phase 1 il piano pro è gratuito su invito: nessun pagamento "
+        "richiesto, nessuna carta da inserire.\n\n"
+        "A presto,\n"
+        "Michele Loi\nmhcl@micheleloi.pro\n"
+    )
+    return _send(to_email, "Richiesta piano pro ricevuta — Recode IT", body)
+
+
+def send_invite_approved_email(
+    to_email: str, name: str, token: str, expires_at: str,
+) -> dict[str, Any]:
+    """Notifica all'utente che l'invito è stato approvato.
+
+    Link al claim flow + scadenza + warning single-use.
+    """
+    link = f"{_base_url()}/upgrade?t={token}"
+    saluto = f"Ciao {name}" if name else "Ciao"
+    body = (
+        f"{saluto},\n\n"
+        "il tuo invito al piano pro di Recode IT è stato approvato. "
+        "Per attivare l'upgrade clicca questo link:\n\n"
+        f"  {link}\n\n"
+        f"Il link scade il {expires_at} (7 giorni). È valido una sola volta.\n\n"
+        "Il checkout passa da Stripe ma NON ti verrà richiesta nessuna "
+        "carta: in Phase 1 il piano pro è gratuito su invito (€0/mese in "
+        "abbonamento Stripe, nessun pagamento eseguito). Stripe ci serve "
+        "solo per gestire l'eventuale transizione futura al pricing "
+        "€25 una tantum, senza dover migrare account.\n\n"
+        "A presto,\n"
+        "Michele Loi\nmhcl@micheleloi.pro\n"
+    )
+    return _send(to_email, "Invito al piano pro approvato — Recode IT", body)
+
+
 def send_password_reset_email(to_email: str, token: str) -> dict[str, Any]:
     link = f"{_base_url()}/recode/recovery/reset?token={token}"
     body = (
@@ -90,4 +136,6 @@ __all__ = [
     "EMAIL_FROM",
     "send_verification_email",
     "send_password_reset_email",
+    "send_invite_request_received_email",
+    "send_invite_approved_email",
 ]
