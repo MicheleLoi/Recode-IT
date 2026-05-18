@@ -243,9 +243,82 @@ Test canonico in ambiente reale (browser fresh / incognito):
 
 ---
 
-## 9. Local persistence design (free tier — pending pricing decision)
+## 9. Pricing tier + persistence model (ratificato 2026-05-18)
 
-Specifica tecnica + UX ratificata in dialogo founder ↔ chief_of_staff durante SID-20260518-143605, **pending decisione pricing del founder**. Se la decisione approda a Branch X (freemium con persistenza locale device-singolo + paid €X cross-device), questa sezione è il canon implementativo per la seconda iterazione di coding (post completion dell'agent server-side attualmente in background).
+Modello commerciale ratificato dal founder 2026-05-18 SID-20260518-143605 post strategist round-2. Struttura a **tre tier**:
+
+### 9.0 Struttura tier
+
+- **Test (€0, anonymous)** — nessuna memoria. Refresh tab = mapping perso. Caso d'uso: prova singola, vedi se funziona. Permanente come accesso, ma **senza garanzie di preservazione**: l'utente sa che ogni sessione ricomincia da zero. Niente account, niente email.
+- **Account zero-euro (€0, named)** — persistenza **locale** nel browser (IndexedDB), legata al signup come identifier. Cross-session SI stesso device/browser, cross-device NO. Signup richiede email + nome. **Email può essere usata per newsletter solo con consenso esplicito GDPR-compliant (double opt-in).** Niente newsletter automatica al signup.
+- **Paid €25 una tantum (cloud cifrato zero-knowledge)** — chiave sul server cifrata con password utente (architettura DESIGN §5.1). Cross-device, cross-browser, recovery codes. **Limite di storage cloud** (cap da definire in implementazione, es. N MB di blob totali per account; oltre il cap = errore + upgrade opzionale o cleanup utente).
+
+### 9.1 Storage tier intermedio — IndexedDB in chiaro, no cifratura
+
+Storage del tier zero-euro via IndexedDB nel browser (no `localStorage` — IndexedDB scala oltre 5 MB e supporta blob strutturati). Database privato del browser ("recode-it"), letture/scritture async, dato in cartella privata del browser sul disco utente.
+
+**Decisione: dato in chiaro, niente cifratura aggiuntiva.**
+
+Razionale: il browser dell'avvocato vive sullo stesso PC dove sta il file Word originale con i nomi veri. La chiave (Mario Rossi → Tizio) ha lo stesso livello di sensibilità del file originale e vive nello stesso luogo. Cifrarla con una password aggiuntiva sarebbe sicurezza teatrale — chi entra nel browser ha già accesso al file originale a portata di mano. Sicurezza coerente con il modello fisico del computer privato dell'avvocato.
+
+### 9.2 Upgrade flow zero-euro → paid €25 una tantum
+
+Bottone canonico: **"Trasferisci chiavi sul cloud"**. Non "Trasferisci tutto". La precisione è doctrine — l'utente capisce che si trasferisce solo il vocabolario di sostituzione, NON documenti né contenuti.
+
+Behavior: pagamento Stripe Checkout → riceve dialog "Trasferisci chiavi sul cloud" → click → il browser deriva master_key da password+argon2_salt → cifra ogni mapping locale lato browser → POST `/recode/mappings/` per ciascuno. Dal momento dell'upgrade i mapping vivono sul server (cifrati), il locale può restare come copia ridondante o essere svuotato (decisione UX da raffinare).
+
+### 9.3 Claim privacy — formulazioni canoniche per i 3 tier
+
+Tre formulazioni distinte da usare nella UI/landing:
+
+- **Test (€0, anonymous):**
+  > *"Provalo senza registrarti. Niente esce dal tuo browser. Quando chiudi questa pagina, tutto sparisce — incluso il vocabolario di sostituzione."*
+
+- **Zero-euro account (€0, named, locale):**
+  > *"Le tue chiavi di sostituzione restano nel browser di questo computer. Né noi né nessun altro le vede — nemmeno se ce le chiedono i giudici, perché non le abbiamo. Registrati per ritrovarle domani sullo stesso computer."*
+  > Frase separata sulla mail: *"L'email che ci dai serve a comunicarti modifiche al servizio. Non riceverai newsletter se non ce lo chiedi esplicitamente."*
+
+- **Paid €25 una tantum (cloud cifrato):**
+  > *"Le tue chiavi vengono cifrate qui nel tuo browser con la tua password e mandate sul nostro server come dati incomprensibili. Né noi né nessun altro può leggerle senza la tua password — nemmeno se ce le chiedono i giudici. Disponibili da qualsiasi computer."*
+
+**Vocabolario: descrivere il behavior, NON nominare "zero-knowledge" come termine tecnico marketing.** L'avvocato non-tech deve capire cosa succede, non imparare un'etichetta.
+
+### 9.4 Email policy (tier zero-euro + paid)
+
+- Signup richiede email + nome.
+- Email usata di default SOLO per comunicazioni di servizio (modifiche TOS, GDPR notifications, bug fix critici lato sito).
+- Newsletter (es. novità prodotto, contenuti legal-tech, aggiornamenti feature Pro) inviata SOLO previo consenso esplicito **opt-in separato** dal signup (checkbox dedicata, default OFF).
+- Doppio opt-in raccomandato (conferma via email link prima di iscrivere alla lista).
+- Coerente con GDPR Art. 6(1)(a) consenso + Art. 7 condizioni del consenso (free, specific, informed, unambiguous).
+
+### 9.5 Limite storage cloud (tier paid)
+
+Cap di storage per account paid, da definire in implementazione. Modello probabile:
+- Soft cap (es. 100 MB di blob totali) → warning UI quando l'utente si avvicina (es. "Hai usato 85 MB su 100. Considera di cancellare vecchi mapping").
+- Hard cap → POST `/recode/mappings/` ritorna `413 Storage limit exceeded` → UI suggerisce cleanup (bulk delete più vecchi di X mesi) o passaggio a tier superiore se in futuro esisterà.
+
+Razionale: prezzo una tantum di €25 non sostiene storage illimitato perpetuo a economia di scala. Cap previene abuse e mantiene il modello economicamente sostenibile per il founder.
+
+### 9.6 Cambiamenti backend
+
+**Schema utenti** (`recode_users`): aggiungere campo `tier` (`'free' | 'pro'`, già presente in DESIGN §6) + colonna `marketing_consent: boolean DEFAULT 0` per tracking GDPR consensual newsletter.
+
+**Endpoint nuovo**: `POST /recode/me/marketing-consent` per opt-in/opt-out newsletter.
+
+**Storage tracking**: query aggregata `SELECT SUM(size_bytes) FROM encrypted_mappings WHERE user_id = ?` per controllare cap. Aggiungere index su `(user_id, size_bytes)` per performance.
+
+### 9.7 Scenari di failure UX
+
+- Utente cambia browser sullo stesso PC → mapping locali non visibili dal nuovo browser. Messaggio: *"Non trovi le tue chiavi? Sono nel browser dove le hai salvate. Per averle dappertutto, considera l'upgrade a €25 una tantum."*
+- Utente cancella i dati del browser → mapping locali persi. Avviso onboarding free al primo salvataggio: *"Le chiavi vivono nel browser di questo computer. Se cancelli i dati del browser, vanno perse. Per averle al sicuro su cloud, considera l'upgrade."*
+- Utente cambia computer → mapping non disponibili. Stessa narrazione di upgrade.
+- Utente paid raggiunge il cap storage → warning soft + suggerimento cleanup; oltre cap = errore con guida.
+
+### 9.8 Status
+
+**Ratificato 2026-05-18.** Implementazione del tier intermedio (IndexedDB local persistence) pending — è la "second iteration of coding" già menzionata nei plan precedenti, da delegare a coding agent quando il founder vuole. Implementazione del tier paid €25 = wiring Stripe Checkout per pagamento una tantum (riusa infrastruttura MHC-L Phase 1) + cap storage + email policy backend.
+
+Authority: dialogo founder ↔ chief_of_staff SID-20260518-143605 + strategist round 1 (raccomandazione c locale) + strategist round 2 (validazione struttura 3 tier) + ratifiche founder verbatim "test: niente memoria di sessione; solo nome (acquisto a zero euro) memoria di sessione interno; 25 euro chiave sul server e diversi computer" + "email anche per newsletter, chiedendo il consenso; limite storage cloud; test permanente ma senza garanzie".
 
 ### 9.1 Storage — IndexedDB in chiaro, no cifratura
 
