@@ -74,7 +74,7 @@ function AppHeader({
                 </button>
                 <span className="app__user" data-testid="auth-user-email">
                   {user.email}
-                  {!masterKey && (
+                  {user.tier === 'pro' && !masterKey && (
                     <span
                       className="app__user-lock"
                       title="Master key non in memoria: serve riaprire la password per cifrare/decifrare i mapping."
