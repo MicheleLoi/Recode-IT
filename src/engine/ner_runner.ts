@@ -52,22 +52,19 @@ function nextId(): string {
  *
  *   1. `VITE_NER_MODEL_URL` (set in .env / .env.production / .env.local)
  *      always wins when defined.
- *   2. In dev (`import.meta.env.DEV`) fall back to `/models/...` so Vite's
- *      static-asset server picks it up from `public/models/`.
- *   3. In production builds, fall back to the founder's VPS canonical URL.
+ *   2. Otherwise: same-origin relative path `/models/distilbert_italian_ner_q8.onnx`.
+ *      Works in both dev (Vite serves `public/models/`) and prod (nginx
+ *      serves `/var/www/recode-it/models/`). Same-origin avoids COEP
+ *      cross-origin fetch blocks and keeps the privacy claim "nulla esce
+ *      dal computer dell'utente" architecturally enforced.
  *
  * Kept inside `ner_runner.ts` (not the worker) so the env var resolves at
  * main-thread bundle time — Vite's `import.meta.env` substitution does not
  * cross the worker boundary in the same way.
  */
-const PRODUCTION_MODEL_URL =
-  'https://mhc.micheleloi.pro/recode-it/models/distilbert_italian_ner_q8.onnx'
-
 const DEFAULT_MODEL_URL =
   (import.meta.env.VITE_NER_MODEL_URL as string | undefined) ||
-  (import.meta.env.DEV
-    ? '/models/distilbert_italian_ner_q8.onnx'
-    : PRODUCTION_MODEL_URL)
+  '/models/distilbert_italian_ner_q8.onnx'
 
 /**
  * Split text into chunks of at most `maxChars` characters, snapping on
