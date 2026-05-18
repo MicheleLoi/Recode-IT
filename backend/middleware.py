@@ -38,6 +38,8 @@ PROTECTED_PREFIXES_DEFAULT: tuple[str, ...] = (
     "/recode/account",
     "/recode/me",
     "/recode/false-positives",
+    "/recode/pro/request-invite",
+    "/recode/pro/my-request",
 )
 
 
