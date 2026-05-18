@@ -77,11 +77,14 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['onnxruntime-web', '@xenova/transformers'],
   },
-  server: {
-    headers: {
-      // COOP/COEP required for SharedArrayBuffer (multi-threaded WASM in later phases).
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
-    },
-  },
+  // COOP/COEP intentionally NOT set. They will be needed when we enable
+  // multi-threaded WASM via SharedArrayBuffer (later phase); enabling them
+  // requires that every embedded subresource set Cross-Origin-Resource-Policy.
+  // We currently run ort with `numThreads = 1` (single-threaded WASM), so
+  // SharedArrayBuffer is unnecessary and COEP `require-corp` only causes
+  // silent worker-import hangs on subresources that lack CORP (notably the
+  // ORT wasm/mjs runtime files in `public/ort/`). When we move to
+  // multi-threaded WASM, re-add `Cross-Origin-Opener-Policy: same-origin` +
+  // `Cross-Origin-Embedder-Policy: require-corp` AND configure CORP headers
+  // on all served subresources (vite preview headers + production server).
 })

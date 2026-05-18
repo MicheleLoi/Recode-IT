@@ -223,10 +223,23 @@ async function init(modelUrl: string): Promise<void> {
     }
   }
 
-  // Configure transformers.js to NOT auto-download models from HF — we serve
-  // tokenizer artefacts alongside our ONNX file.
-  ;(transformers as any).env.allowRemoteModels = false
-  ;(transformers as any).env.localModelPath = new URL('./', modelUrl).toString()
+  // Configure transformers.js to load tokenizer artefacts from the same
+  // directory as the model URL (where the agent's export script wrote them
+  // alongside the ONNX file).
+  //
+  // `allowRemoteModels: true` is required because transformers.js classifies
+  // any `http(s)://` URL as "remote" — including same-origin localhost URLs.
+  // The "remote" gate exists to block uncontrolled HuggingFace downloads;
+  // it does NOT happen here because `localModelPath` pins the fetch to our
+  // explicit URL (not the HF hub).
+  //
+  // Defensive URL resolution: resolve any relative modelUrl against the
+  // worker's own location before using it as a base for `new URL('./', ...)`.
+  ;(transformers as any).env.allowRemoteModels = true
+  ;(transformers as any).env.localModelPath = new URL(
+    './',
+    new URL(modelUrl, self.location.href),
+  ).toString()
 
   // Phase: fetch the model with streaming progress.
   let modelBuffer: ArrayBuffer
@@ -256,8 +269,24 @@ async function init(modelUrl: string): Promise<void> {
   }
 
   // Tokenizer location: same directory as the model URL.
-  const tokenizerDir = new URL('./', modelUrl).toString()
-  tokenizer = await (transformers as any).AutoTokenizer.from_pretrained(tokenizerDir)
+  // transformers.js `from_pretrained(modelName)` constructs URLs as
+  // `${env.localModelPath}/${modelName}/{file}`. Passing a full URL as
+  // modelName produces a malformed path (concatenation, not substitution).
+  // The correct split is: localModelPath = the PARENT of the tokenizer dir
+  // (typically the origin + a base prefix), modelName = the LAST path
+  // segment that contains the tokenizer files.
+  //
+  // We re-derive everything from `modelUrl` so the same logic works for any
+  // hosting layout (dev `/models/...`, prod `https://.../recode-it/models/...`).
+  const absoluteModelUrl = new URL(modelUrl, self.location.href)
+  // Drop the model filename → `<origin>/<...>/<tokenizerDir>/`
+  const tokenizerDirUrl = new URL('./', absoluteModelUrl)
+  // The tokenizer "model name" is the last directory segment.
+  const tokenizerName = tokenizerDirUrl.pathname.replace(/\/$/, '').split('/').pop() || ''
+  // The localModelPath is the parent of the tokenizer directory.
+  const localBase = new URL('../', tokenizerDirUrl).toString()
+  ;(transformers as any).env.localModelPath = localBase
+  tokenizer = await (transformers as any).AutoTokenizer.from_pretrained(tokenizerName)
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
