@@ -1,30 +1,108 @@
 /**
- * ClipboardWidget — the Phase 2 two-panel single-page UI.
+ * ClipboardWidget — the two-panel single-page UI.
  *
  * Owns the cross-panel state: original text, pseudonymized output, the
  * mapping table, and the review-state augmentation that drives
- * `EntityReviewList`. Mapping lives only in React state (Phase 3 will move
- * it to encrypted server-side storage).
+ * `EntityReviewList`. Phase 3 wiring threads an optional ActiveMapping
+ * through the pipeline so cross-document continuity works (capabilities_index
+ * §6.2 + §7): when a mapping is open, dropping a new document EXTENDS the
+ * existing pseudonym↔original allocations instead of resetting.
  */
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { MappingEntry } from '../types/engine'
 import { PseudonymizePanel } from './PseudonymizePanel'
 import { RecodePanel } from './RecodePanel'
 import type { ReviewEntity, SwitchableCategory } from './types'
+import { useActiveMapping } from '../auth/active-mapping-context'
+import { useAuth } from '../auth/auth-context'
+import { ApiError } from '../api/client'
 
 function buildReviewEntities(mapping: MappingEntry[]): ReviewEntity[] {
   return mapping.map((entry, idx) => ({
-    ...entry,
+    pseudonym: entry.pseudonym,
+    realValue: entry.realValue,
+    category: entry.category,
     id: `${entry.category}::${entry.realValue}::${idx}`,
-    status: 'pending' as const,
+    // Hydrate review status from the stored isFalsePositive flag — entries
+    // that came back from a saved mapping with the FP marker render in the
+    // FP state immediately.
+    status: entry.isFalsePositive
+      ? ('falsePositive' as const)
+      : ('pending' as const),
   }))
 }
 
+/**
+ * Merge fresh per-run entries with the cumulative entry list carried by the
+ * active mapping. Entries are keyed by `category::realValue` so a new
+ * document's repeated detection of Mario Rossi doesn't create a duplicate.
+ * FP markers in the cumulative list win over new entries (the user already
+ * decided this term is not personal data).
+ */
+function mergeEntries(
+  cumulative: MappingEntry[],
+  fresh: MappingEntry[],
+): MappingEntry[] {
+  const seen = new Map<string, MappingEntry>()
+  for (const e of cumulative) {
+    const k = `${e.category}::${e.realValue.toLowerCase()}`
+    seen.set(k, e)
+  }
+  for (const e of fresh) {
+    const k = `${e.category}::${e.realValue.toLowerCase()}`
+    if (seen.has(k)) {
+      // Keep the cumulative entry (preserves its isFalsePositive flag) but
+      // make sure the pseudonym stays in sync with what the mapper used —
+      // shouldn't drift in extend mode but defensive.
+      const prev = seen.get(k)!
+      seen.set(k, {
+        ...prev,
+        pseudonym: prev.pseudonym,
+        category: prev.category,
+        isFalsePositive: prev.isFalsePositive,
+      })
+    } else {
+      seen.set(k, e)
+    }
+  }
+  return Array.from(seen.values())
+}
+
 export function ClipboardWidget(): JSX.Element {
+  const { active, saveActive, closeActive, updateEntries } = useActiveMapping()
+  const { user, masterKey } = useAuth()
+
   const [originalText, setOriginalText] = useState('')
   const [pseudonymizedText, setPseudonymizedText] = useState('')
   const [entities, setEntities] = useState<ReviewEntity[]>([])
+  const [saveStatus, setSaveStatus] = useState<
+    'idle' | 'saving' | 'saved' | 'error'
+  >('idle')
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [labelInputOpen, setLabelInputOpen] = useState(false)
+  const [labelInput, setLabelInput] = useState('')
+
+  // When an active mapping is opened, hydrate the review list from its
+  // stored entries so the user immediately sees what's already in the case
+  // dossier — and FP markers survive across the open/close cycle. We do this
+  // ONLY when the active reference changes (open / close / save), not on
+  // every entries update, otherwise local UI edits would be overwritten.
+  const activeMappingId = active?.mappingId ?? null
+  useEffect(() => {
+    if (active) {
+      setEntities(buildReviewEntities(active.entries))
+      // Do NOT clear pseudonymizedText / originalText — the user may have
+      // a doc loaded that they want to keep working with.
+      setLabelInput(active.label)
+    } else {
+      // Closed: leave the current review state alone (don't surprise the
+      // user with an empty list); just clear save status.
+      setSaveStatus('idle')
+      setSaveError(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMappingId])
 
   // Effective mapping for the recode panel: excludes entities the user has
   // marked as false positives (their realValue stays unchanged in the output,
@@ -41,6 +119,38 @@ export function ClipboardWidget(): JSX.Element {
     [entities],
   )
 
+  // Whenever entities change AND there's an active mapping, propagate the
+  // change up. We also recompute the cumulative list incorporating FP state
+  // so a save now persists the FP markers (DESIGN §8.7).
+  const pushEntriesToActive = useCallback(
+    (next: ReviewEntity[]) => {
+      if (!active) return
+      const fresh: MappingEntry[] = next.map((e) => ({
+        pseudonym: e.pseudonym,
+        realValue: e.realValue,
+        category: e.category,
+        isFalsePositive: e.status === 'falsePositive',
+      }))
+      const merged = mergeEntries(active.entries, fresh)
+      // Defensive equality check to avoid endless re-renders if nothing
+      // changed semantically.
+      const same =
+        merged.length === active.entries.length &&
+        merged.every((m, i) => {
+          const prev = active.entries[i]
+          return (
+            prev !== undefined &&
+            prev.pseudonym === m.pseudonym &&
+            prev.realValue === m.realValue &&
+            prev.category === m.category &&
+            (prev.isFalsePositive ?? false) === (m.isFalsePositive ?? false)
+          )
+        })
+      if (!same) updateEntries(merged)
+    },
+    [active, updateEntries],
+  )
+
   const handleResult = ({
     originalText: orig,
     pseudonymizedText: pseudo,
@@ -52,37 +162,137 @@ export function ClipboardWidget(): JSX.Element {
   }) => {
     setOriginalText(orig)
     setPseudonymizedText(pseudo)
-    setEntities(buildReviewEntities(mapping))
+    const fresh = buildReviewEntities(mapping)
+    // EXTEND mode: merge the fresh per-run entries with what's already in the
+    // active mapping. Pseudonyms repeat across docs (Mario Rossi → Tizio in
+    // Doc1 AND Doc2) which the engine guarantees; this widget only needs to
+    // ensure the review list reflects the union so the user can scan all
+    // entries from all documents at once.
+    if (active) {
+      const merged = mergeEntries(
+        active.entries,
+        fresh.map((e) => ({
+          pseudonym: e.pseudonym,
+          realValue: e.realValue,
+          category: e.category,
+          isFalsePositive: false,
+        })),
+      )
+      setEntities(buildReviewEntities(merged))
+      updateEntries(merged)
+    } else {
+      setEntities(fresh)
+    }
+    setSaveStatus('idle')
   }
 
   const handleAccept = (id: string) => {
-    setEntities((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, status: 'accepted' } : e)),
-    )
+    setEntities((prev) => {
+      const next = prev.map((e) =>
+        e.id === id ? { ...e, status: 'accepted' as const } : e,
+      )
+      pushEntriesToActive(next)
+      return next
+    })
   }
 
   const handleChangeCategory = (id: string, newCategory: SwitchableCategory) => {
-    setEntities((prev) =>
-      prev.map((e) =>
-        e.id === id ? { ...e, category: newCategory, status: 'accepted' } : e,
-      ),
-    )
+    setEntities((prev) => {
+      const next = prev.map((e) =>
+        e.id === id
+          ? { ...e, category: newCategory, status: 'accepted' as const }
+          : e,
+      )
+      pushEntriesToActive(next)
+      return next
+    })
   }
 
   const handleFalsePositive = (id: string) => {
     setEntities((prev) => {
       const target = prev.find((e) => e.id === id)
       if (!target) return prev
-      // Restore the original text in the pseudonymized preview: replace every
-      // occurrence of the pseudonym with the realValue, then mark the entity
-      // as false positive so the recode panel skips it.
       if (target.pseudonym && target.pseudonym !== target.realValue) {
-        setPseudonymizedText((cur) => cur.split(target.pseudonym).join(target.realValue))
+        setPseudonymizedText((cur) =>
+          cur.split(target.pseudonym).join(target.realValue),
+        )
       }
-      return prev.map((e) =>
-        e.id === id ? { ...e, status: 'falsePositive' } : e,
+      const next = prev.map((e) =>
+        e.id === id ? { ...e, status: 'falsePositive' as const } : e,
       )
+      pushEntriesToActive(next)
+      return next
     })
+  }
+
+  const userFalsePositiveTerms = useMemo<Set<string>>(() => {
+    // Carry forward FP markers from the active mapping so a re-run on a new
+    // document keeps "Emilia" un-pseudonymized (DESIGN §8.7, R-06).
+    const out = new Set<string>()
+    if (active) {
+      for (const e of active.entries) {
+        if (e.isFalsePositive) out.add(e.realValue)
+      }
+    }
+    for (const e of entities) {
+      if (e.status === 'falsePositive') out.add(e.realValue)
+    }
+    return out
+  }, [active, entities])
+
+  const canSave = user !== null && masterKey !== null && entities.length > 0
+
+  const onSaveClick = () => {
+    if (!user) {
+      setSaveError('Devi accedere o creare un account per salvare i mapping.')
+      return
+    }
+    if (!masterKey) {
+      setSaveError(
+        'Master key non in memoria. Esci e riaccedi (la chiave viene derivata al login).',
+      )
+      return
+    }
+    // Pre-fill label from current active mapping if any.
+    setLabelInput(active?.label ?? '')
+    setLabelInputOpen(true)
+    setSaveError(null)
+  }
+
+  const onSaveConfirm = async () => {
+    const trimmedLabel = labelInput.trim()
+    if (!trimmedLabel) {
+      setSaveError('Inserisci un\'etichetta (es. "Causa Rossi vs Bianchi").')
+      return
+    }
+    setSaveStatus('saving')
+    setSaveError(null)
+    try {
+      const entriesToSave: MappingEntry[] = entities.map((e) => ({
+        pseudonym: e.pseudonym,
+        realValue: e.realValue,
+        category: e.category,
+        isFalsePositive: e.status === 'falsePositive',
+      }))
+      // Merge with any pre-existing entries the active mapping carries from
+      // earlier documents (so re-saving doesn't drop them).
+      const finalEntries = active
+        ? mergeEntries(active.entries, entriesToSave)
+        : entriesToSave
+      await saveActive(trimmedLabel, finalEntries)
+      setSaveStatus('saved')
+      setLabelInputOpen(false)
+      window.setTimeout(() => setSaveStatus('idle'), 2500)
+    } catch (err) {
+      setSaveStatus('error')
+      const msg =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : 'Errore inatteso durante il salvataggio.'
+      setSaveError(msg)
+    }
   }
 
   return (
@@ -96,6 +306,24 @@ export function ClipboardWidget(): JSX.Element {
         onAccept={handleAccept}
         onChangeCategory={handleChangeCategory}
         onFalsePositive={handleFalsePositive}
+        seedMapper={active?.mapper ?? null}
+        seedFalsePositives={userFalsePositiveTerms}
+        canSave={canSave}
+        loggedIn={user !== null}
+        masterKeyAvailable={masterKey !== null}
+        saveStatus={saveStatus}
+        saveError={saveError}
+        labelInputOpen={labelInputOpen}
+        labelInput={labelInput}
+        onLabelChange={setLabelInput}
+        onSaveClick={onSaveClick}
+        onSaveConfirm={() => void onSaveConfirm()}
+        onSaveCancel={() => {
+          setLabelInputOpen(false)
+          setSaveError(null)
+        }}
+        activeLabel={active?.label ?? null}
+        onCloseActive={closeActive}
       />
       <RecodePanel mapping={effectiveMapping} />
     </div>

@@ -19,13 +19,21 @@ import {
   type MappingMetadata,
 } from '../../api/client'
 import { useAuth } from '../../auth/auth-context'
+import { useActiveMapping } from '../../auth/active-mapping-context'
 
 type Props = {
   onBack?: () => void
+  /**
+   * Called after a saved mapping has been opened (decrypt + seed). The parent
+   * (App.tsx) uses this to navigate back to the work view so the user lands
+   * in the pseudonymize panel with the active-mapping banner visible.
+   */
+  onOpened?: () => void
 }
 
-export function AccountDashboard({ onBack }: Props): JSX.Element {
-  const { user, logout } = useAuth()
+export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
+  const { user, logout, masterKey, unlock } = useAuth()
+  const { openMapping } = useActiveMapping()
   const [mappings, setMappings] = useState<MappingMetadata[]>([])
   const [fps, setFps] = useState<Array<FalsePositiveEntry & { marked_at: string }>>(
     [],
@@ -35,13 +43,26 @@ export function AccountDashboard({ onBack }: Props): JSX.Element {
   const [olderThan, setOlderThan] = useState('')
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [deletePassword, setDeletePassword] = useState('')
+  // Inline unlock prompt: if the user re-opened the tab the JWT cookie may
+  // restore the session, but the master key (in-memory only) is gone. Asking
+  // for the password here re-derives it without leaving the browser.
+  const [unlockPassword, setUnlockPassword] = useState('')
+  const [unlockingId, setUnlockingId] = useState<string | null>(null)
+  const [openingId, setOpeningId] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const [m, f] = await Promise.all([listMappings(), getFalsePositives()])
-      setMappings(m.mappings)
+      // Sort by last_accessed_at desc (server order is created_at desc). This
+      // matches the capabilities_index §7 spec: most-recently-touched first.
+      const sorted = [...m.mappings].sort((a, b) => {
+        const ta = a.last_accessed_at ?? a.created_at
+        const tb = b.last_accessed_at ?? b.created_at
+        return tb.localeCompare(ta)
+      })
+      setMappings(sorted)
       setFps(f.false_positives)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Errore di rete.')
@@ -60,6 +81,54 @@ export function AccountDashboard({ onBack }: Props): JSX.Element {
       await refresh()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Errore di rete.')
+    }
+  }
+
+  async function onOpen(id: string) {
+    setError(null)
+    if (!masterKey) {
+      // No key in memory yet — surface the inline unlock prompt for this row
+      // (a fresh login derives the key automatically, so this only happens
+      // after a refresh while the JWT cookie is still valid).
+      setUnlockingId(id)
+      return
+    }
+    try {
+      setOpeningId(id)
+      await openMapping(id)
+      if (onOpened) onOpened()
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? `Impossibile aprire il mapping: ${err.message}`
+            : 'Errore inatteso aprendo il mapping.',
+      )
+    } finally {
+      setOpeningId(null)
+    }
+  }
+
+  async function onUnlockAndOpen(id: string) {
+    setError(null)
+    try {
+      await unlock(unlockPassword)
+      setUnlockPassword('')
+      setUnlockingId(null)
+      setOpeningId(id)
+      await openMapping(id)
+      if (onOpened) onOpened()
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : 'Sblocco fallito.',
+      )
+    } finally {
+      setOpeningId(null)
     }
   }
 
@@ -114,21 +183,78 @@ export function AccountDashboard({ onBack }: Props): JSX.Element {
         )}
         <ul className="account-mappings">
           {mappings.map((m) => (
-            <li key={m.mapping_id} className="account-mappings__row">
+            <li
+              key={m.mapping_id}
+              className="account-mappings__row"
+              data-testid={`mapping-row-${m.mapping_id}`}
+            >
               <div>
                 <strong>{m.label ?? '(senza etichetta)'}</strong>
                 <span className="muted">
                   {' '}
                   {m.doc_type ?? '—'} · {m.size_bytes} byte ·{' '}
                   {new Date(m.created_at).toLocaleString('it-IT')}
+                  {m.last_accessed_at && (
+                    <>
+                      {' · ultimo accesso '}
+                      {new Date(m.last_accessed_at).toLocaleString('it-IT')}
+                    </>
+                  )}
                 </span>
+                {unlockingId === m.mapping_id && (
+                  <div className="account-mappings__unlock">
+                    <p className="hint">
+                      Master key non in memoria. Inserisci la password per
+                      decifrare e aprire <strong>{m.label}</strong>.
+                    </p>
+                    <input
+                      type="password"
+                      className="auth-input"
+                      value={unlockPassword}
+                      onChange={(e) => setUnlockPassword(e.target.value)}
+                      placeholder="Password"
+                      data-testid={`unlock-input-${m.mapping_id}`}
+                    />
+                    <div className="actions">
+                      <button
+                        type="button"
+                        className="btn btn--primary"
+                        onClick={() => void onUnlockAndOpen(m.mapping_id)}
+                        disabled={!unlockPassword}
+                      >
+                        Sblocca e apri
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--secondary"
+                        onClick={() => {
+                          setUnlockingId(null)
+                          setUnlockPassword('')
+                        }}
+                      >
+                        Annulla
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-              <button
-                className="btn btn--danger"
-                onClick={() => onDeleteOne(m.mapping_id)}
-              >
-                Elimina
-              </button>
+              <div className="account-mappings__row-actions">
+                <button
+                  className="btn btn--primary"
+                  onClick={() => void onOpen(m.mapping_id)}
+                  disabled={openingId === m.mapping_id}
+                  data-testid={`open-mapping-${m.mapping_id}`}
+                >
+                  {openingId === m.mapping_id ? 'Apro…' : 'Apri'}
+                </button>
+                <button
+                  className="btn btn--danger"
+                  onClick={() => onDeleteOne(m.mapping_id)}
+                  data-testid={`delete-mapping-${m.mapping_id}`}
+                >
+                  Elimina
+                </button>
+              </div>
             </li>
           ))}
         </ul>

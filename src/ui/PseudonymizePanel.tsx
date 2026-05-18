@@ -12,6 +12,7 @@ import { useCallback, useEffect, useRef, useState, type DragEvent, type ChangeEv
 import { anonymize } from '../engine/engine'
 import { NerRunner } from '../engine/ner_runner'
 import type { NerProgressEvent } from '../engine/ner_runner'
+import type { PseudonymMapper } from '../engine/pseudonym_mapper'
 import type { MappingEntry, NerDetection } from '../types/engine'
 import { EntityReviewList } from './EntityReviewList'
 import { ModelLoadingState } from './ModelLoadingState'
@@ -31,6 +32,34 @@ type Props = {
   onAccept: (id: string) => void
   onChangeCategory: (id: string, newCategory: SwitchableCategory) => void
   onFalsePositive: (id: string) => void
+  /**
+   * Phase-3 wiring — when the user has an active saved mapping open, the
+   * seeded PseudonymMapper carries pseudonym↔original allocations across
+   * documents of the same case. Passing it here puts the engine in EXTEND
+   * mode (anonymize.ts). Null → fresh mapper per run (legacy single-doc).
+   */
+  seedMapper?: PseudonymMapper | null
+  /**
+   * False-positive originals carried forward from the active mapping (so
+   * Emilia marked FP in Doc1 stays "Emilia" in Doc2). Engine consults this
+   * via `userFalsePositives`.
+   */
+  seedFalsePositives?: ReadonlySet<string>
+  /** Whether "Salva mapping" is enabled. */
+  canSave: boolean
+  loggedIn: boolean
+  masterKeyAvailable: boolean
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error'
+  saveError: string | null
+  labelInputOpen: boolean
+  labelInput: string
+  onLabelChange: (v: string) => void
+  onSaveClick: () => void
+  onSaveConfirm: () => void
+  onSaveCancel: () => void
+  /** Label of the currently-active mapping, if any. */
+  activeLabel: string | null
+  onCloseActive: () => void
 }
 
 const ACCEPTED_EXTENSIONS = ['.txt', '.md']
@@ -45,6 +74,21 @@ export function PseudonymizePanel({
   onAccept,
   onChangeCategory,
   onFalsePositive,
+  seedMapper = null,
+  seedFalsePositives,
+  canSave,
+  loggedIn,
+  masterKeyAvailable,
+  saveStatus,
+  saveError,
+  labelInputOpen,
+  labelInput,
+  onLabelChange,
+  onSaveClick,
+  onSaveConfirm,
+  onSaveCancel,
+  activeLabel,
+  onCloseActive,
 }: Props): JSX.Element {
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -178,14 +222,21 @@ export function PseudonymizePanel({
   /** Run anonymize() and push the result up. Pure sync — no NER. */
   const runRegexOnly = useCallback(
     (userFalsePositives: Set<string>, nerDetections?: NerDetection[]) => {
-      const result = anonymize(originalText, { userFalsePositives, nerDetections })
+      const result = anonymize(originalText, {
+        userFalsePositives,
+        nerDetections,
+        // EXTEND mode: when a mapping is active, the seeded mapper carries
+        // forward Tier 1 (exact match) allocations from previous documents so
+        // pseudonyms stay coherent across the case (capabilities_index §6.2).
+        seedMapper: seedMapper ?? undefined,
+      })
       onResult({
         originalText,
         pseudonymizedText: result.pseudonymizedText,
         mapping: result.mappingEntries,
       })
     },
-    [originalText, onResult],
+    [originalText, onResult, seedMapper],
   )
 
   const handlePseudonymize = async () => {
@@ -194,11 +245,13 @@ export function PseudonymizePanel({
       setError('Inserisci del testo o trascina un file prima di pseudonimizzare.')
       return
     }
-    const userFalsePositives = new Set(
-      entities
-        .filter((e) => e.status === 'falsePositive')
-        .map((e) => e.realValue),
-    )
+    // Build the FP set from BOTH local UI state AND the carried-forward set
+    // from the active mapping (DESIGN §8.7): Emilia marked FP in Doc1 stays
+    // un-pseudonymized in Doc2 of the same case.
+    const userFalsePositives = new Set<string>([
+      ...entities.filter((e) => e.status === 'falsePositive').map((e) => e.realValue),
+      ...(seedFalsePositives ?? new Set<string>()),
+    ])
 
     // Fast path: NER unavailable (jsdom / init failed / no Worker) →
     // immediate regex-only pseudonymization. The UI still shows the regex
@@ -299,6 +352,23 @@ export function PseudonymizePanel({
         />
       </label>
 
+      {activeLabel && (
+        <div className="active-badge" data-testid="active-badge-inline">
+          <span>
+            Mapping attivo: <strong>{activeLabel}</strong>
+            {' '}— i prossimi documenti continueranno la stessa causa.
+          </span>
+          <button
+            type="button"
+            className="btn btn--secondary btn--small"
+            onClick={onCloseActive}
+            data-testid="close-active-btn"
+          >
+            Chiudi
+          </button>
+        </div>
+      )}
+
       <div className="actions">
         <button
           type="button"
@@ -313,7 +383,9 @@ export function PseudonymizePanel({
             ? 'Caricamento modello AI…'
             : nerStatus === 'running'
               ? 'Riconoscimento entità in corso…'
-              : 'Pseudonimizza'}
+              : activeLabel
+                ? 'Estendi mapping'
+                : 'Pseudonimizza'}
         </button>
         <button
           type="button"
@@ -327,12 +399,73 @@ export function PseudonymizePanel({
         <button
           type="button"
           className="btn btn--secondary"
-          disabled
-          title="Salvataggio mapping disponibile con l'account (Phase 3)."
+          onClick={onSaveClick}
+          disabled={!canSave || saveStatus === 'saving'}
+          title={
+            !loggedIn
+              ? "Accedi o crea un account per salvare il mapping."
+              : !masterKeyAvailable
+                ? 'Master key non in memoria — esci e riaccedi.'
+                : entities.length === 0
+                  ? "Pseudonimizza un documento prima di salvare."
+                  : 'Salva il mapping cifrato sul server.'
+          }
+          data-testid="save-mapping-btn"
         >
-          Salva mapping
+          {saveStatus === 'saving'
+            ? 'Salvataggio…'
+            : saveStatus === 'saved'
+              ? '✓ Salvato'
+              : activeLabel
+                ? 'Aggiorna mapping'
+                : 'Salva mapping'}
         </button>
       </div>
+
+      {labelInputOpen && (
+        <div className="save-label-form" data-testid="save-label-form">
+          <label className="field">
+            <span className="field__label">
+              Etichetta mapping (es. "Causa Rossi vs Bianchi")
+            </span>
+            <input
+              type="text"
+              value={labelInput}
+              onChange={(e) => onLabelChange(e.target.value)}
+              className="auth-input"
+              autoFocus
+              data-testid="save-label-input"
+              maxLength={120}
+              placeholder="Causa Rossi vs Bianchi"
+            />
+          </label>
+          <div className="actions">
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={onSaveConfirm}
+              disabled={!labelInput.trim() || saveStatus === 'saving'}
+              data-testid="save-label-confirm"
+            >
+              {saveStatus === 'saving' ? 'Salvo…' : 'Conferma e salva'}
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={onSaveCancel}
+              data-testid="save-label-cancel"
+            >
+              Annulla
+            </button>
+          </div>
+        </div>
+      )}
+
+      {saveError && (
+        <div className="error" role="alert" data-testid="save-error">
+          {saveError}
+        </div>
+      )}
 
       {nerStatus === 'loading' && loadProgress && (
         <ModelLoadingState

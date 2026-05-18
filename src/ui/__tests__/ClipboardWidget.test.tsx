@@ -6,10 +6,28 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { ClipboardWidget } from '../ClipboardWidget'
+import { AuthProvider } from '../../auth/auth-context'
+import { ActiveMappingProvider } from '../../auth/active-mapping-context'
 
 const FIXTURE = `Il sig. Mario Rossi (CF: RSSMRA80A01H501Z), residente in
 Roma, ha contattato l'avvocato all'indirizzo mario.rossi@example.com per
 il bonifico sull'IBAN IT60X0542811101000000123456.`
+
+// Phase-3 wiring: ClipboardWidget now consumes both auth and active-mapping
+// contexts (so it can flip into "extend mode" when a saved mapping is open,
+// and so the Save button knows whether the master key is in memory). The
+// tests run anonymous (no /recode/me cookie in jsdom) so AuthProvider stays
+// in its loading-then-null state — exactly the path an unauthenticated
+// pseudonymize-locally workflow takes.
+function renderWithProviders(): ReturnType<typeof render> {
+  return render(
+    <AuthProvider>
+      <ActiveMappingProvider>
+        <ClipboardWidget />
+      </ActiveMappingProvider>
+    </AuthProvider>,
+  )
+}
 
 beforeEach(() => {
   // jsdom doesn't ship navigator.clipboard — stub it for the copy buttons.
@@ -18,11 +36,19 @@ beforeEach(() => {
       writeText: vi.fn().mockResolvedValue(undefined),
     },
   })
+  // The AuthProvider fires `me()` at mount; in jsdom there's no backend, so
+  // we stub global fetch to return a 401 (anonymous). This keeps the spinner
+  // off-screen during the synchronous render.
+  globalThis.fetch = vi.fn().mockResolvedValue({
+    ok: false,
+    status: 401,
+    text: async () => '',
+  }) as typeof fetch
 })
 
 describe('ClipboardWidget', () => {
   it('renders both panels in the two-panel layout', () => {
-    render(<ClipboardWidget />)
+    renderWithProviders()
     expect(screen.getByTestId('clipboard-widget')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /pseudonimizza/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /^recode$/i })).toBeInTheDocument()
@@ -31,13 +57,13 @@ describe('ClipboardWidget', () => {
   })
 
   it('shows an error if user presses Pseudonimizza with empty input', () => {
-    render(<ClipboardWidget />)
+    renderWithProviders()
     fireEvent.click(screen.getByTestId('pseudonymize-btn'))
     expect(screen.getByTestId('pseudo-error')).toHaveTextContent(/inserisci del testo/i)
   })
 
   it('pseudonymizes a fixture end-to-end and populates the review list', () => {
-    render(<ClipboardWidget />)
+    renderWithProviders()
     const input = screen.getByTestId('original-textarea') as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: FIXTURE } })
     fireEvent.click(screen.getByTestId('pseudonymize-btn'))
@@ -57,7 +83,7 @@ describe('ClipboardWidget', () => {
   })
 
   it('copies the pseudonymized text to the clipboard', async () => {
-    render(<ClipboardWidget />)
+    renderWithProviders()
     const input = screen.getByTestId('original-textarea') as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: FIXTURE } })
     fireEvent.click(screen.getByTestId('pseudonymize-btn'))
@@ -74,7 +100,7 @@ describe('ClipboardWidget', () => {
   })
 
   it('restores the original value in preview when an entity is marked false positive', () => {
-    render(<ClipboardWidget />)
+    renderWithProviders()
     const input = screen.getByTestId('original-textarea') as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: FIXTURE } })
     fireEvent.click(screen.getByTestId('pseudonymize-btn'))
