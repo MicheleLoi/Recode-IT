@@ -14,6 +14,12 @@ bcrypt>=4.1
 pytest>=8.0
 pytest-asyncio>=0.23
 
-# Optional: email backend used in production (Resend). Imported lazily.
-# Uncomment when wiring the live email path.
-# resend>=0.7
+# Email backend used in production (Resend). Imported lazily — when the
+# module is absent OR `RESEND_API_KEY` env var is unset, the mailer falls
+# back to stderr-printing the message body (dev / test mode). With both
+# present, mails are sent live.
+#
+# Deploy doctrine: production systemd unit must `EnvironmentFile=/etc/mhc-server.env`
+# to load `RESEND_API_KEY` (shared with MHC-L). Without that, mails are
+# silently logged instead of sent — the failure is invisible to the client.
+resend>=0.7
