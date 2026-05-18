@@ -374,49 +374,99 @@ function unwrapToArray(maybeTensor: any): number[] {
  * `[start, end]` pairs, others as a flat [B, L, 2] tensor. Normalise to
  * `Array<[number, number]>`.
  */
-function unwrapOffsets(raw: any, length: number): Array<[number, number]> {
-  if (!raw) return new Array(length).fill([0, 0])
-  // Tensor case: { data, dims }
-  if (typeof raw === 'object' && 'data' in raw && 'dims' in raw) {
-    const data = raw.data as ArrayLike<number | bigint>
-    const out: Array<[number, number]> = new Array(length)
-    for (let i = 0; i < length; i += 1) {
-      const a = data[i * 2]
-      const b = data[i * 2 + 1]
-      out[i] = [
-        typeof a === 'bigint' ? Number(a) : (a as number) ?? 0,
-        typeof b === 'bigint' ? Number(b) : (b as number) ?? 0,
-      ]
+/**
+ * Reconstruct per-token character offsets and a special-tokens mask from the
+ * raw input_ids by walking the original text.
+ *
+ * Why: @xenova/transformers 2.17 silently ignores `return_offsets_mapping`
+ * and `return_special_tokens_mask` for BERT/DistilBERT tokenizers — verified
+ * by source-grep over node_modules/@xenova/transformers/src/tokenizers.js
+ * (0 matches for offset_mapping). The Python `transformers` library produces
+ * offsets via the Rust "fast" tokenizer; the JS port has no equivalent.
+ *
+ * Without offsets, the IO decoder's `s === 0 && e === 0` skip-sentinel
+ * triggered on every token → entities: [] for every prediction.
+ *
+ * Strategy: DistilBERT-Italian is WordPiece with `##` continuation. Walk the
+ * source text with a cursor:
+ *   - special id (CLS/SEP/PAD/MASK) → specialMask=1, offset [0,0];
+ *   - surface starts with '##' → glue to previous, no whitespace skip;
+ *   - otherwise → skip whitespace, match surface at cursor, advance.
+ * Fallback (case-insensitive scan within +64 chars) handles rare unicode
+ * normalisation drift. Unmatched token → emit [0,0] (decoder skips), keep
+ * cursor unchanged — losing one span is better than crashing.
+ */
+function reconstructOffsetsAndSpecialMask(
+  text: string,
+  inputIds: number[],
+): { offsets: Array<[number, number]>; specialMask: number[] } {
+  const tok: any = tokenizer
+  const specialIds = new Set<number>()
+  for (const k of [
+    'cls_token_id', 'sep_token_id', 'pad_token_id',
+    'mask_token_id', 'bos_token_id', 'eos_token_id',
+  ]) {
+    const v = tok?.[k]
+    if (typeof v === 'number') specialIds.add(v)
+  }
+
+  let tokens: string[]
+  try {
+    tokens = tok.model.convert_ids_to_tokens(inputIds)
+  } catch {
+    tokens = inputIds.map(() => '')
+  }
+
+  const offsets: Array<[number, number]> = new Array(inputIds.length)
+  const specialMask: number[] = new Array(inputIds.length).fill(0)
+  let cursor = 0
+  const norm = (s: string): string => s.toLowerCase()
+
+  for (let i = 0; i < inputIds.length; i += 1) {
+    const id = inputIds[i] as number
+    const surfaceRaw = tokens[i] ?? ''
+
+    if (specialIds.has(id)) {
+      specialMask[i] = 1
+      offsets[i] = [0, 0]
+      continue
     }
-    return out
+    const isContinuation = surfaceRaw.startsWith('##')
+    const surface = isContinuation ? surfaceRaw.slice(2) : surfaceRaw
+    if (surface.length === 0) { offsets[i] = [0, 0]; continue }
+
+    if (!isContinuation) {
+      while (cursor < text.length && /\s/.test(text.charAt(cursor))) cursor += 1
+    }
+
+    let start = -1
+    if (text.substr(cursor, surface.length) === surface) {
+      start = cursor
+    } else if (norm(text.substr(cursor, surface.length)) === norm(surface)) {
+      start = cursor
+    } else {
+      const horizon = Math.min(text.length, cursor + 64)
+      const idx = text.toLowerCase().indexOf(norm(surface), cursor)
+      if (idx !== -1 && idx < horizon) start = idx
+    }
+
+    if (start === -1) { offsets[i] = [0, 0]; continue }
+    const end = start + surface.length
+    offsets[i] = [start, end]
+    cursor = end
   }
-  // Nested array [[[s,e], [s,e], ...]] for batch=1.
-  if (Array.isArray(raw) && Array.isArray(raw[0]) && Array.isArray(raw[0][0])) {
-    return (raw[0] as Array<[number, number]>).map(
-      ([s, e]) => [Number(s ?? 0), Number(e ?? 0)] as [number, number],
-    )
-  }
-  // Already flat [[s,e], ...].
-  if (Array.isArray(raw) && Array.isArray(raw[0])) {
-    return (raw as Array<[number, number]>).map(
-      ([s, e]) => [Number(s ?? 0), Number(e ?? 0)] as [number, number],
-    )
-  }
-  return new Array(length).fill([0, 0])
+
+  return { offsets, specialMask }
 }
 
 function tokenize(text: string): TokenizerOutput {
-  // Transformers.js >=2.17 callable: tokenizer(text, opts)
-  const enc = (tokenizer as any)(text, {
-    return_offsets_mapping: true,
-    return_special_tokens_mask: true,
-  })
+  // @xenova/transformers 2.17 silently ignores return_offsets_mapping /
+  // return_special_tokens_mask for BERT/DistilBERT tokenizers, so we don't
+  // pass them and reconstruct manually below from the input_ids surface.
+  const enc = (tokenizer as any)(text)
   const inputIds = unwrapToArray(enc.input_ids)
   const attentionMask = unwrapToArray(enc.attention_mask)
-  const specialMask = unwrapToArray(enc.special_tokens_mask)
-  const offsets = unwrapOffsets(enc.offset_mapping, inputIds.length)
-  // Defensive: pad missing specialMask with zeros so we still process tokens.
-  while (specialMask.length < inputIds.length) specialMask.push(0)
+  const { offsets, specialMask } = reconstructOffsetsAndSpecialMask(text, inputIds)
   return { inputIds, attentionMask, offsets, specialMask }
 }
 
