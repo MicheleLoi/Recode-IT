@@ -65,12 +65,12 @@ PDL ratificato 2026-05-17 articola la costruzione in 7 fasi (Phase 0–6 in `IMP
 | 0 — Scaffold | Vite+React+TS+Vitest, fixtures MHC-L copiate, script goldens stub | **DONE** | commit `c5aca31` |
 | 1 — Engine port | regex IT + stoplist + pool pseudonimi + PseudonymMapper + regressioni A-1/A-2/A-3 | **DONE** | commit `aab6961` |
 | 2 — Two-panel UI | drag-drop, anteprima, recode, copy widget, entity review con flusso falso-positivo | **DONE** (Phase 5 falso-positivo assorbita qui) | commit `4fd7fb7` |
-| 3 — Auth + backend | signup/login JWT cookie, endpoint zero-knowledge `/recode/mappings/*`, Argon2id + AES-GCM client | **DONE backend; UX wiring frontend PENDING** — vedi §6 | commit `ac164ff` |
+| 3 — Auth + backend + frontend wiring | signup/login JWT cookie, endpoint zero-knowledge `/recode/mappings/*`, Argon2id + AES-GCM client + UX save/open/extend mapping + recovery 3-step ELIMINA gate | **DONE** | commits `ac164ff` (backend) + `0f26c3d` `414b6a6` `939c921` `e16cc89` (frontend) |
 | 4 — NER WASM + equivalence test | onnxruntime-web GLiNER + test di equivalenza numerica vs Python | **DONE con sostituzione modello** — vedi §5 delta D1 | commit `7dba25e` + pivot `6887387` + `7e0ff63` |
 | 5 — Falso-positivo UX | tre bottoni in entity review | **FOLDED in Phase 2** | commit `4fd7fb7` |
-| 6 — Launch readiness | mobile detect, CSP, landing page, lighthouse audit, dependency audit, end-to-end smoke | **NON INIZIATA** | — |
+| 6 — Launch readiness | DOCX/PDF support, OCR-Pro framing, deploy + TLS, MIME headers, end-to-end smoke | **DEPLOY DONE; END-TO-END ACCEPTANCE TEST PENDING FOUNDER** | commits `71078ed` `911ea3e` (DOCX/PDF) + `1b93135` (model URL fix) — vedi §5 D7 + D8 |
 
-**Stato empirico end-to-end (2026-05-18):** dopo i 4 bug infrastrutturali fissati (commit `52d3967`) e il fix del decoder (commit `3eded98`), la pipeline browser riconosce 6/6 entità sul test canonico e ha cold start veloce. Il flusso pseudonimizza-recode su **singolo documento in singola sessione** funziona.
+**Stato empirico end-to-end (2026-05-18 SID-20260518-143605):** Recode IT LIVE su `https://recode.micheleloi.pro/`. Deploy stack: nginx subdomain dedicato + TLS Let's Encrypt + COOP/COEP/CORP cross-origin isolation + MIME types corretti per `.mjs`/`.wasm`/`.onnx` + backend Starlette ASGI in systemd su `127.0.0.1:8001` proxy via nginx. Frontend bundle SPA in `/var/www/recode-it/` con worker NER + modello DistilBERT IT 67 MB int8. **ORT InferenceSession.create verificato green nel browser** (input names: `input_ids`, `attention_mask`). Pseudonimizza-recode su singolo documento in singola sessione funziona. Persistenza server-side (save/open/extend mapping cross-doc cross-session via gesto "estendi") implementata e in attesa di acceptance test founder.
 
 ---
 
@@ -119,6 +119,22 @@ Il PDL faceva riferimento a [`recode_it_pro_tier_server_architecture_20260518.md
 
 Il PDL Phase 2 prevedeva skill bundled nella meta-skill MHC-L cowork con paste-once API key, fetch/recode conversazionale ("carica il mio ultimo lavoro su Recode IT"). Fuori scope MVP. **Parcheggiato indefinitamente** fino a validazione del core hypothesis con tester reali.
 
+### D7 — Deploy topology: subdomain dedicato `recode.micheleloi.pro` + landing WordPress su `micheleloi.pro/recode-it/`
+
+Ratificato dal founder durante la sessione di deploy 2026-05-18 (SID-20260518-143605). Il **prodotto vero** (la SPA con drag-drop, pseudonimize, recoda) vive su `recode.micheleloi.pro` (nginx VPS, TLS Let's Encrypt). Il **sito che descrive il prodotto** (landing, istruzioni, copy marketing) vive su `micheleloi.pro/recode-it/` (WordPress, founder gestisce in Elementor).
+
+Le due superfici sono collegate da un CTA "Apri Recode IT" sulla landing. Razionale per il subdomain dedicato (anziché subpath WordPress): COOP/COEP/CORP headers richiesti per WebAssembly multi-thread sono incompatibili con WordPress globale — un subdomain isola lo scope. Vedi `OPEN_RISKS.md` R-09 resolution.
+
+### D8 — Model URL: same-origin relative (was hardcoded cross-origin)
+
+Bug fixato durante deploy (commit `1b93135`). Il codice pre-deploy aveva `PRODUCTION_MODEL_URL` hardcoded a `'https://mhc.micheleloi.pro/recode-it/models/distilbert_italian_ner_q8.onnx'` — sbagliato per due ragioni: (a) il subdomain corretto è `recode.`, non `mhc.` (`mhc.` è infrastruttura interna MHC-L); (b) anche se fosse stato `recode.`, un fetch cross-origin sarebbe bloccato da COEP `require-corp` mancando CORP cross-origin sul lato `mhc.`.
+
+Fix: path relativo `/models/distilbert_italian_ner_q8.onnx`, valido in dev (Vite serve `public/models/`) e in prod (nginx serve `/var/www/recode-it/models/`). Same-origin enforce architettonicamente il claim "nulla esce dal computer dell'utente": ogni risorsa caricata dalla pagina vive sullo stesso server, niente terze parti, niente CDN esterni.
+
+### D9 — nginx MIME types per ESM `.mjs` (lesson learned deploy 2026-05-18)
+
+nginx default `mime.types` NON include `.mjs` come `application/javascript` — di default serve `.mjs` come `application/octet-stream`. I browser rifiutano di eseguire moduli ESM con MIME non-JS. Conseguenza: ORT `InferenceSession.create()` fallisce con `"Failed to fetch dynamically imported module: ...jsep.mjs"`, il worker rebrand come `ERR_MODEL_NOT_FOUND` (misleading). Fix server-side: `types{}` block nel nginx server context con mapping esplicito `application/javascript js mjs;` + `application/wasm wasm;` + `Cache-Control: no-cache, must-revalidate` su `.mjs`/`.wasm`/`.onnx`/`.json` (location regex) per prevenire stick-cache di risposte vecchie. Dettaglio completo in `OPEN_RISKS.md` R-11.
+
 ### D6 — Schema falso-positivi server-side: `term` → `pseudonym`
 
 Il PDL Q proponeva schema `user_false_positive_preferences(user_id, term, originally_detected_category)`, dove `term` è il termine originale ("Emilia"). Il DESIGN.md §6 del build ha modificato a `pseudonym` (es. "Metropoli") con la motivazione che il server non deve mai vedere nomi originali.
@@ -142,7 +158,7 @@ Da verificare retroattivamente con il founder se questa modifica fosse intenzion
 ### 6.2 Boundaries di scope feature
 
 - **NER ha recall ~70-80%.** L'utente DEVE rivedere il preview prima di copiare. La revisione è obbligo contrattuale del Titolare (DPA §2.2.4 ereditato). Il pannello entity review è la materializzazione dell'obbligo, non cosmetica.
-- **Continuità degli pseudonimi cross-document = capacità latente.** L'architettura zero-knowledge persistente + il gesto UX "apri mapping esistente prima del drag-drop" producono coerenza fra atti della stessa causa (Mario Rossi resta Tizio in tutti gli atti). **Il gesto UX non è ancora wired nel frontend** — vedi §7 priorità pre-MVP.
+- **Continuità degli pseudonimi cross-document = capacità attivata.** L'architettura zero-knowledge persistente + il gesto UX "apri mapping esistente prima del drag-drop" producono coerenza fra atti della stessa causa (Mario Rossi resta Tizio in tutti gli atti). Wiring completato 2026-05-18 nei commit `0f26c3d` (engine EXTEND mode) + `414b6a6` (active-mapping context) + `939c921` (UI). Test `extend_mode.test.ts` green (Tier-1 hit verificato sul mapper).
 - **Apprendimento falso-positivi cross-document = funziona dentro lo stesso mapping di causa, NON tra cause diverse.** Vedi §5 delta D6.
 - **Niente OCR per PDF scannerizzati.** PDF text-extractable supportati via pdf.js. Scannerizzati: messaggio "carica come testo o usa PDF con testo incorporato — OCR in Phase 2". (PDL Q8 risolta.)
 - **Niente build mobile.** Detect mobile → messaggio "apri da computer desktop". Signup possibile da mobile, upload/pseudonimize/recode bloccato. (PDL Q9 risolta.)
@@ -157,38 +173,64 @@ Da verificare retroattivamente con il founder se questa modifica fosse intenzion
 
 ## 7. Roadmap
 
-### Pre-MVP — priorità: wire UX persistenza (CRITICAL)
+### Pre-MVP wiring (DONE 2026-05-18)
 
-Empirica founder 2026-05-18: *"dopo aver pseudonimizzato un documento il flusso si blocca, e facendo refresh la chiave si perde."* Il backend Phase 3 esiste; ciò che manca è il wiring frontend del save/open/extend di mapping. Senza questo, Recode IT è un tool single-doc single-session — capacità tecniche presenti, esperienza utente bloccata.
+Wire persistenza zero-knowledge + gesto "estendi mapping" — risolto il blocco "dopo pseudonimizzato refresh perde chiave" segnalato dal founder. Tasks chiusi:
 
-Tasks (delegati a coding agent in sessione separata):
-- [ ] Wire UI signup/login (se non già completo) + persistenza JWT in sessionStorage
-- [ ] Wire bottone "Salva mapping" → derive master key → encrypt → POST `/recode/mappings/` con label utente
-- [ ] Wire dashboard "I miei mapping" → lista da GET `/recode/mappings` ordinata per `last_accessed_at`
-- [ ] Wire click su mapping in dashboard → GET blob → decrypt → seed engine in stato "attivo" (mapping caricato in memoria)
-- [ ] Wire gesto "estendi mapping esistente": quando un mapping è in stato attivo e l'utente droppa un nuovo documento, l'engine estende invece di resettare. Coerenza pseudonimi e marche falso-positivo persistono attraverso documenti della stessa causa.
-- [ ] Avviso explicit pre-recovery-code: warning a tre step + checkbox "scrivi ELIMINA per confermare" (OPEN_RISKS.md R-05 mitigation)
-- [ ] Acceptance: round-trip cross-doc verde — pseudonimizza Doc1 stessa-causa, salva, refresh tab, login, apri mapping, droppa Doc2, verifica Mario Rossi → Tizio in entrambi i documenti
+- [x] Client crypto module (Argon2id + AES-256-GCM via SubtleCrypto, IV fresh per call) — commit storico `ac164ff`
+- [x] UI signup/login + persistenza JWT in `sessionStorage` (non `localStorage` per DESIGN §5.3)
+- [x] Bottone "Salva mapping" funzionante (input label, derive master_key, encrypt, POST)
+- [x] Dashboard "I miei mapping" con `[Apri]` + `[Elimina]` + bulk delete + sort by `last_accessed_at` desc
+- [x] Gesto "Apri mapping esistente" → seed PseudonymMapper in stato attivo + badge "Mapping attivo: <label>"
+- [x] Gesto "Estendi mapping attivo" → drop nuovo doc → mapper NON resetta, estende (Mario Rossi → Tizio in entrambi Doc1+Doc2)
+- [x] Recovery codes destruction warning a 3 step (R-05 mitigation): avviso + checkbox + textbox "scrivi ELIMINA"
+- [x] Beforeunload warning se mapping attivo non salvato
+- [x] DOCX/PDF extraction (pdfjs-dist + mammoth) + scanned-PDF modal con framing "OCR piano Pro in arrivo"
 
-### MVP gate — Phase 6 launch readiness (post-persistenza)
+Test suite Vitest: **208/208 green** post-wiring. Critical: `extend_mode.test.ts` (cross-doc Tier-1 hit), `active-mapping-context.test.tsx` (blob round-trip preservazione `isFalsePositive`), `RecoveryPage.test.tsx` (3-step gate non bypassabile).
 
-Per IMPLEMENTATION_PLAN.md §"Phase 6":
-- [ ] Mobile detection overlay implementato + testato
-- [ ] Audit error states (DESIGN §10 walk-through)
-- [ ] CSP header configurato (scoped a `/recode-it/`, NON globale, vedi OPEN_RISKS.md R-09)
+### Deploy production (DONE 2026-05-18)
+
+- [x] DNS A record `recode.micheleloi.pro` → IP VPS Vienna (easyname)
+- [x] TLS Let's Encrypt cert provisioning via certbot, auto-renew schedulato
+- [x] Backend `recode-it-backend.service` systemd: uvicorn `127.0.0.1:8001`, venv `/opt/recode-it-backend/`, DB SQLite `/opt/recode-it-backend/recode-it.db`, JWT secret env, CORS scoped
+- [x] nginx server block subdomain con COOP/COEP/CORP headers + MIME `.mjs`/`.wasm`/`.onnx`/`.json` + `Cache-Control: no-cache` su asset ESM/binary
+- [x] Frontend `npm run build` + upload `dist/` → `/var/www/recode-it/` (preserva `models/` ONNX)
+- [x] Smoke test pubblico verificato green: `GET /` → 200 + index.html + COOP/COEP headers; `GET /recode/me` → 401; ORT InferenceSession.create → green (input names `input_ids`, `attention_mask`)
+
+### Acceptance test end-to-end (PENDING founder)
+
+Test canonico in ambiente reale (browser fresh / incognito):
+- [ ] Signup nuovo account → email Resend con 10 recovery codes ricevuta
+- [ ] Login con credenziali
+- [ ] Drop Doc1 (Mario Rossi) → preview pseudonimizzato con Tizio
+- [ ] Save mapping con label "Causa Test" → badge attivo
+- [ ] Chiudi tab + login fresh + apri mapping "Causa Test"
+- [ ] Drop Doc2 (Mario Rossi) → verifica STESSO pseudonimo Tizio (NON Caio random)
+- [ ] Bonus: marca "Emilia" falso positivo Doc1 → estendi con Doc2 → Emilia verbatim
+- [ ] DOCX upload reale: drop `.docx` → estrazione testo mammoth → preview pseudonimizzato
+- [ ] PDF text-extractable: drop `.pdf` testuale → estrazione pdf.js → preview
+- [ ] PDF scannerizzato: drop scanned PDF → modal "OCR piano Pro in arrivo" + bottone Capito
+
+### Phase 6 launch readiness — residui (pending)
+
+- [ ] Mobile detection overlay (DESIGN.md §10)
+- [ ] CSP header configurato (scoped, vedi OPEN_RISKS.md R-09 e D7)
 - [ ] Sezione "Come funziona / Verificabilità privacy" nella UI (guida DevTools per pitch DPO)
-- [ ] End-to-end smoke test (TEST_PLAN.md §4) — esecuzione founder
-- [ ] Landing page `micheleloi.pro/recode-it/` scritta + deployata
+- [ ] Landing page `micheleloi.pro/recode-it/` su WordPress (founder Elementor)
 - [ ] Lighthouse audit (LCP < 3s desktop)
 - [ ] `npm audit` + `pip-audit` clean — zero high/critical
+- [ ] Email verification flow UX (backend `GET /recode/auth/verify-email/{token}` ritorna HTML, browser gestisce direttamente — confermare con founder se UX intenzionale)
+- [ ] Worker error message preservation (R-11 follow-up): non rebrand ogni "failed to fetch" come `ERR_MODEL_NOT_FOUND`, conservare il messaggio originale ORT per facilitare diagnostica futura
 
 ### Post-MVP (parcheggi)
 
 - Pro tier server architecture (split-knowledge esterno, consulente DPO) — gate ARR
 - Cowork bridge conversazionale (skill bundled in meta-skill MHC-L) — gate validazione MVP
-- OCR per PDF scannerizzati — gate evidenza domanda
+- OCR per PDF scannerizzati (Tesseract.js) — feature paid Pro, gate pricing decision settled
 - Drafting capability native (marker-injection) — sprint separato post-PMF
 - Build mobile — gate evidenza uso reale post-MVP
+- Local persistence free tier (IndexedDB, §9 specifica) — gate pricing decision se Branch X freemium
 
 ---
 
@@ -255,4 +297,4 @@ Authority: dialogo founder ↔ chief_of_staff SID-20260518-143605, ratifica foun
 
 ---
 
-*Recode IT capabilities_index — last synced SID-20260518-143605. Authored by MHC-Work portfolio governance. Coerenza con PDL ratificato 2026-05-17 + decision_log 2026-05-17 §"Pivot architetturale" + ratifica founder in-session 2026-05-18 §9 (persistenza locale design).*
+*Recode IT capabilities_index — last synced SID-20260518-143605 (post-deploy 2026-05-18). Authored by MHC-Work portfolio governance. Coerenza con PDL ratificato 2026-05-17 + decision_log 2026-05-17 §"Pivot architetturale" + ratifica founder in-session 2026-05-18 §9 (persistenza locale design) + deploy ratifica §3 stato + §5 deltas D7 D8 D9 + lessons learned in `OPEN_RISKS.md` R-09 resolution + R-11.*

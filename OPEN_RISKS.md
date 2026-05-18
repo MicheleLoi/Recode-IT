@@ -256,6 +256,31 @@ For `micheleloi.pro` (a WordPress site), adding COEP/COOP globally would be dest
 
 **When to decide:** Phase 0 deployment (first nginx config). Determine threading vs. no-threading strategy and its header implication before deploying to production.
 
+**Resolution (2026-05-18)**: Option 4 adopted. SPA deployed on dedicated subdomain `recode.micheleloi.pro` (DNS A record + Let's Encrypt cert + nginx server block scoped to subdomain). COOP/COEP/CORP applied freely without WordPress interaction. `micheleloi.pro/recode-it/` reserved for the marketing landing on WordPress. See R-11 below for an ESM module MIME-type gotcha that surfaced during this deploy.
+
+---
+
+## R-11 — ESM module MIME-type cache trap (discovered during deploy 2026-05-18)
+
+**Description.** When serving the SPA via nginx, ESM `.mjs` files (specifically the onnxruntime-web WASM loaders at `/ort/*.mjs`) must be served with `Content-Type: application/javascript`. nginx's default `mime.types` does NOT include `.mjs` — files are served as `application/octet-stream`. Browsers refuse to execute dynamically-imported modules with non-JS MIME, ORT's `InferenceSession.create()` fails with `"Failed to fetch dynamically imported module: ...jsep.mjs"`, and the worker rebrands this fairly opaque underlying error as `ERR_MODEL_NOT_FOUND` (misleading — the model file is fine; the WASM loader module is the failure).
+
+Worse: once a browser has cached the wrong-MIME response (no `Cache-Control` headers set → heuristic freshness applies), the cache sticks across regular reloads and even some hard reloads. Server-side fix is necessary but not sufficient; existing visitors need a cache invalidation.
+
+**Likelihood:** Certain on default nginx setups serving ESM modules from disk. Hits every new deploy of any project using onnxruntime-web (or similar WASM-bundled libs) until fixed.
+
+**Severity:** High when latent. Founder cannot smoke-test the product because of an opaque "model not available" message; misdirected debugging chases the model files when the problem is the WASM loader.
+
+**Mitigation (applied 2026-05-18 to `recode.micheleloi.pro`):**
+
+1. nginx `types{}` block in the server context overrides the global `mime.types` for the SPA: `application/javascript js mjs; application/wasm wasm; application/json json; application/octet-stream onnx;`.
+2. `Cache-Control: no-cache, must-revalidate` on `.mjs`/`.wasm`/`.onnx`/`.json` via a `location ~* \.(mjs|wasm|onnx|json)$` block. This forces browsers to revalidate the asset on every navigation — at a small bandwidth cost we trade for guaranteed correctness after server-side fixes.
+3. `systemctl restart nginx` (NOT just `reload`) — some MIME-type changes only take effect on restart.
+4. After server fix, existing visitors must clear site data (DevTools → Application → Clear site data) or use an Incognito window for the very next visit. The `Cache-Control: no-cache` header protects against future recurrence.
+
+**Forward defense:** the surfaced error inside the worker (`ner.worker.ts`) labels any error matching `/404|not.?found|failed to fetch/i` as `ERR_MODEL_NOT_FOUND`. This made debugging slower. Consider preserving the original ORT error message in the worker `error` payload (or at least appending it) so future "model not found" reports can be diagnosed without manually intercepting fetch inside the worker. Tracked as follow-up.
+
+**When to decide:** Already enforced on `recode.micheleloi.pro`. Pattern documented here so future Recode-IT-style projects (or migration of the SPA to another host) don't rediscover it.
+
 ---
 
 ## R-10 — The mapping data format evolves, invalidating old encrypted blobs
