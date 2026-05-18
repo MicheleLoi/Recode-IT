@@ -1,11 +1,16 @@
 /**
  * PseudonymizePanel — left panel of the clipboard widget.
  *
- * Lets the user drop a `.txt` / `.md` file (or paste text), runs `anonymize()`
- * from the Phase 1 engine, shows original vs pseudonymized side by side, and
- * surfaces the detected entities for review. The "Copia per Claude" button
- * writes the pseudonymized text to the clipboard. "Salva mapping" is a
- * disabled placeholder until Phase 3 (auth + server-side encrypted storage).
+ * Lets the user drop a `.txt` / `.md` / `.docx` / `.pdf` file (or paste text),
+ * runs `anonymize()` from the Phase 1 engine, shows original vs pseudonymized
+ * side by side, and surfaces the detected entities for review. The "Copia per
+ * Claude" button writes the pseudonymized text to the clipboard.
+ *
+ * File extraction is delegated to `src/extraction/extract.ts`, which routes
+ * by extension (DESIGN.md §3). The scanned-PDF edge case (DESIGN.md §10) is
+ * handled inline here: when the dispatcher reports `scannedPdf=true` we open
+ * a modal announcing that OCR is in the Pro plan rather than dropping a
+ * blank string into the textarea.
  */
 
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ChangeEvent } from 'react'
@@ -14,6 +19,7 @@ import { NerRunner } from '../engine/ner_runner'
 import type { NerProgressEvent } from '../engine/ner_runner'
 import type { PseudonymMapper } from '../engine/pseudonym_mapper'
 import type { MappingEntry, NerDetection } from '../types/engine'
+import { extractText, SUPPORTED_EXTENSIONS } from '../extraction/extract'
 import { EntityReviewList } from './EntityReviewList'
 import { ModelLoadingState } from './ModelLoadingState'
 import type { ModelLoadPhase } from './ModelLoadingState'
@@ -62,8 +68,7 @@ type Props = {
   onCloseActive: () => void
 }
 
-const ACCEPTED_EXTENSIONS = ['.txt', '.md']
-const FUTURE_EXTENSIONS = ['.docx', '.pdf']
+const ACCEPTED_EXTENSIONS = SUPPORTED_EXTENSIONS
 
 export function PseudonymizePanel({
   originalText,
@@ -93,6 +98,7 @@ export function PseudonymizePanel({
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle')
+  const [scannedPdfModalOpen, setScannedPdfModalOpen] = useState(false)
   const [nerStatus, setNerStatus] = useState<'idle' | 'loading' | 'running' | 'unavailable'>(
     'idle',
   )
@@ -177,21 +183,22 @@ export function PseudonymizePanel({
       if (!file) return
       const name = file.name.toLowerCase()
 
-      if (FUTURE_EXTENSIONS.some((ext) => name.endsWith(ext))) {
-        setError(
-          `I file ${FUTURE_EXTENSIONS.join(' / ')} sono in arrivo nella Phase 4. Per ora supportiamo ${ACCEPTED_EXTENSIONS.join(' / ')}.`,
-        )
-        return
-      }
       if (!ACCEPTED_EXTENSIONS.some((ext) => name.endsWith(ext))) {
         setError(
-          `Formato non supportato. Trascina un file ${ACCEPTED_EXTENSIONS.join(' o ')}, oppure incolla il testo qui sotto.`,
+          `Formato non supportato. Trascina un file ${ACCEPTED_EXTENSIONS.join(', ')}, oppure incolla il testo qui sotto.`,
         )
         return
       }
       try {
-        const text = await file.text()
-        onOriginalChange(text)
+        const result = await extractText(file)
+        // Scanned-PDF edge case (DESIGN.md §10): pdf.js returns ~empty text
+        // for a scan. Don't pollute the textarea — surface the OCR-coming-soon
+        // modal so the user understands why their PDF didn't load.
+        if (result.scannedPdf) {
+          setScannedPdfModalOpen(true)
+          return
+        }
+        onOriginalChange(result.text)
       } catch (err) {
         setError(`Impossibile leggere il file: ${(err as Error).message}`)
       }
@@ -317,11 +324,13 @@ export function PseudonymizePanel({
         data-testid="drop-zone"
       >
         <p>
-          Trascina qui un file <code>.txt</code> o <code>.md</code>, oppure
-          incolla il testo qui sotto.
+          Trascina qui un file <code>.txt</code>, <code>.md</code>,{' '}
+          <code>.docx</code> o <code>.pdf</code>, oppure incolla il testo qui
+          sotto.
         </p>
         <p className="drop-zone__hint">
-          File <code>.docx</code> e <code>.pdf</code> in arrivo (Phase 4).
+          I PDF scannerizzati (senza testo selezionabile) richiedono OCR —
+          disponibile nel piano Pro in arrivo.
         </p>
         <button
           type="button"
@@ -333,7 +342,7 @@ export function PseudonymizePanel({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".txt,.md,text/plain,text/markdown"
+          accept=".txt,.md,.docx,.pdf,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           onChange={handleFileInput}
           style={{ display: 'none' }}
           data-testid="file-input"
@@ -508,6 +517,36 @@ export function PseudonymizePanel({
           onFalsePositive={onFalsePositive}
         />
       </section>
+
+      {scannedPdfModalOpen && (
+        <div
+          className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="scanned-pdf-modal-title"
+          data-testid="scanned-pdf-modal"
+        >
+          <div className="modal">
+            <h3 id="scanned-pdf-modal-title">PDF scannerizzato rilevato</h3>
+            <p>
+              Questo PDF è una scansione (non ha testo selezionabile).
+              L&apos;OCR per fotocopie e PDF scannerizzati è nel piano Pro, in
+              arrivo. Per ora carica una versione con testo selezionabile.
+            </p>
+            <div className="actions">
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => setScannedPdfModalOpen(false)}
+                data-testid="scanned-pdf-modal-ok"
+                autoFocus
+              >
+                Capito
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

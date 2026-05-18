@@ -16,15 +16,29 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+
+// Mock the extraction dispatcher so file-drop tests can control its return
+// value without exercising pdf.js / mammoth in jsdom. SUPPORTED_EXTENSIONS is
+// re-exported from the mock unchanged so the drop-zone copy still reflects
+// the real format list.
+vi.mock('../../extraction/extract', () => ({
+  extractText: vi.fn(),
+  SUPPORTED_EXTENSIONS: ['.txt', '.md', '.docx', '.pdf'],
+}))
+
 import { PseudonymizePanel } from '../PseudonymizePanel'
+import { extractText } from '../../extraction/extract'
 import type { ReviewEntity, SwitchableCategory } from '../types'
 import { PseudonymMapper } from '../../engine/pseudonym_mapper'
+
+const mockedExtract = vi.mocked(extractText)
 
 beforeEach(() => {
   Object.assign(navigator, {
     clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
   })
+  mockedExtract.mockReset()
 })
 
 const NO_OP = (): void => undefined
@@ -171,5 +185,88 @@ describe('PseudonymizePanel — Active mapping UX', () => {
     ])
     render(<PseudonymizePanel {...baseProps} seedMapper={mapper} activeLabel="Causa Test" />)
     expect(screen.getByTestId('active-badge-inline')).toBeInTheDocument()
+  })
+})
+
+describe('PseudonymizePanel — File extraction (DOCX / PDF / scanned-PDF modal)', () => {
+  it('advertises .docx and .pdf in the drop-zone copy and accept attribute', () => {
+    render(<PseudonymizePanel {...baseProps} />)
+    const input = screen.getByTestId('file-input') as HTMLInputElement
+    expect(input.accept).toContain('.docx')
+    expect(input.accept).toContain('.pdf')
+    const dropZone = screen.getByTestId('drop-zone')
+    expect(dropZone.textContent).toMatch(/\.docx/)
+    expect(dropZone.textContent).toMatch(/\.pdf/)
+  })
+
+  it('routes a dropped .docx file through extractText and pushes the result into the textarea', async () => {
+    mockedExtract.mockResolvedValue({ text: 'DOCX body content', scannedPdf: false })
+    const onOriginalChange = vi.fn()
+    render(<PseudonymizePanel {...baseProps} onOriginalChange={onOriginalChange} />)
+    const file = new File(['ignored'], 'memo.docx')
+    fireEvent.change(screen.getByTestId('file-input'), { target: { files: [file] } })
+    await waitFor(() => expect(mockedExtract).toHaveBeenCalledTimes(1))
+    expect(mockedExtract).toHaveBeenCalledWith(file)
+    expect(onOriginalChange).toHaveBeenCalledWith('DOCX body content')
+  })
+
+  it('routes a text-extractable .pdf through extractText and pushes the text into the textarea', async () => {
+    mockedExtract.mockResolvedValue({ text: 'PDF body', scannedPdf: false })
+    const onOriginalChange = vi.fn()
+    render(<PseudonymizePanel {...baseProps} onOriginalChange={onOriginalChange} />)
+    const file = new File(['ignored'], 'sentenza.pdf')
+    fireEvent.change(screen.getByTestId('file-input'), { target: { files: [file] } })
+    await waitFor(() => expect(onOriginalChange).toHaveBeenCalledWith('PDF body'))
+  })
+
+  it('shows the scanned-PDF modal when the dispatcher reports scannedPdf=true', async () => {
+    mockedExtract.mockResolvedValue({ text: '', scannedPdf: true })
+    const onOriginalChange = vi.fn()
+    render(<PseudonymizePanel {...baseProps} onOriginalChange={onOriginalChange} />)
+    const file = new File(['ignored'], 'scan.pdf')
+    fireEvent.change(screen.getByTestId('file-input'), { target: { files: [file] } })
+    await waitFor(() => {
+      expect(screen.getByTestId('scanned-pdf-modal')).toBeInTheDocument()
+    })
+    // Modal text must mention OCR + Pro plan (DESIGN §10 wording requirement).
+    const modal = screen.getByTestId('scanned-pdf-modal')
+    expect(modal.textContent).toMatch(/OCR/i)
+    expect(modal.textContent).toMatch(/pro/i)
+    // The textarea must NOT be populated with the empty extraction result.
+    expect(onOriginalChange).not.toHaveBeenCalled()
+  })
+
+  it('closes the scanned-PDF modal when the user clicks Capito', async () => {
+    mockedExtract.mockResolvedValue({ text: '', scannedPdf: true })
+    render(<PseudonymizePanel {...baseProps} />)
+    const file = new File(['ignored'], 'scan.pdf')
+    fireEvent.change(screen.getByTestId('file-input'), { target: { files: [file] } })
+    await waitFor(() => screen.getByTestId('scanned-pdf-modal'))
+    fireEvent.click(screen.getByTestId('scanned-pdf-modal-ok'))
+    await waitFor(() => {
+      expect(screen.queryByTestId('scanned-pdf-modal')).not.toBeInTheDocument()
+    })
+  })
+
+  it('shows an error for unsupported extensions without calling extractText', async () => {
+    render(<PseudonymizePanel {...baseProps} />)
+    const file = new File(['x'], 'thing.xyz')
+    fireEvent.change(screen.getByTestId('file-input'), { target: { files: [file] } })
+    await waitFor(() => {
+      expect(screen.getByTestId('pseudo-error')).toBeInTheDocument()
+    })
+    expect(mockedExtract).not.toHaveBeenCalled()
+  })
+
+  it('surfaces extractor errors as a user-facing error message', async () => {
+    const err = new Error('Errore nel caricamento del PDF: corrupt')
+    ;(err as Error & { code?: string }).code = 'ERR_PDF_CORRUPT'
+    mockedExtract.mockRejectedValue(err)
+    render(<PseudonymizePanel {...baseProps} />)
+    const file = new File(['x'], 'broken.pdf')
+    fireEvent.change(screen.getByTestId('file-input'), { target: { files: [file] } })
+    await waitFor(() => {
+      expect(screen.getByTestId('pseudo-error')).toBeInTheDocument()
+    })
   })
 })
