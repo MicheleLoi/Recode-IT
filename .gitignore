@@ -35,6 +35,8 @@ __pycache__/
 venv/
 scripts/.venv-gliner-export/
 scripts/gliner_onnx_fp32/
+scripts/distilbert_italian_ner_onnx_fp32/
+scripts/distilbert_italian_ner_onnx_q8/
 scripts/*.onnx
 
 # Cached models / large binaries
@@ -42,15 +44,19 @@ public/models/*.onnx
 *.onnx
 
 # Tokenizer artefacts that ship alongside the ONNX model — they're produced
-# by scripts/export_gliner_onnx.py and either served from the same VPS path
-# as the .onnx in prod, or copied locally into public/models/ for dev. Not
-# worth committing: tokenizer.json alone is ~8 MB.
+# by scripts/export_distilbert_onnx.py (formerly export_gliner_onnx.py) and
+# either served from the same VPS path as the .onnx in prod, or copied locally
+# into public/models/ for dev. Not worth committing: tokenizer.json alone is
+# several MB and the artefacts regenerate deterministically from the export
+# script + HuggingFace model id.
 public/models/tokenizer.json
 public/models/tokenizer_config.json
 public/models/special_tokens_map.json
 public/models/gliner_config.json
 public/models/added_tokens.json
 public/models/spm.model
+public/models/vocab.txt
+public/models/config.json
 
 # ort wasm runtime — copied at vite buildStart from node_modules
 # (see copyOrtWasmPlugin in vite.config.ts)
