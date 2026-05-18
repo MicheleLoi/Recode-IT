@@ -255,3 +255,46 @@ export function deleteAccount(password: string): Promise<{
     confirm: 'DELETE MY ACCOUNT',
   })
 }
+
+// ----- Pro upgrade funnel (Phase 1: request-then-invite, Stripe €0/mese) -----
+
+export type ProInviteStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'claimed'
+  | 'expired'
+
+export type ProInviteRequestRow = {
+  request_id: number
+  status: ProInviteStatus
+  requested_at: string
+  approved_at: string | null
+  claimed_at: string | null
+  rejected_at: string | null
+  invite_expires_at: string | null
+}
+
+export type ProInviteRequestCreated = {
+  request_id: number
+  status: 'pending'
+  requested_at: string
+}
+
+export function requestProInvite(reason: string): Promise<ProInviteRequestCreated> {
+  return request('POST', '/recode/pro/request-invite', { reason })
+}
+
+export function getMyProRequest(): Promise<{ request: ProInviteRequestRow | null }> {
+  return request('GET', '/recode/pro/my-request')
+}
+
+export type ClaimInviteResponse = {
+  stripe_payment_link_url: string
+  user_id: string
+  expires_at: string
+}
+
+export function claimProInvite(token: string): Promise<ClaimInviteResponse> {
+  return request('POST', '/recode/pro/claim-invite', { token })
+}
