@@ -246,13 +246,19 @@ export async function listMappings(input: ListMappingsInput): Promise<SavedMappi
   if (input.tier === 'free') {
     return await withDB(async (db) => {
       const records = await listMappingsForUser(db, input.userId)
-      return records.map((r) => ({
-        id: r.id,
-        label: r.label,
-        entriesCount: r.entries.length,
-        createdAt: r.createdAt,
-        updatedAt: r.updatedAt,
-      }))
+      // Filtra il record aggregato sentinel (tier=free design 2026-05-19):
+      // l'aggregato è un'astrazione di storage, non un mapping selezionabile
+      // dall'utente — non deve mai apparire in nessuna lista UI.
+      const aggId = aggregateRecordId(input.userId)
+      return records
+        .filter((r) => r.id !== aggId)
+        .map((r) => ({
+          id: r.id,
+          label: r.label,
+          entriesCount: r.entries.length,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }))
     })
   }
   // tier === 'pro'
@@ -274,6 +280,73 @@ export async function deleteMappingById(input: DeleteMappingInput): Promise<void
     return
   }
   await apiDeleteMapping(input.id)
+}
+
+// ----- aggregate mapping (tier=free, single record per userId) ----------
+//
+// Design ratificato 2026-05-19 (founder live test bug Recode IT zero-euro):
+// tier=free NON è "lista multi-mapping con id" come tier=pro. È un SINGOLO
+// record aggregato per browser, chiavato per userId, in cui vivono TUTTI i
+// pseudonimi mai allocati per quell'utente. L'app lo carica all'avvio e
+// seeda il PseudonymMapper engine così la continuità cross-documento è
+// garantita: Mario Rossi → Tizio in Doc1 resta Tizio in Doc2.
+//
+// Implementazione: usiamo lo stesso object store `mappings` con un id
+// deterministico `agg::<userId>` come unica key per il record aggregato.
+// Coesiste con eventuali record legacy id-based ma per tier=free il flow
+// applicativo passa SOLO da load/saveAggregateMapping.
+
+/** Build the deterministic IDB key for the per-user aggregate record. */
+export function aggregateRecordId(userId: string): string {
+  return `agg::${userId}`
+}
+
+/**
+ * Load the single aggregate mapping record for `userId`. Returns the
+ * cumulative entry list (every name ever pseudonymized in this browser for
+ * this user) or `[]` if no record yet exists.
+ *
+ * tier=free only. Pro users have a different topology (lista multi-mapping
+ * cifrata server-side) e devono usare loadMapping(id).
+ */
+export async function loadAggregateMapping(userId: string): Promise<MappingEntry[]> {
+  const id = aggregateRecordId(userId)
+  return await withDB(async (db) => {
+    const r = await getMappingRecord(db, id)
+    return r ? r.entries : []
+  })
+}
+
+/**
+ * Save (upsert) the single aggregate mapping record for `userId`. The
+ * caller passes the FULL merged entry list (the dispatcher does not merge —
+ * pool merging lives in the engine / active-mapping-context). On overwrite
+ * the original `createdAt` is preserved.
+ */
+export async function saveAggregateMapping(
+  userId: string,
+  entries: MappingEntry[],
+): Promise<void> {
+  const id = aggregateRecordId(userId)
+  const now = nowIso()
+  const record: MappingRecord = {
+    id,
+    userId,
+    label: '__aggregate__', // sentinel; not surfaced in any list UI
+    entries,
+    createdAt: now,
+    updatedAt: now,
+  }
+  try {
+    await withDB(async (db) => {
+      const previous = await getMappingRecord(db, id)
+      if (previous) record.createdAt = previous.createdAt
+      await putMapping(db, record)
+    })
+  } catch (err) {
+    if (err instanceof IndexedDBQuotaError) throw err
+    throw err
+  }
 }
 
 export { IndexedDBQuotaError }
