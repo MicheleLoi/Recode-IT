@@ -32,19 +32,12 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import {
-  ApiError,
-  deleteMapping as apiDeleteMapping,
-  getMapping,
-  saveMapping,
-} from '../api/client'
-import {
-  base64ToBytes,
-  bytesToBase64,
-  decryptMapping,
-  encryptMapping,
-} from '../api/crypto'
 import { PseudonymMapper } from '../engine/pseudonym_mapper'
+import {
+  deleteMappingById,
+  loadMapping,
+  saveMapping,
+} from '../storage/mapping-store'
 import type { MappingEntry } from '../types/engine'
 import { useAuth } from './auth-context'
 
@@ -194,7 +187,7 @@ export function ActiveMappingProvider({
 }: {
   children: React.ReactNode
 }): JSX.Element {
-  const { masterKey } = useAuth()
+  const { user, masterKey } = useAuth()
   const [active, setActive] = useState<ActiveMapping | null>(null)
 
   // Beforeunload warning when the active mapping has dirty unsaved changes —
@@ -216,31 +209,26 @@ export function ActiveMappingProvider({
 
   const saveActive = useCallback(
     async (label: string, entries: MappingEntry[]): Promise<string> => {
-      if (!masterKey) {
+      if (!user) {
+        throw new Error(
+          'Devi accedere o creare un account per salvare i mapping (tier anonymous: in RAM solo).',
+        )
+      }
+      // tier='pro' needs masterKey for AES-GCM; tier='free' does not (IDB
+      // plaintext per capabilities_index §9.1).
+      if (user.tier === 'pro' && !masterKey) {
         throw new Error(
           'Crittografia non disponibile: sblocca la sessione con la password prima di salvare.',
         )
       }
       const mappingId = active?.mappingId ?? genId()
-      const blobMap = entriesToBlobMap(entries)
-      const cipher = await encryptMapping(blobMap, masterKey)
-      const blob64 = bytesToBase64(cipher)
-      // Idempotent save: if the id already exists server-side, we drop the
-      // old row first (the backend rejects POST on conflict). Cheaper than a
-      // dedicated PUT route.
-      if (active?.mappingId) {
-        try {
-          await apiDeleteMapping(active.mappingId)
-        } catch (err) {
-          // 404 is fine (first save / already gone); other errors propagate.
-          if (!(err instanceof ApiError && err.status === 404)) throw err
-        }
-      }
       await saveMapping({
-        mapping_id: mappingId,
-        blob_base64: blob64,
+        id: mappingId,
+        userId: user.user_id,
+        tier: user.tier,
         label,
-        doc_type: 'txt',
+        entries,
+        masterKey,
       })
       // Rebuild the active state to reflect the post-save reality (clean,
       // entries === what we just persisted, mapper unchanged).
@@ -256,32 +244,41 @@ export function ActiveMappingProvider({
       })
       return mappingId
     },
-    [active, masterKey],
+    [active, masterKey, user],
   )
 
   const openMapping = useCallback(
     async (mappingId: string): Promise<void> => {
-      if (!masterKey) {
+      if (!user) {
+        throw new Error(
+          'Devi accedere per aprire un mapping salvato.',
+        )
+      }
+      if (user.tier === 'pro' && !masterKey) {
         throw new Error(
           'Crittografia non disponibile: sblocca la sessione con la password prima di aprire un mapping.',
         )
       }
-      const payload = await getMapping(mappingId)
-      const cipher = base64ToBytes(payload.blob)
-      const blobMap = await decryptMapping(cipher, masterKey)
-      const entries = blobMapToEntries(blobMap)
+      const payload = await loadMapping({
+        id: mappingId,
+        tier: user.tier,
+        masterKey,
+      })
+      if (!payload) {
+        throw new Error('Mapping non trovato.')
+      }
       const mapper = new PseudonymMapper()
-      mapper.seedFromEntries(entries)
+      mapper.seedFromEntries(payload.entries)
       setActive({
-        mappingId: payload.mapping_id,
-        label: payload.label ?? '(senza etichetta)',
+        mappingId: payload.id,
+        label: payload.label,
         mapper,
-        entries,
+        entries: payload.entries,
         dirty: false,
         pristine: true,
       })
     },
-    [masterKey],
+    [masterKey, user],
   )
 
   const closeActive = useCallback(() => setActive(null), [])
@@ -294,10 +291,10 @@ export function ActiveMappingProvider({
   }, [])
 
   const deleteActive = useCallback(async () => {
-    if (!active) return
-    await apiDeleteMapping(active.mappingId)
+    if (!active || !user) return
+    await deleteMappingById({ id: active.mappingId, tier: user.tier })
     setActive(null)
-  }, [active])
+  }, [active, user])
 
   const renameActive = useCallback((newLabel: string) => {
     setActive((cur) => (cur ? { ...cur, label: newLabel, dirty: true } : cur))
