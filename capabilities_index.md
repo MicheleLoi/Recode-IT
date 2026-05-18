@@ -201,4 +201,58 @@ Per IMPLEMENTATION_PLAN.md §"Phase 6":
 
 ---
 
-*Recode IT capabilities_index — last synced SID-20260518-143605. Authored by MHC-Work portfolio governance. Coerenza con PDL ratificato 2026-05-17 + decision_log 2026-05-17 §"Pivot architetturale".*
+## 9. Local persistence design (free tier — pending pricing decision)
+
+Specifica tecnica + UX ratificata in dialogo founder ↔ chief_of_staff durante SID-20260518-143605, **pending decisione pricing del founder**. Se la decisione approda a Branch X (freemium con persistenza locale device-singolo + paid €X cross-device), questa sezione è il canon implementativo per la seconda iterazione di coding (post completion dell'agent server-side attualmente in background).
+
+### 9.1 Storage — IndexedDB in chiaro, no cifratura
+
+Persistenza locale via **IndexedDB** (non `localStorage` — IndexedDB scala oltre 5MB e supporta blob strutturati). Database privato del browser ("recode-it"), letture/scritture async, dato in cartella privata del browser sul disco utente.
+
+**Decisione: dato in chiaro, niente cifratura aggiuntiva.**
+
+Razionale: il browser dell'avvocato vive sullo stesso PC dove sta il file Word originale con i nomi veri. La chiave (Mario Rossi → Tizio) ha lo stesso livello di sensibilità del file originale e vive nello stesso luogo. Cifrarla con una password aggiuntiva sarebbe sicurezza teatrale — chi entra nel browser ha già accesso al file originale a portata di mano. Sicurezza coerente con il modello fisico del computer privato dell'avvocato.
+
+### 9.2 Upgrade flow free → paid — bottone "Trasferisci chiavi sul cloud"
+
+Formulazione esatta: **"Trasferisci chiavi sul cloud"**. Non "Trasferisci tutto". La precisione è doctrine — l'utente capisce che si trasferisce solo il vocabolario di sostituzione, NON documenti né contenuti.
+
+Behavior: l'utente firma per il paid, riceve dialog "Trasferisci chiavi sul cloud", click → il browser deriva master_key da password+argon2_salt → cifra ogni mapping locale lato browser → POST `/recode/mappings/` per ciascuno. Da quel momento i mapping vivono sul server (cifrati), il locale può essere svuotato o restare come copia ridondante (decisione UX da raffinare).
+
+### 9.3 Claim zero-knowledge — dove va chiarito nella UI
+
+Tre punti specifici, non uno solo:
+
+1. **Dialog del trasferimento** (frase canonica candidata):
+   > *"Le tue chiavi vengono cifrate qui nel tuo browser con la tua password, e mandate sul nostro server come dati incomprensibili. Né noi né nessun altro può leggerle senza la tua password — nemmeno se ce le chiedono i giudici."*
+   
+   La chiusa *"nemmeno se ce le chiedono i giudici"* è cruciale: materializza il claim invece di lasciarlo astratto, e parla la lingua di un avvocato.
+
+2. **Landing page del paid** (banner sopra il fold):
+   > *"Le chiavi del tuo studio, cifrate nel tuo browser prima di partire. Sul nostro server arrivano già illeggibili."*
+
+3. **Dashboard "I miei mapping" del paid** (riga sotto il titolo):
+   > *"Tutte le chiavi qui sono cifrate end-to-end. Il server vede solo bytes incomprensibili."*
+
+Vocabolario: si descrive il behavior, NON si nomina "zero-knowledge" come termine tecnico marketing. L'avvocato non-tech deve capire cosa succede, non imparare un'etichetta.
+
+### 9.4 Cambiamenti backend
+
+**Zero.** Il free locale non parla mai col server. Il backend esistente (commit `ac164ff` Phase 3) serve solo il paid.
+
+### 9.5 Scenari di failure UX
+
+Da gestire nella implementazione di seconda iterazione:
+- Utente cambia browser sullo stesso PC → mapping locali non visibili dal nuovo browser. Messaggio: *"Non trovi le tue chiavi? Sono nel browser dove le hai salvate. Per averle dappertutto, considera l'upgrade."*
+- Utente cancella i dati del browser ("cancella cronologia / cookie / dati siti") → mapping locali persi. Avviso onboarding free al primo salvataggio: *"Le chiavi vivono nel browser di questo computer. Se cancelli i dati del browser, vanno perse. Per averle al sicuro su cloud, considera l'upgrade."*
+- Utente cambia computer → mapping non disponibili. Stessa narrazione di upgrade.
+
+### 9.6 Status
+
+**Pending decisione pricing.** Implementazione attivata solo se Branch X (freemium con local). Se Branch Y (single-session free pura) o altra configurazione, questa sezione resta come specifica archiviata, non eseguita.
+
+Authority: dialogo founder ↔ chief_of_staff SID-20260518-143605, ratifica founder verbatim "cifrare: no, assurdità" + bottone "Trasferisci chiavi sul cloud" + chiarire subito la cifratura zero knowledge.
+
+---
+
+*Recode IT capabilities_index — last synced SID-20260518-143605. Authored by MHC-Work portfolio governance. Coerenza con PDL ratificato 2026-05-17 + decision_log 2026-05-17 §"Pivot architetturale" + ratifica founder in-session 2026-05-18 §9 (persistenza locale design).*
