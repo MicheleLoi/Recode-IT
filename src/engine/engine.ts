@@ -19,6 +19,7 @@ import type {
   AnonymizeResult,
   MappingEntry,
   NerDetection,
+  RegexDetection,
 } from '../types/engine'
 
 const REGEX_CATEGORY_TO_MASK: Record<string, string> = {
@@ -63,6 +64,181 @@ const PASS_2_LABELS = new Set<string>([
   'organizzazione',
   'tribunale',
 ])
+
+// ---------------------------------------------------------------------------
+// Substitution-offset bug fix (regression test 20260518): NER detections
+// arrive with offsets into the ORIGINAL text (that's what the worker sees on
+// the way in). The engine, however, substitutes against the POST-REGEX text
+// — after CFs (16 chars) became "<DS>" (4 chars), emails became "<EMAIL>"
+// (7 chars), etc. Applying a raw NER offset to the shifted text writes the
+// pseudonym at the wrong column — almost always wedged inside an adjacent
+// token (founder bug report: `BLL MRC 7TizioEMAIL>+39 347 551 2093`).
+//
+// We rebuild a coordinate map (originalPos → postRegexPos) from the regex
+// detections, then re-anchor each NER detection. Detections whose original
+// range overlaps a regex range are dropped (the regex already replaced that
+// span with a deterministic mask; reapplying a pseudonym there would corrupt
+// the mask). Detections whose mapped span no longer points at the expected
+// `det.text` in the post-regex text are dropped too (defensive: a regex
+// substitution swallowed the entity surface).
+// ---------------------------------------------------------------------------
+
+function reanchorNerDetections(
+  detections: ReadonlyArray<NerDetection>,
+  regexDetections: ReadonlyArray<RegexDetection>,
+  originalText: string,
+  postRegexText: string,
+): NerDetection[] {
+  // Fast path: no regex substitutions → offsets unchanged. We still verify
+  // each slice (defensive — protects against unforeseen drift).
+  if (regexDetections.length === 0) {
+    const passthrough: NerDetection[] = []
+    for (const det of detections) {
+      if (postRegexText.slice(det.start, det.end) === det.text) {
+        passthrough.push(det)
+      } else {
+        const idx = postRegexText.indexOf(det.text)
+        if (idx >= 0) {
+          passthrough.push({ ...det, start: idx, end: idx + det.text.length })
+        }
+      }
+    }
+    return passthrough
+  }
+
+  // Build a coordinate map (originalPos ↔ postRegexPos) by walking both
+  // texts in lockstep. For each regex detection, the unchanged prefix
+  // before it MUST match in both texts; the regex's replacement length is
+  // then discovered by reading whatever sits between postCursor and the
+  // start of the next unchanged segment.
+  const sortedRegex = [...regexDetections].sort((a, b) => a.start - b.start)
+  type RegexRun = {
+    origStart: number
+    origEnd: number
+    postStart: number
+    postEnd: number
+  }
+  const builtRuns: RegexRun[] = []
+  let origCursor = 0
+  let postCursor = 0
+  for (let i = 0; i < sortedRegex.length; i++) {
+    const r = sortedRegex[i]!
+    // Unchanged prefix between the previous run and this one.
+    const prefix = originalText.slice(origCursor, r.start)
+    if (postRegexText.slice(postCursor, postCursor + prefix.length) !== prefix) {
+      // Drift — bail out by returning the unmapped detections; the caller's
+      // defensive verification will still drop the bad ones.
+      break
+    }
+    origCursor = r.start
+    postCursor += prefix.length
+
+    // Discover the post run length by finding where the next unchanged
+    // segment begins in postRegexText (the next char after the mask is the
+    // char at originalText[r.end]).
+    // Easiest: derive from the next regex run's postStart, or from the
+    // remaining tail of the post-regex text if this is the last run.
+    let postRunLen: number
+    if (i + 1 < sortedRegex.length) {
+      const next = sortedRegex[i + 1]!
+      const between = originalText.slice(r.end, next.start)
+      // Search for `between` starting from postCursor in postRegexText.
+      const found = postRegexText.indexOf(between, postCursor)
+      if (found < 0) {
+        // Drift — bail.
+        break
+      }
+      postRunLen = found - postCursor
+    } else {
+      // Last run — the tail of postRegexText after the mask must equal the
+      // tail of originalText after r.end.
+      const tail = originalText.slice(r.end)
+      const tailStart = postRegexText.length - tail.length
+      if (tailStart < postCursor) {
+        // Drift — replacement was longer than original (uncommon but
+        // possible). Fall back to indexOf from postCursor.
+        const idx = postRegexText.indexOf(tail, postCursor)
+        if (idx < 0) break
+        postRunLen = idx - postCursor
+      } else if (postRegexText.slice(tailStart) !== tail) {
+        // Drift — bail.
+        break
+      } else {
+        postRunLen = tailStart - postCursor
+      }
+    }
+
+    builtRuns.push({
+      origStart: r.start,
+      origEnd: r.end,
+      postStart: postCursor,
+      postEnd: postCursor + postRunLen,
+    })
+    origCursor = r.end
+    postCursor += postRunLen
+  }
+
+  if (builtRuns.length === 0 && regexDetections.length > 0) {
+    // Couldn't build a coordinate map — fall back to text-search alignment.
+    const fallback: NerDetection[] = []
+    for (const det of detections) {
+      const idx = postRegexText.indexOf(det.text)
+      if (idx >= 0) {
+        fallback.push({ ...det, start: idx, end: idx + det.text.length })
+      }
+    }
+    return fallback
+  }
+
+  // Translate a single original-text offset to a post-regex offset.
+  // Returns null if the offset falls inside a regex run (the detection
+  // overlaps a mask and must be dropped).
+  function translateOffset(origPos: number, isEnd: boolean): number | null {
+    let delta = 0
+    for (const run of builtRuns) {
+      if (origPos < run.origStart) break
+      if (origPos > run.origEnd) {
+        delta += (run.postEnd - run.postStart) - (run.origEnd - run.origStart)
+        continue
+      }
+      // origPos in [run.origStart, run.origEnd].
+      if (isEnd && origPos === run.origStart) {
+        // Detection ends exactly at the start of a regex run → still outside
+        // the run on the right side, no overlap.
+        delta += 0
+        return origPos + delta
+      }
+      if (!isEnd && origPos === run.origEnd) {
+        // Detection starts exactly at the end of a regex run → outside.
+        delta += (run.postEnd - run.postStart) - (run.origEnd - run.origStart)
+        return origPos + delta
+      }
+      // Genuine overlap — caller must drop.
+      return null
+    }
+    return origPos + delta
+  }
+
+  const result: NerDetection[] = []
+  for (const det of detections) {
+    const newStart = translateOffset(det.start, false)
+    const newEnd = translateOffset(det.end, true)
+    if (newStart === null || newEnd === null || newEnd <= newStart) {
+      continue
+    }
+    // Verify the post-regex slice still equals det.text — guard against
+    // off-by-one mistakes in the coordinate map.
+    if (postRegexText.slice(newStart, newEnd) !== det.text) {
+      // Drift: fall back to first-occurrence lookup.
+      const idx = postRegexText.indexOf(det.text)
+      if (idx < 0) continue
+      result.push({ ...det, start: idx, end: idx + det.text.length })
+      continue
+    }
+    result.push({ ...det, start: newStart, end: newEnd })
+  }
+  return result
+}
 
 /**
  * Two-pass replacement of NER entities — see Python
@@ -115,10 +291,26 @@ function applyNerWithPseudonyms(
   }
 
   // Replace in reverse so offsets remain valid.
+  //
+  // Bug fix (regression 20260518): an additional safety pass dedupes any
+  // NER detection that overlaps another, keeping the higher-score one.
+  // Two overlapping replacements applied to the SAME span produce
+  // corrupted output ("MarSempronio Bellini" etc.); upstream
+  // `NerRunner.predict` already does this globally, but defending here is
+  // cheap and protects callers that build detections by hand.
+  const sortedForOverlap = [...filtered].sort((a, b) => b.score - a.score)
+  const acceptedSpans: NerDetection[] = []
+  for (const span of sortedForOverlap) {
+    const overlaps = acceptedSpans.some(
+      (a) => span.start < a.end && span.end > a.start,
+    )
+    if (!overlaps) acceptedSpans.push(span)
+  }
+
   const seen = new Set<string>()
   const mappingEntries: MappingEntry[] = []
   let result = text
-  const ordered = [...filtered].sort((a, b) => b.start - a.start)
+  const ordered = [...acceptedSpans].sort((a, b) => b.start - a.start)
   for (const ent of ordered) {
     const original = ent.text
     const label = ent.label
@@ -264,15 +456,31 @@ export function anonymize(
   }
 
   // Layer 2: NER (optional, Phase 4 path). The browser-side runner produces
-  // detections over the *post-regex* text, matching the Python pipeline
-  // (`apply_gliner_with_pseudonyms` is called with `text_after_regex`).
+  // detections over the *original* text (it runs against the raw user input
+  // in parallel chunks). The regex layer above has since shifted offsets —
+  // every CF lost 12 chars to "<DS>", every email lost (length - 7) chars
+  // to "<EMAIL>", etc. Apply detections raw and the substitution lands at
+  // the wrong column, producing the founder bug
+  // `BLL MRC 7TizioEMAIL>+39 347 551 2093`.
+  //
+  // `reanchorNerDetections` rebuilds the originalPos → postRegexPos map
+  // from the regex detections and re-anchors every NER detection. Spans
+  // that overlap a regex mask are dropped (the regex already handled that
+  // surface); spans whose mapped slice no longer matches `det.text` fall
+  // back to a first-occurrence text search.
   let pseudonymizedText = afterRegex
   if (options.nerDetections && options.nerDetections.length > 0) {
     const fp = options.userFalsePositives ?? new Set<string>()
     const includeCategoriesPass2 = options.includeCategoriesPass2 === true
+    const reanchored = reanchorNerDetections(
+      options.nerDetections,
+      detections,
+      text,
+      afterRegex,
+    )
     const nerOutcome = applyNerWithPseudonyms(
       afterRegex,
-      options.nerDetections,
+      reanchored,
       mapper,
       fp,
       includeCategoriesPass2,
