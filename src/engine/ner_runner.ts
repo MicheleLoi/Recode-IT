@@ -36,6 +36,36 @@ export type NerRunnerOptions = {
   workerFactory?: () => Worker
 }
 
+/**
+ * Result of a full-text NER pass — see `NerRunner.predict()`.
+ *
+ * `partial` is true when at least one chunk failed even after retry. The UI
+ * surfaces a banner ("Riconoscimento entità incompleto su <N> sezione/i…")
+ * but the pipeline still proceeds with `detections` from the successful
+ * chunks plus the deterministic regex layer.
+ *
+ * `failedChunkRanges` carries the character ranges in the *input* text that
+ * had no NER coverage, in order — useful for forensic surfacing in the UI.
+ */
+export type NerPredictResult = {
+  detections: NerDetection[]
+  partial: boolean
+  failedChunkRanges: Array<[number, number]>
+}
+
+/** Sentinel error code raised by `predictChunk` when `timeoutMs` elapses. */
+export const ERR_CHUNK_TIMEOUT = 'ERR_CHUNK_TIMEOUT'
+
+/** Default per-chunk timeout (ms) before `predictChunk` rejects. */
+export const DEFAULT_CHUNK_TIMEOUT_MS = 30_000
+
+/** Delay (ms) between the first attempt failure and the retry. */
+export const RETRY_BACKOFF_MS = 2_000
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 type PendingRequest = {
   resolve: (value: NerDetection[]) => void
   reject: (reason: unknown) => void
@@ -166,14 +196,53 @@ export class NerRunner {
     })
   }
 
-  /** Predict entities on a single text chunk. */
-  async predictChunk(text: string): Promise<NerDetection[]> {
+  /**
+   * Predict entities on a single text chunk.
+   *
+   * @param text — the chunk to send to the worker.
+   * @param timeoutMs — abort the request and reject with `ERR_CHUNK_TIMEOUT`
+   *   after this many milliseconds. Defaults to {@link DEFAULT_CHUNK_TIMEOUT_MS}.
+   *
+   * The previous implementation had no timeout, so a single silent worker
+   * stall (ORT decoder edge case, memory pressure, dropped postMessage)
+   * blocked `predict()` indefinitely — observed on DOCX of ~400 words. We
+   * now race the pending promise against a `setTimeout` and clear the
+   * pending entry on either resolution path so the worker's eventual
+   * (late) response doesn't leak.
+   */
+  async predictChunk(
+    text: string,
+    timeoutMs: number = DEFAULT_CHUNK_TIMEOUT_MS,
+  ): Promise<NerDetection[]> {
     if (!this.ready || !this.worker) {
       throw new Error('NerRunner: call init() before predictChunk()')
     }
     const id = nextId()
     return new Promise<NerDetection[]>((resolve, reject) => {
-      this.pending.set(id, { resolve, reject })
+      let settled = false
+      const timer =
+        timeoutMs > 0
+          ? setTimeout(() => {
+              if (settled) return
+              settled = true
+              this.pending.delete(id)
+              reject(new Error(`${ERR_CHUNK_TIMEOUT}: chunk did not return within ${timeoutMs}ms`))
+            }, timeoutMs)
+          : null
+      this.pending.set(id, {
+        resolve: (value) => {
+          if (settled) return
+          settled = true
+          if (timer !== null) clearTimeout(timer)
+          resolve(value)
+        },
+        reject: (reason) => {
+          if (settled) return
+          settled = true
+          if (timer !== null) clearTimeout(timer)
+          reject(reason)
+        },
+      })
       this.worker?.postMessage({
         type: 'predict',
         payload: { id, chunkText: text },
@@ -181,18 +250,58 @@ export class NerRunner {
     })
   }
 
-  /** Predict entities across the whole text — chunks, dedupes, merges. */
-  async predict(text: string): Promise<NerDetection[]> {
+  /**
+   * Predict entities across the whole text — chunks, dedupes, merges.
+   *
+   * Parallelised via `Promise.allSettled` so a single chunk failure does not
+   * block the others (previously sequential `for-await`, which deadlocked on
+   * a silent worker stall — see brief 20260518). Each failed chunk is
+   * retried once with a {@link RETRY_BACKOFF_MS} delay; chunks that fail
+   * both attempts are surfaced via `partial: true` + `failedChunkRanges`
+   * for the UI banner. The successful chunks still feed the regex + NER
+   * pipeline downstream, so the user always gets a usable result.
+   */
+  async predict(text: string): Promise<NerPredictResult> {
     const chunks = splitIntoChunks(text, 800)
+
+    const attemptChunk = async (
+      chunkText: string,
+    ): Promise<NerDetection[]> => {
+      try {
+        return await this.predictChunk(chunkText)
+      } catch (firstErr) {
+        // Brief 20260518: one retry only, after a short backoff to let the
+        // worker (and ORT internals) settle. If the second attempt also
+        // fails the chunk is recorded as failed and we move on.
+        await sleep(RETRY_BACKOFF_MS)
+        try {
+          return await this.predictChunk(chunkText)
+        } catch (_secondErr) {
+          throw firstErr instanceof Error ? firstErr : new Error(String(firstErr))
+        }
+      }
+    }
+
+    const settled = await Promise.allSettled(
+      chunks.map((c) => attemptChunk(c.text)),
+    )
+
     const merged: NerDetection[] = []
-    for (const { start, text: chunkText } of chunks) {
-      const ents = await this.predictChunk(chunkText)
-      for (const e of ents) {
-        merged.push({
-          ...e,
-          start: e.start + start,
-          end: e.end + start,
-        })
+    const failedChunkRanges: Array<[number, number]> = []
+    for (let i = 0; i < settled.length; i++) {
+      const chunk = chunks[i]
+      const outcome = settled[i]
+      if (!chunk || !outcome) continue
+      if (outcome.status === 'fulfilled') {
+        for (const e of outcome.value) {
+          merged.push({
+            ...e,
+            start: e.start + chunk.start,
+            end: e.end + chunk.start,
+          })
+        }
+      } else {
+        failedChunkRanges.push([chunk.start, chunk.start + chunk.text.length])
       }
     }
 
@@ -206,7 +315,11 @@ export class NerRunner {
       if (!overlaps) accepted.push(span)
     }
     accepted.sort((a, b) => a.start - b.start)
-    return accepted
+    return {
+      detections: accepted,
+      partial: failedChunkRanges.length > 0,
+      failedChunkRanges,
+    }
   }
 
   /** Shut down the worker and reject any in-flight requests. */

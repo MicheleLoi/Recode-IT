@@ -45,6 +45,21 @@ export type MappingEntry = {
    * treated as non-false-positive on rehydration.
    */
   isFalsePositive?: boolean
+  /**
+   * Variante β (opt-in luoghi/org/tribunali): when `true`, the entity was
+   * detected by NER but intentionally NOT substituted in the output text —
+   * `pseudonym` carries the literal original value. UI surfaces these with a
+   * "preservato" badge + `[Sostituisci comunque]` action. Optional — legacy
+   * entries and Pass 1 entries default to `false`.
+   */
+  isPreserved?: boolean
+  /**
+   * Workflow pass that produced this entry. `1` = always substituted
+   * (persone, codici, IBAN, email, telefono, numero di causa). `2` = opt-in
+   * (luogo, organizzazione, tribunale). Stored mostly for analytics + future
+   * UI surface; legacy entries default to `1`.
+   */
+  pass?: 1 | 2
 }
 
 export type AnonymizeOptions = {
@@ -62,6 +77,17 @@ export type AnonymizeOptions = {
    * dependency on `PseudonymMapper`; the engine performs an instanceof check.
    */
   seedMapper?: unknown
+  /**
+   * Variante β — when `false` (default), Pass 2 categories
+   * (`luogo`, `organizzazione`, `tribunale`) are RECORDED in the mapping as
+   * preserved entries (`isPreserved: true`, `pseudonym === realValue`) but
+   * NOT substituted in the output text. Mirror of MHC-L Python
+   * `pseudonymize_gui_local.py` PASS_1_LABELS / PASS_2_LABELS workflow —
+   * preserving foro competente / giurisdizione / leggi regionali is often
+   * essential for downstream legal reasoning. Set to `true` to substitute
+   * every category as in the legacy single-pass behaviour.
+   */
+  includeCategoriesPass2?: boolean
 }
 
 export type AnonymizeResult = {

@@ -19,6 +19,32 @@ import { NerRunner } from '../engine/ner_runner'
 import type { NerProgressEvent } from '../engine/ner_runner'
 import type { PseudonymMapper } from '../engine/pseudonym_mapper'
 import type { MappingEntry, NerDetection } from '../types/engine'
+
+/**
+ * localStorage key for the variante-β toggle preference (opt-in
+ * luoghi / organizzazioni / tribunali). Default `false` — preserving these
+ * data points often matters for legal reasoning (foro competente,
+ * giurisdizione, leggi regionali).
+ */
+const INCLUDE_PLACES_LS_KEY = 'recode-it:include-places-default'
+
+function readIncludePlacesPref(): boolean {
+  try {
+    if (typeof localStorage === 'undefined') return false
+    return localStorage.getItem(INCLUDE_PLACES_LS_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function writeIncludePlacesPref(value: boolean): void {
+  try {
+    if (typeof localStorage === 'undefined') return
+    localStorage.setItem(INCLUDE_PLACES_LS_KEY, value ? 'true' : 'false')
+  } catch {
+    /* private mode / quota — silent */
+  }
+}
 import { extractText, SUPPORTED_EXTENSIONS } from '../extraction/extract'
 import { EntityReviewList } from './EntityReviewList'
 import { ModelLoadingState } from './ModelLoadingState'
@@ -38,6 +64,8 @@ type Props = {
   onAccept: (id: string) => void
   onChangeCategory: (id: string, newCategory: SwitchableCategory) => void
   onFalsePositive: (id: string) => void
+  /** Variante β: flip a preserved entity to substituted (per-entity opt-in). */
+  onSubstituteAnyway: (id: string) => void
   /**
    * Phase-3 wiring — when the user has an active saved mapping open, the
    * seeded PseudonymMapper carries pseudonym↔original allocations across
@@ -79,6 +107,7 @@ export function PseudonymizePanel({
   onAccept,
   onChangeCategory,
   onFalsePositive,
+  onSubstituteAnyway,
   seedMapper = null,
   seedFalsePositives,
   canSave,
@@ -99,6 +128,18 @@ export function PseudonymizePanel({
   const [error, setError] = useState<string | null>(null)
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle')
   const [scannedPdfModalOpen, setScannedPdfModalOpen] = useState(false)
+  const [includePlaces, setIncludePlaces] = useState<boolean>(() =>
+    readIncludePlacesPref(),
+  )
+  /**
+   * Partial-NER banner state: when the last `predict()` call reported
+   * `partial: true`, we surface a non-modal banner with the failed character
+   * ranges so the avvocato knows which slice of the document wasn't covered
+   * by NER. Cleared on each new pseudonimizza run.
+   */
+  const [partialNotice, setPartialNotice] = useState<{
+    failedRanges: Array<[number, number]>
+  } | null>(null)
   const [nerStatus, setNerStatus] = useState<'idle' | 'loading' | 'running' | 'unavailable'>(
     'idle',
   )
@@ -236,6 +277,10 @@ export function PseudonymizePanel({
         // forward Tier 1 (exact match) allocations from previous documents so
         // pseudonyms stay coherent across the case (capabilities_index §6.2).
         seedMapper: seedMapper ?? undefined,
+        // Variante β: opt-in luoghi/org/tribunali. When OFF (default), these
+        // categories surface in the review list as preserved entries the
+        // avvocato can flip to substituted per-entity.
+        includeCategoriesPass2: includePlaces,
       })
       onResult({
         originalText,
@@ -243,11 +288,12 @@ export function PseudonymizePanel({
         mapping: result.mappingEntries,
       })
     },
-    [originalText, onResult, seedMapper],
+    [originalText, onResult, seedMapper, includePlaces],
   )
 
   const handlePseudonymize = async () => {
     setError(null)
+    setPartialNotice(null)
     if (!originalText.trim()) {
       setError('Inserisci del testo o trascina un file prima di pseudonimizzare.')
       return
@@ -279,11 +325,25 @@ export function PseudonymizePanel({
     let nerDetections: NerDetection[] | undefined
     try {
       setNerStatus('running')
-      nerDetections = await runnerRef.current.predict(originalText)
+      const predictResult = await runnerRef.current.predict(originalText)
+      nerDetections = predictResult.detections
+      if (predictResult.partial) {
+        setPartialNotice({ failedRanges: predictResult.failedChunkRanges })
+      }
     } catch (err) {
-      runnerRef.current = null
-      setNerStatus('unavailable')
+      // Hard failure: not even partial results. Mirror the legacy behaviour
+      // (drop NER, run regex-only with a forensic-sober notice) but DO NOT
+      // mark the runner unavailable for transient timeouts — the user can
+      // retry. Only `ERR_BACKEND_INIT` / `ERR_MODEL_NOT_FOUND` warrant a
+      // permanent flip.
       const rawMsg = (err as Error).message ?? 'errore sconosciuto'
+      const isPermanent =
+        rawMsg.includes('ERR_MODEL_NOT_FOUND') ||
+        rawMsg.includes('ERR_BACKEND_INIT')
+      if (isPermanent) {
+        runnerRef.current = null
+        setNerStatus('unavailable')
+      }
       setError(
         'Errore durante il riconoscimento entità NER. La ' +
           'pseudonimizzazione regex resta attiva (CF, IBAN, email, ecc.). ' +
@@ -293,6 +353,11 @@ export function PseudonymizePanel({
 
     runRegexOnly(userFalsePositives, nerDetections)
     if (nerStatus === 'running') setNerStatus('idle')
+  }
+
+  const handleIncludePlacesChange = (next: boolean) => {
+    setIncludePlaces(next)
+    writeIncludePlacesPref(next)
   }
 
   const handleCopy = async () => {
@@ -377,6 +442,25 @@ export function PseudonymizePanel({
           </button>
         </div>
       )}
+
+      <div className="toggle-pass2" data-testid="toggle-pass2">
+        <label className="toggle-pass2__label">
+          <input
+            type="checkbox"
+            checked={includePlaces}
+            onChange={(e) => handleIncludePlacesChange(e.target.checked)}
+            data-testid="toggle-pass2-checkbox"
+          />
+          <span className="toggle-pass2__text">
+            Sostituisci anche luoghi, organizzazioni e tribunali
+          </span>
+        </label>
+        <p className="toggle-pass2__hint">
+          Default OFF — preservare questi dati può essere importante per il
+          ragionamento giuridico (es. giurisdizione, foro competente, leggi
+          regionali). Puoi sostituirli singolarmente dal riquadro entità.
+        </p>
+      </div>
 
       <div className="actions">
         <button
@@ -496,6 +580,25 @@ export function PseudonymizePanel({
         </div>
       )}
 
+      {partialNotice && (
+        <div
+          className="banner banner--warning"
+          role="status"
+          data-testid="partial-ner-banner"
+        >
+          <strong>Riconoscimento entità incompleto</strong> su{' '}
+          {partialNotice.failedRanges.length}{' '}
+          {partialNotice.failedRanges.length === 1
+            ? 'sezione'
+            : 'sezioni'}{' '}
+          del documento (caratteri{' '}
+          {partialNotice.failedRanges
+            .map(([s, e]) => `${s}-${e}`)
+            .join(', ')}
+          ). Pseudonimizzazione completata su regex e parti riconosciute.
+        </div>
+      )}
+
       <label className="field">
         <span className="field__label">Testo pseudonimizzato</span>
         <textarea
@@ -515,6 +618,7 @@ export function PseudonymizePanel({
           onAccept={onAccept}
           onChangeCategory={onChangeCategory}
           onFalsePositive={onFalsePositive}
+          onSubstituteAnyway={onSubstituteAnyway}
         />
       </section>
 

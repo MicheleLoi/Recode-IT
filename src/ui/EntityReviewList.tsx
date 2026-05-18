@@ -12,6 +12,7 @@
 import { useState } from 'react'
 import {
   SWITCHABLE_CATEGORIES,
+  preservedBadgeLabel,
   type ReviewEntity,
   type SwitchableCategory,
 } from './types'
@@ -21,6 +22,13 @@ type Props = {
   onAccept: (id: string) => void
   onChangeCategory: (id: string, newCategory: SwitchableCategory) => void
   onFalsePositive: (id: string) => void
+  /**
+   * Variante β: flip a preserved entity to substituted. The parent allocates
+   * a pseudonym, swaps the value in the pseudonymized text, and clears
+   * `isPreserved`. Optional — when absent, preserved rows still render but
+   * the [Sostituisci comunque] button is hidden.
+   */
+  onSubstituteAnyway?: (id: string) => void
 }
 
 export function EntityReviewList({
@@ -28,6 +36,7 @@ export function EntityReviewList({
   onAccept,
   onChangeCategory,
   onFalsePositive,
+  onSubstituteAnyway,
 }: Props): JSX.Element {
   if (!entities.length) {
     return (
@@ -47,6 +56,7 @@ export function EntityReviewList({
           onAccept={onAccept}
           onChangeCategory={onChangeCategory}
           onFalsePositive={onFalsePositive}
+          onSubstituteAnyway={onSubstituteAnyway}
         />
       ))}
     </ul>
@@ -58,6 +68,7 @@ type RowProps = {
   onAccept: (id: string) => void
   onChangeCategory: (id: string, newCategory: SwitchableCategory) => void
   onFalsePositive: (id: string) => void
+  onSubstituteAnyway?: (id: string) => void
 }
 
 function EntityRow({
@@ -65,10 +76,80 @@ function EntityRow({
   onAccept,
   onChangeCategory,
   onFalsePositive,
+  onSubstituteAnyway,
 }: RowProps): JSX.Element {
   const [categoryOpen, setCategoryOpen] = useState(false)
   const isFalsePositive = entity.status === 'falsePositive'
   const isAccepted = entity.status === 'accepted'
+  const isPreserved = entity.isPreserved === true
+
+  if (isPreserved) {
+    // Variante β preserved row — different button set: no [Falso positivo],
+    // no [Accetta]; instead [Sostituisci comunque] + [Cambia categoria].
+    return (
+      <li
+        className={`review-row review-row--preserved`}
+        data-testid={`review-row-${entity.id}`}
+        data-status="preserved"
+      >
+        <div className="review-row__meta">
+          <span className="review-row__category review-row__category--preserved">
+            {preservedBadgeLabel(entity.category)}
+          </span>
+          <span className="review-row__original">{entity.realValue}</span>
+          <span className="review-row__arrow" aria-hidden>
+            →
+          </span>
+          <span className="review-row__pseudonym">
+            {entity.realValue}{' '}
+            <em className="review-row__preserved-tag">(preservato)</em>
+          </span>
+        </div>
+        <div className="review-row__actions">
+          {onSubstituteAnyway && (
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => onSubstituteAnyway(entity.id)}
+              aria-label={`Sostituisci comunque ${entity.realValue}`}
+              data-testid={`substitute-anyway-${entity.id}`}
+            >
+              Sostituisci comunque
+            </button>
+          )}
+          <div className="review-row__category-control">
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => setCategoryOpen((v) => !v)}
+              aria-expanded={categoryOpen}
+              aria-haspopup="listbox"
+            >
+              Cambia categoria ▾
+            </button>
+            {categoryOpen && (
+              <select
+                className="review-row__category-select"
+                defaultValue={entity.category}
+                onChange={(e) => {
+                  onChangeCategory(entity.id, e.target.value as SwitchableCategory)
+                  setCategoryOpen(false)
+                }}
+                aria-label={`Cambia categoria per ${entity.realValue}`}
+                data-testid={`category-select-${entity.id}`}
+              >
+                {SWITCHABLE_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
+      </li>
+    )
+  }
 
   return (
     <li

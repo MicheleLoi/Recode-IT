@@ -26,3 +26,26 @@ export type ReviewEntity = MappingEntry & {
   id: string
   status: EntityStatus
 }
+
+/**
+ * UI-facing tag for Pass 2 preserved entries — drives the badge label in
+ * the review list (e.g. CITTÀ, ORG, TRIBUNALE).
+ */
+export function preservedBadgeLabel(category: string): string {
+  switch (category.toLowerCase()) {
+    case 'citta':
+    case 'città':
+    case 'luogo':
+      return 'CITTÀ'
+    case 'via':
+      return 'VIA'
+    case 'azienda':
+      return 'AZIENDA'
+    case 'organizzazione':
+      return 'ORG'
+    case 'tribunale':
+      return 'TRIBUNALE'
+    default:
+      return category.toUpperCase()
+  }
+}

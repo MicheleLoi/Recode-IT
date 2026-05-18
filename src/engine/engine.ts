@@ -52,16 +52,34 @@ function isInstitutionalOrg(text: string): boolean {
 }
 
 /**
+ * NER labels that belong to the MHC-L "Pass 2" opt-in workflow
+ * (`pseudonymize_gui_local.py:109-134`). When `includeCategoriesPass2` is
+ * false (default), detections with these labels are emitted as preserved
+ * mapping entries instead of being substituted in the output text — the user
+ * can then flip individual entities to substituted via the review panel.
+ */
+const PASS_2_LABELS = new Set<string>([
+  'luogo',
+  'organizzazione',
+  'tribunale',
+])
+
+/**
  * Two-pass replacement of NER entities — see Python
  * `apply_gliner_with_pseudonyms` for the canonical order. Mutates `mapper`,
  * returns the substituted text + the list of mapping entries produced (one
  * per entity, deduped by `realValue+pseudonym`).
+ *
+ * `includeCategoriesPass2` flips the variante-β behaviour: when `false`,
+ * Pass 2 detections short-circuit before allocating a pseudonym and surface
+ * as preserved entries (`isPreserved: true`, `pseudonym === realValue`).
  */
 function applyNerWithPseudonyms(
   text: string,
   ner: NerDetection[],
   mapper: PseudonymMapper,
   userFalsePositives: ReadonlySet<string>,
+  includeCategoriesPass2: boolean,
 ): { text: string; mappingEntries: MappingEntry[] } {
   // Filter stoplist + user-marked false positives early (Python parity).
   const filtered = ner.filter(
@@ -86,11 +104,15 @@ function applyNerWithPseudonyms(
   for (const ent of personFull) mapper.getPerson(ent.text)
   for (const ent of personPartial) mapper.getPerson(ent.text)
 
-  // Seed companies (full names before suffix-only mentions).
-  const companiesFull = filtered
-    .filter((e) => e.label === 'organizzazione' && isCompany(e.text))
-    .sort((a, b) => a.start - b.start)
-  for (const ent of companiesFull) mapper.getCompany(ent.text)
+  // Seed companies (full names before suffix-only mentions). Only seed when
+  // Pass 2 substitution is enabled — otherwise the org will be preserved and
+  // there's no reason to burn a pool slot.
+  if (includeCategoriesPass2) {
+    const companiesFull = filtered
+      .filter((e) => e.label === 'organizzazione' && isCompany(e.text))
+      .sort((a, b) => a.start - b.start)
+    for (const ent of companiesFull) mapper.getCompany(ent.text)
+  }
 
   // Replace in reverse so offsets remain valid.
   const seen = new Set<string>()
@@ -102,6 +124,37 @@ function applyNerWithPseudonyms(
     const label = ent.label
     let replacement: string | null = null
     let category = label
+
+    // Variante β: Pass 2 labels (luogo / organizzazione / tribunale) bypass
+    // pseudonym allocation when the toggle is off. Emit a preserved entry
+    // (realValue verbatim, no text edit) so the UI review panel can offer
+    // [Sostituisci comunque] per single entity.
+    const isPass2Label = PASS_2_LABELS.has(label)
+    if (isPass2Label && !includeCategoriesPass2) {
+      // De-dupe by category::realValue so repeated mentions of the same
+      // place don't produce N rows in the review list.
+      const dedupeKey = `preserved::${label}::${original}`
+      if (seen.has(dedupeKey)) continue
+      seen.add(dedupeKey)
+      // Map NER label → UI-facing category, matching the substituted path's
+      // category names (citta/azienda/organizzazione/tribunale).
+      let preservedCategory = label
+      if (label === 'organizzazione') {
+        if (isCompany(original)) preservedCategory = 'azienda'
+        else preservedCategory = 'organizzazione'
+      } else if (label === 'luogo') {
+        if (isStreetLike(original)) preservedCategory = 'via'
+        else preservedCategory = 'citta'
+      }
+      mappingEntries.push({
+        pseudonym: original,
+        realValue: original,
+        category: preservedCategory,
+        isPreserved: true,
+        pass: 2,
+      })
+      continue
+    }
 
     if (label === 'avvocato' || label === 'persona') {
       replacement = mapper.getPerson(original)
@@ -159,6 +212,8 @@ function applyNerWithPseudonyms(
       pseudonym: replacement,
       realValue: original,
       category,
+      pass: PASS_2_LABELS.has(label) ? 2 : 1,
+      isPreserved: false,
     })
   }
   return { text: result, mappingEntries }
@@ -214,11 +269,13 @@ export function anonymize(
   let pseudonymizedText = afterRegex
   if (options.nerDetections && options.nerDetections.length > 0) {
     const fp = options.userFalsePositives ?? new Set<string>()
+    const includeCategoriesPass2 = options.includeCategoriesPass2 === true
     const nerOutcome = applyNerWithPseudonyms(
       afterRegex,
       options.nerDetections,
       mapper,
       fp,
+      includeCategoriesPass2,
     )
     pseudonymizedText = nerOutcome.text
     mappingEntries.push(...nerOutcome.mappingEntries)

@@ -9,7 +9,7 @@
  * existing pseudonym↔original allocations instead of resetting.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { MappingEntry } from '../types/engine'
 import { PseudonymizePanel } from './PseudonymizePanel'
 import { RecodePanel } from './RecodePanel'
@@ -17,12 +17,16 @@ import type { ReviewEntity, SwitchableCategory } from './types'
 import { useActiveMapping } from '../auth/active-mapping-context'
 import { useAuth } from '../auth/auth-context'
 import { ApiError } from '../api/client'
+import { PseudonymMapper } from '../engine/pseudonym_mapper'
 
 function buildReviewEntities(mapping: MappingEntry[]): ReviewEntity[] {
   return mapping.map((entry, idx) => ({
     pseudonym: entry.pseudonym,
     realValue: entry.realValue,
     category: entry.category,
+    isFalsePositive: entry.isFalsePositive,
+    isPreserved: entry.isPreserved,
+    pass: entry.pass,
     id: `${entry.category}::${entry.realValue}::${idx}`,
     // Hydrate review status from the stored isFalsePositive flag — entries
     // that came back from a saved mapping with the FP marker render in the
@@ -61,6 +65,8 @@ function mergeEntries(
         pseudonym: prev.pseudonym,
         category: prev.category,
         isFalsePositive: prev.isFalsePositive,
+        isPreserved: prev.isPreserved,
+        pass: prev.pass,
       })
     } else {
       seen.set(k, e)
@@ -106,11 +112,13 @@ export function ClipboardWidget(): JSX.Element {
 
   // Effective mapping for the recode panel: excludes entities the user has
   // marked as false positives (their realValue stays unchanged in the output,
-  // so there's nothing to reverse).
+  // so there's nothing to reverse). Variante β: preserved entries are also
+  // excluded — their pseudonym IS their realValue, no reverse-substitution
+  // to do.
   const effectiveMapping = useMemo<MappingEntry[]>(
     () =>
       entities
-        .filter((e) => e.status !== 'falsePositive')
+        .filter((e) => e.status !== 'falsePositive' && e.isPreserved !== true)
         .map(({ pseudonym, realValue, category }) => ({
           pseudonym,
           realValue,
@@ -225,6 +233,70 @@ export function ClipboardWidget(): JSX.Element {
     })
   }
 
+  /**
+   * Variante β — flip a preserved entity (e.g. Palermo) to substituted.
+   * Allocates a pseudonym via a UI-side PseudonymMapper (seeded from the
+   * active mapping when one is open, to keep pool indices coherent across
+   * the case) and rewrites the pseudonymized text. The mapping entry's
+   * `isPreserved` becomes false and `pseudonym` is replaced with the new
+   * value; the row re-renders with the standard button set.
+   */
+  const localMapperRef = useRef<PseudonymMapper | null>(null)
+  const handleSubstituteAnyway = (id: string) => {
+    setEntities((prev) => {
+      const target = prev.find((e) => e.id === id)
+      if (!target) return prev
+      if (target.isPreserved !== true) return prev
+
+      // Lazy-init the local mapper. If an active case mapping is open, seed
+      // it with that mapper's allocations so the new pseudonym doesn't
+      // collide with what's already been allocated for the case.
+      let mapper = localMapperRef.current
+      if (mapper === null) {
+        if (active?.mapper instanceof PseudonymMapper) {
+          mapper = active.mapper
+        } else {
+          mapper = new PseudonymMapper()
+        }
+        localMapperRef.current = mapper
+      }
+
+      let pseudonym: string
+      const cat = target.category.toLowerCase()
+      if (cat === 'citta' || cat === 'città' || cat === 'luogo') {
+        pseudonym = mapper.getCity(target.realValue)
+      } else if (cat === 'via') {
+        pseudonym = mapper.getStreet(target.realValue)
+      } else if (cat === 'tribunale') {
+        pseudonym = mapper.getCourt(target.realValue)
+      } else if (cat === 'azienda') {
+        pseudonym = mapper.getCompany(target.realValue)
+      } else {
+        pseudonym = mapper.getOrg(target.realValue)
+      }
+
+      // Rewrite the visible pseudonymized text. We use split/join which
+      // handles all occurrences — safer than a single replace when the
+      // original appears multiple times in the document.
+      if (pseudonym && pseudonym !== target.realValue) {
+        setPseudonymizedText((cur) => cur.split(target.realValue).join(pseudonym))
+      }
+
+      const next = prev.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              pseudonym,
+              isPreserved: false,
+              status: 'accepted' as const,
+            }
+          : e,
+      )
+      pushEntriesToActive(next)
+      return next
+    })
+  }
+
   const userFalsePositiveTerms = useMemo<Set<string>>(() => {
     // Carry forward FP markers from the active mapping so a re-run on a new
     // document keeps "Emilia" un-pseudonymized (DESIGN §8.7, R-06).
@@ -306,6 +378,7 @@ export function ClipboardWidget(): JSX.Element {
         onAccept={handleAccept}
         onChangeCategory={handleChangeCategory}
         onFalsePositive={handleFalsePositive}
+        onSubstituteAnyway={handleSubstituteAnyway}
         seedMapper={active?.mapper ?? null}
         seedFalsePositives={userFalsePositiveTerms}
         canSave={canSave}

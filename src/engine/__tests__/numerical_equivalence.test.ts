@@ -173,7 +173,14 @@ describeOrSkip('Phase 4 numerical equivalence vs Python reference', () => {
       // The NER spans target the *post-regex* text; align then run.
       const postRegexText = regexOnly.pseudonymizedText
       const ner = browserNer(original, golden, postRegexText)
-      const full = anonymize(original, { nerDetections: ner })
+      // Parity with the Python reference requires substituting every NER
+      // category, including Pass 2 (luogo/organizzazione/tribunale). The
+      // browser default is `false` (variante β preserves them), so this
+      // harness explicitly opts in.
+      const full = anonymize(original, {
+        nerDetections: ner,
+        includeCategoriesPass2: true,
+      })
 
       it('EQ.1 person_map equivalence (strict)', () => {
         // The Python `_person_map` is the internal mapper state, keyed by

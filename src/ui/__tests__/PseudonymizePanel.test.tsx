@@ -54,6 +54,7 @@ const baseProps = {
   onAccept: NO_OP_STRING,
   onChangeCategory: NO_OP_CATEGORY,
   onFalsePositive: NO_OP_STRING,
+  onSubstituteAnyway: NO_OP_STRING,
   seedMapper: null,
   seedFalsePositives: new Set<string>(),
   canSave: false,
