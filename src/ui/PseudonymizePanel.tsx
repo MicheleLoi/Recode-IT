@@ -322,9 +322,18 @@ export function PseudonymizePanel({
     // is `ready` (predict succeeds) or it has flipped to `unavailable`
     // (handled above). The only thing that can fail here is the actual
     // inference — degrade to regex-only with a forensic-sober notice.
+    //
+    // Bug fix (regression 20260518): the previous "reset to idle on the way
+    // out" path read `nerStatus === 'running'` from the closure captured at
+    // the start of handlePseudonymize — but that closure still saw the
+    // pre-click `nerStatus` value (typically `'idle'`), so the guard
+    // never fired and the button stayed wedged on "Riconoscimento entità in
+    // corso…" even when `predict()` returned `{partial: true, ...}`.
+    // Fix: drop the stale-state guard and reset unconditionally in a
+    // `finally` block.
     let nerDetections: NerDetection[] | undefined
+    setNerStatus('running')
     try {
-      setNerStatus('running')
       const predictResult = await runnerRef.current.predict(originalText)
       nerDetections = predictResult.detections
       if (predictResult.partial) {
@@ -349,10 +358,14 @@ export function PseudonymizePanel({
           'pseudonimizzazione regex resta attiva (CF, IBAN, email, ecc.). ' +
           `Dettaglio: ${rawMsg.replace(/^ERR_[A-Z_]+:\s*/, '')}`,
       )
+    } finally {
+      // Always flip out of 'running' so the button re-enables — partial,
+      // success, or transient failure. (`'unavailable'` was already set
+      // above for permanent failures and must not be overwritten.)
+      setNerStatus((prev) => (prev === 'running' ? 'idle' : prev))
     }
 
     runRegexOnly(userFalsePositives, nerDetections)
-    if (nerStatus === 'running') setNerStatus('idle')
   }
 
   const handleIncludePlacesChange = (next: boolean) => {

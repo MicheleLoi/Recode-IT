@@ -189,6 +189,106 @@ describe('PseudonymizePanel — Active mapping UX', () => {
   })
 })
 
+/**
+ * Regression 20260518 — UI partial reset bug.
+ *
+ * Symptom: after `NerRunner.predict()` returned `{partial: true, ...}`, the
+ * primary button stayed disabled on "Riconoscimento entità in corso…".
+ * Root cause: stale-state read of `nerStatus` from the closure captured at
+ * the start of `handlePseudonymize` — the guard `if (nerStatus === 'running')
+ * setNerStatus('idle')` never fired because the captured value was still
+ * the pre-click 'idle'/'loading' state.
+ *
+ * Fix: unconditional `finally`-block reset using the functional setState
+ * form so the latest status drives the transition (and 'unavailable' set on
+ * permanent errors is preserved).
+ *
+ * Test strategy: jsdom has no Worker, so the eager NerRunner init in the
+ * mount useEffect short-circuits and `runnerRef.current` stays null — the
+ * button never enters 'running'. To exercise the partial path we mock
+ * `NerRunner` so `init()` succeeds (sets a synthetic worker) and
+ * `predict()` returns `{partial: true, ...}`. The assertion then drives
+ * the click and verifies (a) the button re-enables, (b) the partial
+ * banner renders.
+ */
+describe('PseudonymizePanel — partial-NER reset (regression 20260518)', () => {
+  it('re-enables the Pseudonimizza button + shows banner when predict returns partial:true', async () => {
+    vi.resetModules()
+    // Stub a global Worker so the panel's `typeof Worker !== 'undefined'`
+    // guard passes — the actual worker isn't used; the mocked NerRunner
+    // replaces all worker interaction.
+    const originalWorker = (globalThis as unknown as { Worker?: unknown }).Worker
+    ;(globalThis as unknown as { Worker?: unknown }).Worker = class {
+      // empty stub — never instantiated because NerRunner is fully mocked.
+    }
+
+    const initMock = vi.fn().mockResolvedValue(undefined)
+    const terminateMock = vi.fn()
+    const predictMock = vi.fn().mockResolvedValue({
+      detections: [],
+      partial: true,
+      failedChunkRanges: [[0, 200]] as Array<[number, number]>,
+    })
+
+    vi.doMock('../../engine/ner_runner', () => ({
+      NerRunner: class {
+        init = initMock
+        terminate = terminateMock
+        predict = predictMock
+      },
+    }))
+
+    try {
+      // Re-import the panel AFTER the mock is installed so it picks up the
+      // mocked NerRunner constructor.
+      const { PseudonymizePanel: MockedPanel } = await import(
+        '../PseudonymizePanel'
+      )
+
+      const onResult = vi.fn()
+      render(
+        <MockedPanel
+          {...baseProps}
+          originalText="Mario Rossi va al Tribunale."
+          onResult={onResult}
+        />,
+      )
+
+      // Eager init must have been kicked off at mount.
+      await waitFor(() => expect(initMock).toHaveBeenCalledTimes(1))
+
+      // Click Pseudonimizza.
+      const btn = screen.getByTestId('pseudonymize-btn') as HTMLButtonElement
+      fireEvent.click(btn)
+
+      // After predict resolves with partial:true:
+      //   (a) onResult is still called — regex+NER ran on the successful
+      //       part of the document;
+      //   (b) the button re-enables (no longer "Riconoscimento entità in
+      //       corso…");
+      //   (c) the partial banner is rendered.
+      await waitFor(() => expect(predictMock).toHaveBeenCalledTimes(1))
+      await waitFor(() => expect(onResult).toHaveBeenCalled())
+      await waitFor(() => {
+        const refreshed = screen.getByTestId('pseudonymize-btn') as HTMLButtonElement
+        expect(refreshed.disabled).toBe(false)
+        expect(refreshed.textContent).not.toMatch(/Riconoscimento entità in corso/i)
+      })
+      const banner = screen.getByTestId('partial-ner-banner')
+      expect(banner).toBeInTheDocument()
+      expect(banner.textContent).toMatch(/incompleto/i)
+    } finally {
+      vi.doUnmock('../../engine/ner_runner')
+      vi.resetModules()
+      if (originalWorker === undefined) {
+        delete (globalThis as unknown as { Worker?: unknown }).Worker
+      } else {
+        ;(globalThis as unknown as { Worker?: unknown }).Worker = originalWorker
+      }
+    }
+  })
+})
+
 describe('PseudonymizePanel — File extraction (DOCX / PDF / scanned-PDF modal)', () => {
   it('advertises .docx and .pdf in the drop-zone copy and accept attribute', () => {
     render(<PseudonymizePanel {...baseProps} />)
