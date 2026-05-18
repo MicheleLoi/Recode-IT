@@ -23,3 +23,26 @@ pytest-asyncio>=0.23
 # to load `RESEND_API_KEY` (shared with MHC-L). Without that, mails are
 # silently logged instead of sent — the failure is invisible to the client.
 resend>=0.7
+
+# Stripe SDK — used by stripe_webhook.py for signature verification via
+# stripe.Webhook.construct_event. Imported lazily; tests bypass via
+# RECODE_IT_WEBHOOK_TEST_BYPASS=1 (no SDK needed). In production this MUST
+# be installed and STRIPE_WEBHOOK_SECRET set.
+stripe>=10.0
+
+# -----------------------------------------------------------------------------
+# Env vars required for the Phase 1 pro-invite funnel (migration 003).
+# Set these in the production systemd unit before deploy:
+#   - RECODE_IT_INVITE_SECRET       (>=32 byte random; HMAC firma del token invito)
+#   - RECODE_IT_ADMIN_KEY           (>=32 byte random; Bearer per /recode/admin/pro/approve)
+#   - RECODE_IT_PRO_STRIPE_PAYMENT_LINK_URL  (URL Stripe Payment Link €0/mese)
+#   - STRIPE_WEBHOOK_SECRET         (whsec_...; firma webhook customer.subscription.created)
+#
+# Setup Stripe lato founder (manuale, una-tantum):
+#   1. Crea Product "Recode IT Pro Phase 1" con price recurring €0/mese.
+#   2. Genera Payment Link con payment_method_collection='if_required'
+#      + client_reference_id configurabile (Recode IT lo appende ?client_reference_id=<user_id>).
+#   3. Aggiungi webhook endpoint https://recode.micheleloi.pro/recode/stripe/webhook
+#      su Stripe Dashboard, listening su customer.subscription.created.
+#   4. Settare le 4 env vars sul systemd unit del backend.
+# -----------------------------------------------------------------------------
