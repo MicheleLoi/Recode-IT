@@ -15,7 +15,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { MeResponse } from '../../../api/client'
 
 // vi.hoisted so the spies are constructed before the mock factory runs.
@@ -23,6 +23,8 @@ const apiMocks = vi.hoisted(() => ({
   meMock: vi.fn(),
   listMappingsMock: vi.fn(),
   getFalsePositivesMock: vi.fn(),
+  getMyProRequestMock: vi.fn(),
+  requestProInviteMock: vi.fn(),
 }))
 
 vi.mock('../../../api/client', async () => {
@@ -34,6 +36,8 @@ vi.mock('../../../api/client', async () => {
     me: apiMocks.meMock,
     listMappings: apiMocks.listMappingsMock,
     getFalsePositives: apiMocks.getFalsePositivesMock,
+    getMyProRequest: apiMocks.getMyProRequestMock,
+    requestProInvite: apiMocks.requestProInviteMock,
   }
 })
 
@@ -68,8 +72,11 @@ beforeEach(() => {
   apiMocks.meMock.mockReset()
   apiMocks.listMappingsMock.mockReset()
   apiMocks.getFalsePositivesMock.mockReset()
+  apiMocks.getMyProRequestMock.mockReset()
+  apiMocks.requestProInviteMock.mockReset()
   apiMocks.listMappingsMock.mockResolvedValue({ mappings: [] })
   apiMocks.getFalsePositivesMock.mockResolvedValue({ false_positives: [] })
+  apiMocks.getMyProRequestMock.mockResolvedValue({ request: null })
 })
 
 describe('AccountDashboard — tier=free', () => {
@@ -138,6 +145,75 @@ describe('AccountDashboard — tier=free', () => {
     expect(helper.textContent).toMatch(/Privacy \/ Dati siti/)
     expect(helper.textContent).toMatch(/recode\.micheleloi\.pro/)
   })
+
+  // --- Pro request funnel (Phase 1: request-then-invite) ---
+
+  it('mostra la sezione "Richiedi accesso al piano pro" con il form', async () => {
+    renderDashboard()
+    await waitFor(() => {
+      expect(screen.getByTestId('pro-request-section')).toBeInTheDocument()
+    })
+    expect(screen.getByTestId('pro-request-form')).toBeInTheDocument()
+    expect(screen.getByTestId('pro-request-reason')).toBeInTheDocument()
+    expect(screen.getByTestId('pro-request-submit')).toBeDisabled()
+  })
+
+  it('disabilita submit con reason < 25 caratteri', async () => {
+    renderDashboard()
+    await waitFor(() => {
+      expect(screen.getByTestId('pro-request-form')).toBeInTheDocument()
+    })
+    const textarea = screen.getByTestId('pro-request-reason') as HTMLTextAreaElement
+    fireEvent.change(textarea, { target: { value: 'troppo corto' } })
+    expect(screen.getByTestId('pro-request-submit')).toBeDisabled()
+    expect(apiMocks.requestProInviteMock).not.toHaveBeenCalled()
+  })
+
+  it('invia la richiesta con reason valida e mostra stato pending', async () => {
+    apiMocks.requestProInviteMock.mockResolvedValue({
+      request_id: 42,
+      status: 'pending',
+      requested_at: '2026-05-19T10:00:00+00:00',
+    })
+    renderDashboard()
+    await waitFor(() => {
+      expect(screen.getByTestId('pro-request-form')).toBeInTheDocument()
+    })
+    const textarea = screen.getByTestId('pro-request-reason') as HTMLTextAreaElement
+    fireEvent.change(textarea, {
+      target: {
+        value: 'Avvocato civilista a Milano, uso Claude per atti complessi.',
+      },
+    })
+    fireEvent.click(screen.getByTestId('pro-request-submit'))
+    await waitFor(() => {
+      expect(apiMocks.requestProInviteMock).toHaveBeenCalledOnce()
+    })
+    await waitFor(() => {
+      expect(screen.getByTestId('pro-request-pending')).toBeInTheDocument()
+    })
+    // Form sparisce dopo submit-pending.
+    expect(screen.queryByTestId('pro-request-form')).toBeNull()
+  })
+
+  it('se my-request ritorna status=pending mostra subito lo stato, niente form', async () => {
+    apiMocks.getMyProRequestMock.mockResolvedValue({
+      request: {
+        request_id: 7,
+        status: 'pending',
+        requested_at: '2026-05-19T10:00:00+00:00',
+        approved_at: null,
+        claimed_at: null,
+        rejected_at: null,
+        invite_expires_at: null,
+      },
+    })
+    renderDashboard()
+    await waitFor(() => {
+      expect(screen.getByTestId('pro-request-pending')).toBeInTheDocument()
+    })
+    expect(screen.queryByTestId('pro-request-form')).toBeNull()
+  })
 })
 
 describe('AccountDashboard — tier=pro (sanity, comportamento storico invariato)', () => {
@@ -168,5 +244,7 @@ describe('AccountDashboard — tier=pro (sanity, comportamento storico invariato
     expect(screen.queryByTestId('free-mappings-panel')).toBeNull()
     expect(screen.queryByTestId('free-fps-panel')).toBeNull()
     expect(screen.queryByTestId('browser-data-helper')).toBeNull()
+    // La sezione "Richiedi accesso pro" non appare per gli utenti già pro.
+    expect(screen.queryByTestId('pro-request-section')).toBeNull()
   })
 })
