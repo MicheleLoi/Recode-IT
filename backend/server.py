@@ -28,7 +28,7 @@ from __future__ import annotations
 import os
 
 from starlette.applications import Starlette
-from starlette.routing import Route
+from starlette.routing import Mount, Route
 
 from .db import init_schema
 from .email_verification import (
@@ -48,8 +48,15 @@ from .mappings import (
     patch_false_positives,
 )
 from .middleware import RecodeJWTAuthMiddleware
+from .pro_invite import (
+    admin_approve_endpoint,
+    claim_invite_endpoint,
+    my_request_endpoint,
+    request_invite_endpoint,
+)
 from .recovery import initiate_recovery, verify_recovery
 from .signup import signup_endpoint
+from .stripe_webhook import stripe_webhook_endpoint
 
 
 def _cookie_secure_default() -> bool:
@@ -87,6 +94,17 @@ def build_app(cookie_secure: bool | None = None) -> Starlette:
         Route("/recode/false-positives/", list_false_positives,
               methods=["GET", "OPTIONS"]),
         Route("/recode/account/", delete_account, methods=["DELETE", "OPTIONS"]),
+        # Pro invite funnel (Phase 1: gratis su invito via Stripe Payment Link €0/mese).
+        Route("/recode/pro/request-invite", request_invite_endpoint,
+              methods=["POST", "OPTIONS"]),
+        Route("/recode/pro/my-request", my_request_endpoint,
+              methods=["GET", "OPTIONS"]),
+        Route("/recode/pro/claim-invite", claim_invite_endpoint,
+              methods=["POST", "OPTIONS"]),
+        Route("/recode/admin/pro/approve", admin_approve_endpoint,
+              methods=["POST", "OPTIONS"]),
+        # Stripe webhook (bare ASGI handler — signature verified internally).
+        Mount("/recode/stripe/webhook", app=stripe_webhook_endpoint),
         # CORS preflight catch-all (Starlette routes by method; OPTIONS above
         # is dispatched per-route, but if a router conflict arises we keep
         # this as a no-op safety).
