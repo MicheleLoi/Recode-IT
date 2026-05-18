@@ -314,6 +314,132 @@ export class PseudonymMapper {
     return this.companyBase
   }
 
+  // -------------------------------------------------------------------------
+  // EXTEND mode — rehydration from previously serialized MappingEntry[]
+  // (capabilities_index §7 / DESIGN §8.7). When the user reopens a saved
+  // mapping for a continuing case, we replay every entry into the mapper's
+  // internal maps so that Tier 1 ('exact match') in `getPerson` immediately
+  // returns the pre-allocated pseudonym for repeated mentions across docs.
+  //
+  // The categories accepted here are exactly those produced by
+  // `applyNerWithPseudonyms` in engine.ts. Regex-only entries (pseudonym is a
+  // tag like '<DS>' / '<EMAIL>') are NOT seeded into the mapper — those
+  // pseudonyms are deterministic per-category and need no allocation
+  // coordination across documents.
+  // -------------------------------------------------------------------------
+
+  /**
+   * Rehydrate the mapper's internal state from a flat list of mapping entries
+   * (typically the decrypted output of a saved-mapping blob). Idempotent: a
+   * second call with the same entries leaves state unchanged. Does NOT bump
+   * the pool indices when seeding entries already produced by a previous run
+   * — instead it advances the pool index past the highest used position so
+   * future allocations skip pseudonyms already in use. The skip-set is also
+   * rehydrated from any entry whose pseudonym === realValue (the de-cuius
+   * exemption shape).
+   */
+  seedFromEntries(entries: ReadonlyArray<{
+    pseudonym: string
+    realValue: string
+    category: string
+    isFalsePositive?: boolean
+  }>): void {
+    const personPool = new Map<string, number>()
+    PERSON_POOL.forEach((p, i) => personPool.set(p, i))
+    const companyPool = new Map<string, number>()
+    COMPANY_POOL.forEach((p, i) => companyPool.set(p, i))
+    const cityPool = new Map<string, number>()
+    CITY_POOL.forEach((p, i) => cityPool.set(p, i))
+    const streetPool = new Map<string, number>()
+    STREET_POOL.forEach((p, i) => streetPool.set(p, i))
+
+    let maxPerson = -1
+    let maxCompany = -1
+    let maxCity = -1
+    let maxStreet = -1
+
+    for (const entry of entries) {
+      const real = entry.realValue.trim()
+      const realKey = real.toLowerCase()
+      const pseudo = entry.pseudonym.trim()
+      const cat = entry.category
+
+      // False positives stay in the entries list but do NOT pre-allocate a
+      // pseudonym — the realValue survives by design, the FP marker is what
+      // the engine consults via userFalsePositives on the next extend pass.
+      if (entry.isFalsePositive) continue
+
+      // Regex tag pseudonyms (<DS>, <IBAN>, …) — no mapper state needed.
+      if (/^<[A-Z._]+>$/.test(pseudo)) continue
+
+      if (cat === 'persona' || cat === 'avvocato') {
+        // De-cuius: pseudonym === original means the entry was skipped.
+        if (pseudo.toLowerCase() === realKey) {
+          this.skipSet.add(realKey)
+          continue
+        }
+        // Seed personMap on the full lowercased real value — matches the key
+        // shape `getPerson` uses for Tier 1 (after stripTitle).
+        const { bare } = stripTitle(real)
+        const bareKey = bare.toLowerCase()
+        if (!this.personMap.has(bareKey)) {
+          this.personMap.set(bareKey, pseudo)
+        }
+        // Seed surnameMap on first occurrence (mirrors A-1 fix invariant).
+        const surname = (() => {
+          const parts = bare.split(/\s+/).filter(Boolean)
+          if (parts.length >= 2) {
+            const last = parts[parts.length - 1]
+            return last ? last.toLowerCase() : null
+          }
+          return null
+        })()
+        if (surname && !this.surnameMap.has(surname)) {
+          this.surnameMap.set(surname, pseudo)
+        }
+        // Single-word: also seed surname index on the bare key.
+        const words = bare.split(/\s+/).filter(Boolean)
+        if (words.length === 1 && !this.surnameMap.has(bareKey)) {
+          this.surnameMap.set(bareKey, pseudo)
+        }
+        const poolIdx = personPool.get(pseudo)
+        if (poolIdx !== undefined && poolIdx > maxPerson) maxPerson = poolIdx
+      } else if (cat === 'azienda') {
+        // Strip suffix to recover the base — mirrors getCompany().
+        const suffixRe = /(S\.r\.l\.|S\.p\.A\.|S\.n\.c\.|S\.a\.s\.)\s*$/i
+        const m = suffixRe.exec(real)
+        const base = m ? real.slice(0, m.index).trim() : real
+        const baseKey = base.toLowerCase()
+        const pseudoBase = m ? pseudo.replace(suffixRe, '').trim() : pseudo
+        if (!this.companyBase.has(baseKey)) {
+          this.companyBase.set(baseKey, pseudoBase)
+          this.companyMap.set(real.toLowerCase(), pseudo)
+        }
+        const poolIdx = companyPool.get(pseudoBase)
+        if (poolIdx !== undefined && poolIdx > maxCompany) maxCompany = poolIdx
+      } else if (cat === 'citta') {
+        if (!this.cityMap.has(realKey)) this.cityMap.set(realKey, pseudo)
+        const poolIdx = cityPool.get(pseudo)
+        if (poolIdx !== undefined && poolIdx > maxCity) maxCity = poolIdx
+      } else if (cat === 'via') {
+        if (!this.streetMap.has(realKey)) this.streetMap.set(realKey, pseudo)
+        const poolIdx = streetPool.get(pseudo)
+        if (poolIdx !== undefined && poolIdx > maxStreet) maxStreet = poolIdx
+      } else if (cat === 'tribunale' || cat === 'organizzazione') {
+        if (!this.orgMap.has(realKey)) this.orgMap.set(realKey, pseudo)
+      }
+      // Other categories (numero di causa, data, email/telefono/iban) need no
+      // mapper state — they go through deterministic substitution.
+    }
+
+    // Advance pool indices past the highest seen so future allocations skip
+    // pseudonyms already in use. +1 because pool[idx] is what was assigned.
+    if (maxPerson + 1 > this.personIdx) this.personIdx = maxPerson + 1
+    if (maxCompany + 1 > this.companyIdx) this.companyIdx = maxCompany + 1
+    if (maxCity + 1 > this.cityIdx) this.cityIdx = maxCity + 1
+    if (maxStreet + 1 > this.streetIdx) this.streetIdx = maxStreet + 1
+  }
+
   /**
    * Return any pseudonym mapped to more than one distinct full-name key in
    * `_personMap`. Shape: `Map<pseudonym, fullNames[]>`. An empty map means no

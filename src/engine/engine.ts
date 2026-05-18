@@ -168,7 +168,15 @@ export function anonymize(
   text: string,
   options: AnonymizeOptions = {},
 ): AnonymizeResult {
-  const mapper = new PseudonymMapper()
+  // EXTEND mode: if a seeded mapper is provided (active-mapping UX, see
+  // capabilities_index §6.2 + §7), reuse it so pseudonym allocations from
+  // previous documents in the same case survive. Tier 1 of `getPerson` ('exact
+  // match') guarantees Mario Rossi → Tizio remains Tizio in Doc2. Otherwise
+  // start fresh — preserves the legacy single-doc behaviour.
+  const mapper =
+    options.seedMapper instanceof PseudonymMapper
+      ? (options.seedMapper as PseudonymMapper)
+      : new PseudonymMapper()
 
   // A-2 pre-pass: GDPR Recital 27 — exempt deceased persons before any NER /
   // mapper allocation. Runs in every mode (regex-only AND NER-enabled).

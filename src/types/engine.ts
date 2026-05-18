@@ -37,6 +37,14 @@ export type MappingEntry = {
   pseudonym: string
   realValue: string
   category: string
+  /**
+   * DESIGN.md §8.7: a flagged false-positive entry survives in the mapping
+   * (so it can be re-applied across documents in the same active mapping)
+   * but is excluded from the recode reverse-substitution. Optional —
+   * defaults to false; legacy serialized mappings without the field are
+   * treated as non-false-positive on rehydration.
+   */
+  isFalsePositive?: boolean
 }
 
 export type AnonymizeOptions = {
@@ -44,6 +52,16 @@ export type AnonymizeOptions = {
   nerDetections?: NerDetection[]
   /** Pseudonyms or tokens the user has flagged as false positives. */
   userFalsePositives?: Set<string>
+  /**
+   * EXTEND mode — when an active mapping is open in the UI and the user
+   * drops a new document for the same case, pass the seeded
+   * `PseudonymMapper` here. The pipeline will reuse existing
+   * pseudonym↔original allocations (Mario Rossi → Tizio stays Tizio in
+   * Doc2). When omitted, the pipeline creates a fresh mapper (default
+   * single-doc behaviour). Typed as `unknown` here to avoid the engine
+   * dependency on `PseudonymMapper`; the engine performs an instanceof check.
+   */
+  seedMapper?: unknown
 }
 
 export type AnonymizeResult = {
