@@ -243,24 +243,59 @@ export function ClipboardWidget(): JSX.Element {
    * value; the row re-renders with the standard button set.
    */
   const localMapperRef = useRef<PseudonymMapper | null>(null)
+
+  /**
+   * Lazy-init the local mapper, seeding it with whatever pseudonyms are
+   * already allocated. Three sources, in priority order:
+   *
+   *   1. `active.mapper` (active case mapping open) — use that mapper
+   *      directly, its pool indices and personMap are authoritative.
+   *   2. Otherwise, build a fresh mapper and **seed it from the current
+   *      `entities`** so the engine pool indices and personMap reflect what
+   *      NER + regex have already allocated. Without this seed, the fresh
+   *      mapper has pool_index=0 and re-allocates "Tizio" for the first
+   *      manual annotation even if NER has already given Tizio to a
+   *      different person — producing the collision observed by the
+   *      founder on 2026-05-18.
+   *   3. If `entities` is also empty, the mapper is genuinely fresh (first
+   *      action on a virgin document).
+   *
+   * Idempotent: only initialises on first call. Re-uses the same mapper
+   * across subsequent `handleSubstituteAnyway` / `handleManualAnnotate`
+   * calls so they share the pool coherently.
+   */
+  const ensureLocalMapper = (currentEntities: ReviewEntity[]): PseudonymMapper => {
+    if (localMapperRef.current !== null) return localMapperRef.current
+    let mapper: PseudonymMapper
+    if (active?.mapper instanceof PseudonymMapper) {
+      mapper = active.mapper
+    } else {
+      mapper = new PseudonymMapper()
+      // Seed from entities the NER + regex layer has already allocated.
+      // Skip preserved (toggle β OFF) and falsePositive entries — their
+      // pseudonyms aren't really claiming a slot in the substitution map.
+      const seedEntries = currentEntities
+        .filter((e) => e.isPreserved !== true && e.status !== 'falsePositive')
+        .map((e) => ({
+          pseudonym: e.pseudonym,
+          realValue: e.realValue,
+          category: e.category,
+        }))
+      if (seedEntries.length > 0) {
+        mapper.seedFromEntries(seedEntries)
+      }
+    }
+    localMapperRef.current = mapper
+    return mapper
+  }
+
   const handleSubstituteAnyway = (id: string) => {
     setEntities((prev) => {
       const target = prev.find((e) => e.id === id)
       if (!target) return prev
       if (target.isPreserved !== true) return prev
 
-      // Lazy-init the local mapper. If an active case mapping is open, seed
-      // it with that mapper's allocations so the new pseudonym doesn't
-      // collide with what's already been allocated for the case.
-      let mapper = localMapperRef.current
-      if (mapper === null) {
-        if (active?.mapper instanceof PseudonymMapper) {
-          mapper = active.mapper
-        } else {
-          mapper = new PseudonymMapper()
-        }
-        localMapperRef.current = mapper
-      }
+      const mapper = ensureLocalMapper(prev)
 
       let pseudonym: string
       const cat = target.category.toLowerCase()
@@ -317,16 +352,11 @@ export function ClipboardWidget(): JSX.Element {
     if (!originalText) return
     if (start >= end || start < 0 || end > originalText.length) return
 
-    // Lazy-init the local mapper the same way handleSubstituteAnyway does.
-    let mapper = localMapperRef.current
-    if (mapper === null) {
-      if (active?.mapper instanceof PseudonymMapper) {
-        mapper = active.mapper
-      } else {
-        mapper = new PseudonymMapper()
-      }
-      localMapperRef.current = mapper
-    }
+    // Seed-aware lazy init: see ensureLocalMapper for the rationale (avoids
+    // collision where manual annotation re-allocates "Tizio" because the
+    // fresh mapper has no knowledge of what NER has already given to other
+    // entities).
+    const mapper = ensureLocalMapper(entities)
 
     // Build the input list for manualAnnotate: it expects ALL substitution
     // entries (regex + NER + previous manuals) so its text-rebuild step
