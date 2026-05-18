@@ -27,6 +27,7 @@ import { LoginPage } from './ui/auth/LoginPage'
 import { SignupPage } from './ui/auth/SignupPage'
 import { RecoveryPage } from './ui/auth/RecoveryPage'
 import { AccountDashboard } from './ui/auth/AccountDashboard'
+import { UpgradePage } from './ui/upgrade/UpgradePage'
 
 type View = 'work' | 'login' | 'signup' | 'recovery' | 'dashboard'
 
@@ -185,9 +186,30 @@ function AppShell({
   )
 }
 
+/**
+ * Read the `?t=<token>` query param from window.location on first mount. We
+ * read it once and freeze it in state so the URL can later be cleaned (e.g.
+ * after navigating away from the upgrade flow) without remounting the page.
+ */
+function useInviteTokenFromUrl(): string | null {
+  const [token] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const t = params.get('t')
+      return t && t.length > 0 ? t : null
+    } catch {
+      return null
+    }
+  })
+  return token
+}
+
 function AppInner(): JSX.Element {
   const { user, loading } = useAuth()
   const [view, setView] = useState<View>('work')
+  const inviteToken = useInviteTokenFromUrl()
+  const [upgradeDismissed, setUpgradeDismissed] = useState(false)
 
   // Once the auth state resolves, route the user to the right initial view:
   // logged-in users land on the work surface; anonymous users on login.
@@ -198,11 +220,28 @@ function AppInner(): JSX.Element {
     // — they can pseudonymize locally without an account.
   }, [loading, user, view])
 
+  // Invite token path: when ?t=<token> is present we override the regular
+  // view dispatch and show UpgradePage. The user can still dismiss to the
+  // regular flow with the "Torna alla home" button (sets upgradeDismissed).
+  const showUpgrade = inviteToken !== null && !upgradeDismissed
+
   return (
     <div className="app">
       <VerifiedBanner />
       <AppHeader view={view} onNavigate={setView} />
-      <AppShell view={view} onNavigate={setView} />
+      {showUpgrade ? (
+        <main className="app__main">
+          <UpgradePage
+            token={inviteToken!}
+            onBack={() => {
+              setUpgradeDismissed(true)
+              setView(user ? 'work' : 'login')
+            }}
+          />
+        </main>
+      ) : (
+        <AppShell view={view} onNavigate={setView} />
+      )}
       <footer className="app__footer">
         <span>
           Recode IT — pseudonimizzazione e recoding in locale, senza upload del
