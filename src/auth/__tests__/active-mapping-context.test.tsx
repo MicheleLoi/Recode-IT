@@ -143,7 +143,11 @@ describe('Active-mapping tier dispatch (zero-euro)', () => {
     })
   })
 
-  it('tier=free saveActive persists to IndexedDB and round-trips via openMapping', async () => {
+  it('tier=free saveActive persists the aggregate IDB record (singolo record per userId)', async () => {
+    // Design 2026-05-19: tier=free non ha "lista multi-mapping con id". È un
+    // singolo record aggregato per userId. saveActive ignora il label e
+    // salva nel record sentinel `agg::<userId>`. L'etichetta tornata
+    // dall'active state è la sentinel 'Mapping locale'.
     const { result } = renderHook(
       () => ({ auth: useAuth(), active: useActiveMapping() }),
       { wrapper: combinedWrapper },
@@ -160,20 +164,14 @@ describe('Active-mapping tier dispatch (zero-euro)', () => {
     await act(async () => {
       savedId = await result.current.active.saveActive('Causa IDB Test', entries)
     })
-    expect(savedId).toBeTruthy()
+    // L'id è deterministico: agg::<userId>.
+    expect(savedId).toBe('agg::user-free-1')
 
-    // Close + reopen by id.
-    act(() => {
-      result.current.active.closeActive()
-    })
-    expect(result.current.active.active).toBeNull()
-
-    await act(async () => {
-      await result.current.active.openMapping(savedId)
-    })
+    // Stato attivo ricostruito post-save: label sentinel, entries persistiti.
     expect(result.current.active.active).not.toBeNull()
-    expect(result.current.active.active!.label).toBe('Causa IDB Test')
+    expect(result.current.active.active!.mappingId).toBe('agg::user-free-1')
     expect(result.current.active.active!.entries[0]!.pseudonym).toBe('Tizio')
+    expect(result.current.active.active!.dirty).toBe(false)
   })
 
   it('tier=free saveActive does NOT require a masterKey', async () => {
@@ -194,5 +192,144 @@ describe('Active-mapping tier dispatch (zero-euro)', () => {
       const id = await result.current.active.saveActive('Senza chiave', entries)
       expect(id).toBeTruthy()
     })
+  })
+})
+
+/**
+ * tier=free cross-doc continuity bootstrap (bug fix 2026-05-19).
+ *
+ * Quando il provider monta con user.tier='free', deve caricare il record
+ * aggregato IDB e seedare automaticamente il PseudonymMapper engine. Senza
+ * questo seed il primo documento caricato dopo il login allocava pseudonimi
+ * da pool_index=0, rompendo la continuità (Mario Rossi → nuovo pseudonimo).
+ */
+describe('tier=free aggregate bootstrap (cross-doc continuity)', () => {
+  beforeEach(async () => {
+    await new Promise<void>((resolve) => {
+      const req = indexedDB.deleteDatabase('recode-it')
+      req.onsuccess = () => resolve()
+      req.onerror = () => resolve()
+      req.onblocked = () => resolve()
+    })
+  })
+
+  it('al mount con IDB pre-popolato seeda il mapper engine', async () => {
+    // Pre-popola il record aggregato direttamente via mapping-store, prima
+    // del mount del provider — simula "utente torna sul sito dopo aver già
+    // pseudonimizzato un documento".
+    const { saveAggregateMapping, loadAggregateMapping } = await import(
+      '../../storage/mapping-store'
+    )
+    const prepopulated: MappingEntry[] = [
+      { pseudonym: 'Tizio', realValue: 'Mario Rossi', category: 'persona' },
+      { pseudonym: 'Caio', realValue: 'Giulia Bianchi', category: 'persona' },
+    ]
+    await saveAggregateMapping('user-free-1', prepopulated)
+    // Sanity: il record esiste.
+    const loaded = await loadAggregateMapping('user-free-1')
+    expect(loaded.length).toBe(2)
+
+    // Ora mount del provider.
+    const { result } = renderHook(
+      () => ({ auth: useAuth(), active: useActiveMapping() }),
+      { wrapper: combinedWrapper },
+    )
+    await waitFor(() => {
+      expect(result.current.auth.user).not.toBeNull()
+    })
+    // Aspetta che il useEffect di bootstrap completi.
+    await waitFor(() => {
+      expect(result.current.active.active).not.toBeNull()
+    })
+    expect(result.current.active.active!.mappingId).toBe('agg::user-free-1')
+    expect(result.current.active.active!.entries.length).toBe(2)
+    // Il mapper engine è stato seedato: una chiamata a getPerson su un nome
+    // già noto deve restituire lo stesso pseudonimo (no re-allocation).
+    const mapper = result.current.active.active!.mapper
+    // getPerson dovrebbe restituire 'Tizio' per 'Mario Rossi' (seeded).
+    expect(mapper.getPerson('Mario Rossi')).toBe('Tizio')
+    expect(mapper.getPerson('Giulia Bianchi')).toBe('Caio')
+  })
+
+  it('al mount con IDB vuoto inizializza un mapper vuoto senza crash', async () => {
+    const { result } = renderHook(
+      () => ({ auth: useAuth(), active: useActiveMapping() }),
+      { wrapper: combinedWrapper },
+    )
+    await waitFor(() => {
+      expect(result.current.auth.user).not.toBeNull()
+    })
+    await waitFor(() => {
+      expect(result.current.active.active).not.toBeNull()
+    })
+    expect(result.current.active.active!.entries.length).toBe(0)
+    // Mapper fresco: la prima allocazione parte dal pool index 0.
+    const mapper = result.current.active.active!.mapper
+    const p = mapper.getPerson('Sconosciuto Tale')
+    expect(p).toBeTruthy()
+    expect(p).not.toBe('Sconosciuto Tale')
+  })
+
+  it('cross-doc continuity end-to-end: secondo save preserva pseudonimi del primo', async () => {
+    const { result } = renderHook(
+      () => ({ auth: useAuth(), active: useActiveMapping() }),
+      { wrapper: combinedWrapper },
+    )
+    await waitFor(() => {
+      expect(result.current.auth.user).not.toBeNull()
+    })
+    await waitFor(() => {
+      expect(result.current.active.active).not.toBeNull()
+    })
+    // Doc1: l'utente pseudonimizza Mario Rossi → Tizio.
+    const doc1Entries: MappingEntry[] = [
+      { pseudonym: 'Tizio', realValue: 'Mario Rossi', category: 'persona' },
+    ]
+    await act(async () => {
+      await result.current.active.saveActive('ignored', doc1Entries)
+    })
+    expect(result.current.active.active!.entries[0]!.pseudonym).toBe('Tizio')
+
+    // Doc2: l'utente pseudonimizza un nuovo nome + ri-vede Mario Rossi.
+    // Il mapper deve restituire 'Tizio' per Mario Rossi (cross-doc).
+    const mapper = result.current.active.active!.mapper
+    expect(mapper.getPerson('Mario Rossi')).toBe('Tizio')
+    // Nuovo nome → nuovo pseudonimo dalla pool, NON ricicla 'Tizio'.
+    const newPseudo = mapper.getPerson('Anna Verdi')
+    expect(newPseudo).toBeTruthy()
+    expect(newPseudo).not.toBe('Tizio')
+
+    // Save Doc2 con il merge corretto: doc1 + doc2 entries.
+    const doc2Entries: MappingEntry[] = [
+      ...doc1Entries,
+      { pseudonym: newPseudo, realValue: 'Anna Verdi', category: 'persona' },
+    ]
+    await act(async () => {
+      await result.current.active.saveActive('ignored', doc2Entries)
+    })
+    // Verifica round-trip su IDB: il record aggregato contiene entrambi.
+    const { loadAggregateMapping } = await import(
+      '../../storage/mapping-store'
+    )
+    const persisted = await loadAggregateMapping('user-free-1')
+    expect(persisted.length).toBe(2)
+    const reals = persisted.map((e) => e.realValue).sort()
+    expect(reals).toEqual(['Anna Verdi', 'Mario Rossi'])
+  })
+
+  it('save sovrascrive (no append duplicate) e preserva createdAt', async () => {
+    const { saveAggregateMapping, loadAggregateMapping } = await import(
+      '../../storage/mapping-store'
+    )
+    await saveAggregateMapping('user-free-1', [
+      { pseudonym: 'Tizio', realValue: 'Mario Rossi', category: 'persona' },
+    ])
+    await saveAggregateMapping('user-free-1', [
+      { pseudonym: 'Tizio', realValue: 'Mario Rossi', category: 'persona' },
+      { pseudonym: 'Caio', realValue: 'Giulia Bianchi', category: 'persona' },
+    ])
+    const persisted = await loadAggregateMapping('user-free-1')
+    // Singolo record sovrascritto, non append: due entries, non tre.
+    expect(persisted.length).toBe(2)
   })
 })

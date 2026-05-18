@@ -53,9 +53,12 @@ vi.mock('../../api/crypto', () => ({
 
 import * as apiClient from '../../api/client'
 import {
+  aggregateRecordId,
   deleteMappingById,
   listMappings,
+  loadAggregateMapping,
   loadMapping,
+  saveAggregateMapping,
   saveMapping,
 } from '../mapping-store'
 
@@ -152,6 +155,61 @@ describe('mapping-store dispatcher', () => {
         entries: sampleEntries,
       }),
     ).rejects.toThrow(/masterKey/)
+  })
+
+  // ----- aggregate (tier=free, singolo record per userId) -----------------
+
+  it('loadAggregateMapping ritorna [] se non esiste record', async () => {
+    const entries = await loadAggregateMapping('user-fresh')
+    expect(entries).toEqual([])
+  })
+
+  it('saveAggregateMapping + loadAggregateMapping round-trip', async () => {
+    await saveAggregateMapping('user-1', sampleEntries)
+    const loaded = await loadAggregateMapping('user-1')
+    expect(loaded.length).toBe(2)
+    expect(loaded[0]!.pseudonym).toBe('Tizio')
+    expect(loaded[1]!.pseudonym).toBe('Caio')
+  })
+
+  it('saveAggregateMapping sovrascrive il record precedente (no append)', async () => {
+    await saveAggregateMapping('user-1', [sampleEntries[0]!])
+    await saveAggregateMapping('user-1', sampleEntries)
+    const loaded = await loadAggregateMapping('user-1')
+    expect(loaded.length).toBe(2)
+  })
+
+  it('aggregati di utenti diversi sono isolati', async () => {
+    await saveAggregateMapping('user-a', [
+      { pseudonym: 'Tizio', realValue: 'Mario Rossi', category: 'persona' },
+    ])
+    await saveAggregateMapping('user-b', [
+      { pseudonym: 'Caio', realValue: 'Giulia Bianchi', category: 'persona' },
+    ])
+    const a = await loadAggregateMapping('user-a')
+    const b = await loadAggregateMapping('user-b')
+    expect(a.length).toBe(1)
+    expect(b.length).toBe(1)
+    expect(a[0]!.realValue).toBe('Mario Rossi')
+    expect(b[0]!.realValue).toBe('Giulia Bianchi')
+  })
+
+  it('listMappings tier=free non espone il record aggregato sentinel', async () => {
+    // Aggregato presente + un mapping "legacy id-based" (anche se per design
+    // free non li userà più, possono esistere da una versione precedente).
+    await saveAggregateMapping('user-mix', sampleEntries)
+    await saveMapping({
+      id: crypto.randomUUID(),
+      userId: 'user-mix',
+      tier: 'free',
+      label: 'Legacy mapping',
+      entries: sampleEntries,
+    })
+    const list = await listMappings({ userId: 'user-mix', tier: 'free' })
+    // Solo il mapping legacy, l'aggregato è filtrato.
+    expect(list.length).toBe(1)
+    expect(list[0]!.label).toBe('Legacy mapping')
+    expect(list[0]!.id).not.toBe(aggregateRecordId('user-mix'))
   })
 
   it('tier=free deleteMappingById removes the record from IDB', async () => {
