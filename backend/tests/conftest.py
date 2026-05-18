@@ -51,7 +51,11 @@ def client() -> TestClient:
 
 @pytest.fixture
 def signup_payload():
-    return {"email": "avvocato@studio.it", "password": "correct horse battery staple"}
+    return {
+        "email": "avvocato@studio.it",
+        "password": "correct horse battery staple",
+        "name": "Studio Legale Test",
+    }
 
 
 @pytest.fixture

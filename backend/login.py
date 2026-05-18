@@ -127,7 +127,8 @@ async def me_endpoint(request: Request):
     with connection() as conn:
         row = conn.execute(
             """
-            SELECT id, email, kdf_salt, email_verified, created_at
+            SELECT id, email, kdf_salt, email_verified, created_at,
+                   tier, name, marketing_consent
             FROM recode_users WHERE id = ?
             """,
             (user_id,),
@@ -142,6 +143,9 @@ async def me_endpoint(request: Request):
             "kdf_salt": row["kdf_salt"],
             "email_verified": bool(row["email_verified"]),
             "created_at": row["created_at"],
+            "tier": row["tier"],
+            "name": row["name"],
+            "marketing_consent": bool(row["marketing_consent"]),
         },
         status=200, request=request,
     )

@@ -71,10 +71,25 @@ async def signup_endpoint(request: Request):
 
     email = _normalize_email(str(payload.get("email", "")))
     password = str(payload.get("password", ""))
+    name_raw = payload.get("name", "")
+    name = str(name_raw).strip() if name_raw is not None else ""
+    marketing_consent_requested = bool(payload.get("marketing_consent_requested", False))
 
     if not _is_email_well_formed(email):
         return error_response(
             "invalid_email", "Email format is not valid.",
+            status=400, request=request,
+        )
+
+    # Display name: required, length 1..256 (Cyrillic, accents, etc all welcome).
+    if not name:
+        return error_response(
+            "name_required", "Il nome è richiesto per creare l'account.",
+            status=400, request=request,
+        )
+    if len(name) > 256:
+        return error_response(
+            "name_too_long", "Il nome può avere al massimo 256 caratteri.",
             status=400, request=request,
         )
 
@@ -93,15 +108,26 @@ async def signup_endpoint(request: Request):
     code_hashes = [hash_recovery_code(c) for c in recovery_codes]
     now = _now_iso()
 
+    # tier=free is the only tier emittable at signup time (capabilities_index §9).
+    # An eventual upgrade to 'pro' happens via the Stripe Checkout return-flow
+    # endpoint (out of scope for the zero-euro tier).
+    tier = "free"
+    token_purpose = (
+        "email_verification_with_marketing"
+        if marketing_consent_requested
+        else "email_verification"
+    )
+
     with connection() as conn:
         try:
             conn.execute(
                 """
                 INSERT INTO recode_users (id, email, password_hash, kdf_salt,
-                                          email_verified, status, created_at)
-                VALUES (?, ?, ?, ?, 0, 'active', ?)
+                                          email_verified, status, created_at,
+                                          tier, name, marketing_consent)
+                VALUES (?, ?, ?, ?, 0, 'active', ?, ?, ?, 0)
                 """,
-                (user_id, email, pw_hash, kdf_salt, now),
+                (user_id, email, pw_hash, kdf_salt, now, tier, name),
             )
         except sqlite3.IntegrityError:
             return error_response(
@@ -128,9 +154,9 @@ async def signup_endpoint(request: Request):
             """
             INSERT INTO recode_email_tokens (token_hash, user_id, purpose,
                                              expires_at, created_at)
-            VALUES (?, ?, 'email_verification', ?, ?)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (token_hash, user_id, exp, now),
+            (token_hash, user_id, token_purpose, exp, now),
         )
 
     try:
