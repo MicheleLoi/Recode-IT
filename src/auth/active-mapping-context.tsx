@@ -34,8 +34,11 @@ import React, {
 } from 'react'
 import { PseudonymMapper } from '../engine/pseudonym_mapper'
 import {
+  aggregateRecordId,
   deleteMappingById,
+  loadAggregateMapping,
   loadMapping,
+  saveAggregateMapping,
   saveMapping,
 } from '../storage/mapping-store'
 import type { MappingEntry } from '../types/engine'
@@ -190,6 +193,52 @@ export function ActiveMappingProvider({
   const { user, masterKey } = useAuth()
   const [active, setActive] = useState<ActiveMapping | null>(null)
 
+  // tier=free cross-doc continuity bootstrap (bug fix 2026-05-19):
+  //
+  // Design ratificato: tier=free ha UN SOLO mapping aggregato per browser,
+  // chiavato per userId, sempre attivo. All'inizializzazione del provider —
+  // appena `user` è disponibile e tier === 'free' — carichiamo il record
+  // IDB aggregato e seedaiamo il PseudonymMapper engine. In questo modo il
+  // primo documento caricato dopo il login riconosce già "Mario Rossi" →
+  // "Tizio" allocato in una sessione precedente, senza UI di "open mapping".
+  //
+  // Idempotente: se non esiste record IDB, `entries` è [] e il mapper resta
+  // vuoto (no crash). Re-trigger solo quando cambia user.user_id.
+  const userId = user?.user_id ?? null
+  const userTier = user?.tier ?? null
+  useEffect(() => {
+    if (userId === null || userTier !== 'free') return
+    // Non sovrascrivere uno stato già attivo (es. apertura esplicita di un
+    // mapping in tier=pro futuro). Se l'utente è davvero free, semanticamente
+    // l'unico active possibile è già l'aggregato — ma siamo difensivi.
+    if (active && active.mappingId === aggregateRecordId(userId)) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const entries = await loadAggregateMapping(userId)
+        if (cancelled) return
+        const mapper = new PseudonymMapper()
+        if (entries.length > 0) mapper.seedFromEntries(entries)
+        setActive({
+          mappingId: aggregateRecordId(userId),
+          label: 'Mapping locale',
+          mapper,
+          entries,
+          dirty: false,
+          pristine: true,
+        })
+      } catch {
+        // IDB non disponibile (incognito strict, browser legacy): non blocchiamo
+        // l'app, il pseudonimizzatore funziona comunque sul singolo documento.
+        if (cancelled) return
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, userTier])
+
   // Beforeunload warning when the active mapping has dirty unsaved changes —
   // see DESIGN.md §10 and OPEN_RISKS.md (session-loss UX). We do NOT warn on
   // pristine state (just opened, nothing modified yet) so a user who opens
@@ -221,6 +270,26 @@ export function ActiveMappingProvider({
           'Crittografia non disponibile: sblocca la sessione con la password prima di salvare.',
         )
       }
+      // tier=free → singolo record aggregato per userId (design 2026-05-19).
+      // L'argomento `label` viene ignorato per tier=free (non c'è UI lista
+      // mapping in cui esporre l'etichetta) ma manteniamo la stessa firma per
+      // compatibilità con il chiamante (ClipboardWidget).
+      if (user.tier === 'free') {
+        await saveAggregateMapping(user.user_id, entries)
+        const mappingId = aggregateRecordId(user.user_id)
+        const newMapper = active?.mapper ?? new PseudonymMapper()
+        newMapper.seedFromEntries(entries)
+        setActive({
+          mappingId,
+          label: active?.label ?? 'Mapping locale',
+          mapper: newMapper,
+          entries,
+          dirty: false,
+          pristine: false,
+        })
+        return mappingId
+      }
+      // tier=pro — path storico invariato.
       const mappingId = active?.mappingId ?? genId()
       await saveMapping({
         id: mappingId,
