@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  /** Override the GLiNER ONNX model URL. See `.env.example`. */
-  readonly VITE_GLINER_MODEL_URL?: string
+  /** Override the NER ONNX model URL. See `.env.example`. */
+  readonly VITE_NER_MODEL_URL?: string
 }
 
 interface ImportMeta {

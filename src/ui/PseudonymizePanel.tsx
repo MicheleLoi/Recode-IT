@@ -10,8 +10,8 @@
 
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ChangeEvent } from 'react'
 import { anonymize } from '../engine/engine'
-import { GlinerRunner } from '../engine/gliner_runner'
-import type { GlinerProgressEvent } from '../engine/gliner_runner'
+import { NerRunner } from '../engine/ner_runner'
+import type { NerProgressEvent } from '../engine/ner_runner'
 import type { MappingEntry, NerDetection } from '../types/engine'
 import { EntityReviewList } from './EntityReviewList'
 import { ModelLoadingState } from './ModelLoadingState'
@@ -58,11 +58,69 @@ export function PseudonymizePanel({
     total: number
   } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const runnerRef = useRef<GlinerRunner | null>(null)
+  const runnerRef = useRef<NerRunner | null>(null)
 
+  /**
+   * Eager NER init at mount: the model is ~67 MB so we want the download to
+   * start as soon as the user opens the page (rather than on first click,
+   * which created a confusing "broken page" UX — see the
+   * recode_it_ner_rewrite_brief_20260518 brief). The defensive error handling
+   * below (rawMsg / ERR_MODEL_NOT_FOUND / ERR_BACKEND_INIT) is preserved:
+   * if init fails at mount, we silently fall back to regex-only mode — the
+   * user's first interaction still works, just without NER.
+   *
+   * StrictMode double-invoke caveat: the cleanup terminates the worker; the
+   * second invocation will create a new one. We accept the wasted boot in
+   * dev (~50ms) for correctness in prod.
+   */
   useEffect(() => {
+    let cancelled = false
+    if (typeof Worker === 'undefined') {
+      // jsdom / SSR: no Worker, no eager init. The on-click path will set
+      // nerStatus='unavailable' the same way it did before.
+      return
+    }
+    const runner = new NerRunner()
+    runnerRef.current = runner
+    setNerStatus('loading')
+    setLoadProgress({ phase: 'wasm', loaded: 0, total: 0 })
+    runner
+      .init((evt: NerProgressEvent) => {
+        if (cancelled) return
+        setLoadProgress({ phase: evt.phase, loaded: evt.loaded, total: evt.total })
+      })
+      .then(() => {
+        if (cancelled) return
+        setLoadProgress(null)
+        setNerStatus('idle')
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setLoadProgress(null)
+        runnerRef.current = null
+        setNerStatus('unavailable')
+        const rawMsg = (err as Error)?.message ?? 'errore sconosciuto'
+        // Sentinel-based UX split — same pattern as handlePseudonymize:
+        // distinguish "model not deployed" from "ort runtime failed". Eager
+        // path uses a softer wording: the user hasn't asked for anything
+        // yet, so we don't surface a red error — we just store it for the
+        // next pseudonymize call to display.
+        if (rawMsg.includes('ERR_MODEL_NOT_FOUND')) {
+          setError(
+            'Modello NER non disponibile. La pseudonimizzazione resta attiva ' +
+              'per CF, IBAN, email e altri identificatori strutturati.',
+          )
+        } else {
+          setError(
+            'Errore tecnico nel caricamento del runtime NER. La ' +
+              'pseudonimizzazione regex resta attiva (CF, IBAN, email, ecc.). ' +
+              `Dettaglio: ${rawMsg.replace(/^ERR_BACKEND_INIT:\s*/, '')}`,
+          )
+        }
+      })
     return () => {
-      runnerRef.current?.terminate()
+      cancelled = true
+      runner.terminate()
       runnerRef.current = null
     }
   }, [])
@@ -142,58 +200,35 @@ export function PseudonymizePanel({
         .map((e) => e.realValue),
     )
 
-    // Fast path — environments without a real Worker (jsdom / SSR / very old
-    // browsers): immediate regex-only pseudonymization, no spinner, no error.
-    // The UI still shows the regex masks (`<DS>`, `<IBAN>`, …) which is the
-    // Phase 2 contract.
+    // Fast path: NER unavailable (jsdom / init failed / no Worker) →
+    // immediate regex-only pseudonymization. The UI still shows the regex
+    // masks (`<DS>`, `<IBAN>`, …) which is the Phase 2 contract.
     const workerSupported =
       typeof Worker !== 'undefined' && nerStatus !== 'unavailable'
 
-    if (!workerSupported) {
+    if (!workerSupported || !runnerRef.current) {
       runRegexOnly(userFalsePositives)
       return
     }
 
-    // Phase 4 path: try to load GLiNER (lazy — first click only). On failure,
-    // gracefully degrade to regex-only with a forensic-sober notice.
+    // NER path: the worker is already booted eagerly at mount (see useEffect
+    // above), so by the time the user clicks Pseudonimizza either the runner
+    // is `ready` (predict succeeds) or it has flipped to `unavailable`
+    // (handled above). The only thing that can fail here is the actual
+    // inference — degrade to regex-only with a forensic-sober notice.
     let nerDetections: NerDetection[] | undefined
     try {
-      if (!runnerRef.current) {
-        setNerStatus('loading')
-        setLoadProgress({ phase: 'wasm', loaded: 0, total: 0 })
-        runnerRef.current = new GlinerRunner()
-        await runnerRef.current.init((evt: GlinerProgressEvent) => {
-          setLoadProgress({ phase: evt.phase, loaded: evt.loaded, total: evt.total })
-        })
-        setLoadProgress(null)
-      }
       setNerStatus('running')
       nerDetections = await runnerRef.current.predict(originalText)
     } catch (err) {
-      setLoadProgress(null)
       runnerRef.current = null
       setNerStatus('unavailable')
       const rawMsg = (err as Error).message ?? 'errore sconosciuto'
-
-      // The worker tags init failures with a sentinel prefix so the UI can
-      // distinguish "model file not deployed yet" (operational, expected
-      // until founder runs scripts/prepare_gliner_model.md) from "ort/wasm
-      // backend itself failed to load" (technical bug).
-      if (rawMsg.includes('ERR_MODEL_NOT_FOUND')) {
-        setError(
-          'Modello NER non disponibile. La pseudonimizzazione resta attiva ' +
-            'per CF, IBAN, email e altri identificatori strutturati. Per ' +
-            'riconoscere automaticamente nomi di persona, luoghi e ' +
-            'organizzazioni serve il deploy del modello GLiNER ' +
-            '(vedi scripts/prepare_gliner_model.md).',
-        )
-      } else {
-        setError(
-          'Errore tecnico nel caricamento del runtime NER. La ' +
-            'pseudonimizzazione regex resta attiva (CF, IBAN, email, ecc.). ' +
-            `Dettaglio: ${rawMsg.replace(/^ERR_BACKEND_INIT:\s*/, '')}`,
-        )
-      }
+      setError(
+        'Errore durante il riconoscimento entità NER. La ' +
+          'pseudonimizzazione regex resta attiva (CF, IBAN, email, ecc.). ' +
+          `Dettaglio: ${rawMsg.replace(/^ERR_[A-Z_]+:\s*/, '')}`,
+      )
     }
 
     runRegexOnly(userFalsePositives, nerDetections)

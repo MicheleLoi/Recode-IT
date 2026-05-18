@@ -1,5 +1,5 @@
 /**
- * gliner_runner.ts — main-thread wrapper around the GLiNER Web Worker.
+ * ner_runner.ts — main-thread wrapper around the NER Web Worker.
  *
  * Responsibilities:
  *   - Lifecycle (init / terminate) of the worker.
@@ -7,19 +7,20 @@
  *   - Chunk splitting (port of Python `_split_into_chunks`) so the worker
  *     processes manageable text windows.
  *
- * The actual ONNX inference lives in `src/workers/gliner.worker.ts`. That
- * file is loaded as a module worker via Vite's `?worker` query at build time;
- * in tests we don't spin up the runner at all (the equivalence harness uses
- * mock mode — see `src/engine/__tests__/numerical_equivalence.test.ts`).
+ * The actual ONNX inference lives in `src/workers/ner.worker.ts`. That file
+ * is loaded as a module worker via Vite at build time; in tests we don't spin
+ * up the runner at all (the equivalence harness uses mock mode — see
+ * `src/engine/__tests__/numerical_equivalence.test.ts`).
  *
- * Threshold tiers and overlap resolution are handled inside the worker; the
- * runner is transport + scheduling only.
+ * Threshold tiers, IO-scheme decoding, label mapping and overlap resolution
+ * are all handled inside the worker; the runner is transport + scheduling
+ * only.
  */
 
 import type { NerDetection } from '../types/engine'
 
-/** Progress information forwarded from the GLiNER worker during init(). */
-export type GlinerProgressEvent = {
+/** Progress information forwarded from the NER worker during init(). */
+export type NerProgressEvent = {
   /** Loading phase. */
   phase: 'wasm' | 'download' | 'session'
   /** Bytes downloaded so far (0 for non-download phases). */
@@ -28,7 +29,7 @@ export type GlinerProgressEvent = {
   total: number
 }
 
-export type GlinerRunnerOptions = {
+export type NerRunnerOptions = {
   /** Absolute or root-relative URL to the ONNX model. */
   modelUrl?: string
   /** Override the worker constructor — used in tests. */
@@ -49,23 +50,23 @@ function nextId(): string {
 /**
  * Default model URL — env-aware:
  *
- *   1. `VITE_GLINER_MODEL_URL` (set in .env / .env.production / .env.local)
+ *   1. `VITE_NER_MODEL_URL` (set in .env / .env.production / .env.local)
  *      always wins when defined.
  *   2. In dev (`import.meta.env.DEV`) fall back to `/models/...` so Vite's
  *      static-asset server picks it up from `public/models/`.
  *   3. In production builds, fall back to the founder's VPS canonical URL.
  *
- * Kept inside `gliner_runner.ts` (not the worker) so the env var resolves at
+ * Kept inside `ner_runner.ts` (not the worker) so the env var resolves at
  * main-thread bundle time — Vite's `import.meta.env` substitution does not
  * cross the worker boundary in the same way.
  */
 const PRODUCTION_MODEL_URL =
-  'https://mhc.micheleloi.pro/recode-it/models/gliner_small_v2.1_q8.onnx'
+  'https://mhc.micheleloi.pro/recode-it/models/distilbert_italian_ner_q8.onnx'
 
 const DEFAULT_MODEL_URL =
-  (import.meta.env.VITE_GLINER_MODEL_URL as string | undefined) ||
+  (import.meta.env.VITE_NER_MODEL_URL as string | undefined) ||
   (import.meta.env.DEV
-    ? '/models/gliner_small_v2.1_q8.onnx'
+    ? '/models/distilbert_italian_ner_q8.onnx'
     : PRODUCTION_MODEL_URL)
 
 /**
@@ -98,14 +99,14 @@ export function splitIntoChunks(
   return chunks
 }
 
-export class GlinerRunner {
+export class NerRunner {
   private worker: Worker | null = null
   private ready = false
   private readonly pending = new Map<string, PendingRequest>()
   private readonly modelUrl: string
   private readonly workerFactory: () => Worker
 
-  constructor(options: GlinerRunnerOptions = {}) {
+  constructor(options: NerRunnerOptions = {}) {
     this.modelUrl = options.modelUrl ?? DEFAULT_MODEL_URL
     this.workerFactory =
       options.workerFactory ??
@@ -113,7 +114,7 @@ export class GlinerRunner {
         // Vite-flavored module worker import. Wrapped so test environments
         // (no DOM Worker) can override via `workerFactory`.
         return new Worker(
-          new URL('../workers/gliner.worker.ts', import.meta.url),
+          new URL('../workers/ner.worker.ts', import.meta.url),
           { type: 'module' },
         )
       })
@@ -126,17 +127,16 @@ export class GlinerRunner {
    *   model download and initialisation. Safe to ignore; the promise resolves
    *   when the model is fully ready regardless.
    */
-  async init(onProgress?: (event: GlinerProgressEvent) => void): Promise<void> {
+  async init(onProgress?: (event: NerProgressEvent) => void): Promise<void> {
     if (this.ready) return
     if (typeof Worker === 'undefined') {
       throw new Error(
-        "Worker API not available in this environment — GLiNER cannot start.",
+        "Worker API not available in this environment — NER cannot start.",
       )
     }
     this.worker = this.workerFactory()
     this.worker.onmessage = this.onMessage
     this.worker.onerror = (ev) => {
-      // Unattributed worker error: fail every pending request.
       for (const [, p] of this.pending) {
         p.reject(new Error(`Worker error: ${ev.message ?? 'unknown'}`))
       }
@@ -152,10 +152,10 @@ export class GlinerRunner {
           resolve()
         } else if (data?.type === 'error') {
           this.worker?.removeEventListener('message', onReady)
-          reject(new Error(data.error ?? 'GLiNER init failed'))
+          reject(new Error(data.error ?? 'NER init failed'))
         } else if (data?.type === 'progress' && onProgress) {
           onProgress({
-            phase: data.phase as GlinerProgressEvent['phase'],
+            phase: data.phase as NerProgressEvent['phase'],
             loaded: data.loaded as number,
             total: data.total as number,
           })
@@ -172,7 +172,7 @@ export class GlinerRunner {
   /** Predict entities on a single text chunk. */
   async predictChunk(text: string): Promise<NerDetection[]> {
     if (!this.ready || !this.worker) {
-      throw new Error('GlinerRunner: call init() before predictChunk()')
+      throw new Error('NerRunner: call init() before predictChunk()')
     }
     const id = nextId()
     return new Promise<NerDetection[]>((resolve, reject) => {
@@ -225,7 +225,7 @@ export class GlinerRunner {
     }
     this.ready = false
     for (const [, p] of this.pending) {
-      p.reject(new Error('GlinerRunner terminated'))
+      p.reject(new Error('NerRunner terminated'))
     }
     this.pending.clear()
   }
@@ -242,7 +242,7 @@ export class GlinerRunner {
       if (data.type === 'result') {
         pending.resolve(data.entities ?? [])
       } else {
-        pending.reject(new Error(data.error ?? 'GLiNER worker error'))
+        pending.reject(new Error(data.error ?? 'NER worker error'))
       }
     }
   }
