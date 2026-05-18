@@ -5,6 +5,16 @@
  * The blobs themselves are NEVER fetched here: only metadata. Decryption
  * happens on demand from the ClipboardWidget when the user opens a saved
  * mapping for use.
+ *
+ * Tier-awareness (zero-euro post-migration, 2026-05-19):
+ *   - tier='pro' → comportamento storico invariato: lista mapping cifrati
+ *     da /recode/mappings, falsi positivi server-side, elimina bulk per data,
+ *     elimina account con copy "mapping cifrati".
+ *   - tier='free' → mapping vivono in IndexedDB locale e NON c'è UI per
+ *     gestirli/listarli (ratificato dal founder: Ockham, cross-doc continuity
+ *     resta implicita). Sezioni cloud-only mostrate "disabled / grey" con
+ *     paragrafo info; niente fetch /recode/mappings o /recode/false-positives;
+ *     elimina account con copy adattata + helper testo browser data.
  */
 
 import { useCallback, useEffect, useState } from 'react'
@@ -34,11 +44,12 @@ type Props = {
 export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
   const { user, logout, masterKey, unlock } = useAuth()
   const { openMapping } = useActiveMapping()
+  const isPro = user?.tier === 'pro'
   const [mappings, setMappings] = useState<MappingMetadata[]>([])
   const [fps, setFps] = useState<Array<FalsePositiveEntry & { marked_at: string }>>(
     [],
   )
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(isPro)
   const [error, setError] = useState<string | null>(null)
   const [olderThan, setOlderThan] = useState('')
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
@@ -51,6 +62,12 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
   const [openingId, setOpeningId] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
+    // tier='free': nessuna risorsa cloud-side da fetchare — i mapping vivono
+    // in IndexedDB del browser e la dashboard è informativa.
+    if (!isPro) {
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -69,7 +86,7 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isPro])
 
   useEffect(() => {
     void refresh()
@@ -175,134 +192,172 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
 
       {error && <p className="error">{error}</p>}
 
-      <section className="panel">
-        <h3>Mapping salvati ({mappings.length})</h3>
-        {loading && <p>Carico...</p>}
-        {!loading && mappings.length === 0 && (
-          <p className="review-empty">Nessun mapping salvato.</p>
-        )}
-        <ul className="account-mappings">
-          {mappings.map((m) => (
-            <li
-              key={m.mapping_id}
-              className="account-mappings__row"
-              data-testid={`mapping-row-${m.mapping_id}`}
-            >
-              <div>
-                <strong>{m.label ?? '(senza etichetta)'}</strong>
-                <span className="muted">
-                  {' '}
-                  {m.doc_type ?? '—'} · {m.size_bytes} byte ·{' '}
-                  {new Date(m.created_at).toLocaleString('it-IT')}
-                  {m.last_accessed_at && (
-                    <>
-                      {' · ultimo accesso '}
-                      {new Date(m.last_accessed_at).toLocaleString('it-IT')}
-                    </>
-                  )}
-                </span>
-                {unlockingId === m.mapping_id && (
-                  <div className="account-mappings__unlock">
-                    <p className="hint">
-                      Master key non in memoria. Inserisci la password per
-                      decifrare e aprire <strong>{m.label}</strong>.
-                    </p>
-                    <input
-                      type="password"
-                      className="auth-input"
-                      value={unlockPassword}
-                      onChange={(e) => setUnlockPassword(e.target.value)}
-                      placeholder="Password"
-                      data-testid={`unlock-input-${m.mapping_id}`}
-                    />
-                    <div className="actions">
-                      <button
-                        type="button"
-                        className="btn btn--primary"
-                        onClick={() => void onUnlockAndOpen(m.mapping_id)}
-                        disabled={!unlockPassword}
-                      >
-                        Sblocca e apri
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn--secondary"
-                        onClick={() => {
-                          setUnlockingId(null)
-                          setUnlockPassword('')
-                        }}
-                      >
-                        Annulla
-                      </button>
+      {isPro ? (
+        <section className="panel">
+          <h3>Mapping salvati ({mappings.length})</h3>
+          {loading && <p>Carico...</p>}
+          {!loading && mappings.length === 0 && (
+            <p className="review-empty">Nessun mapping salvato.</p>
+          )}
+          <ul className="account-mappings">
+            {mappings.map((m) => (
+              <li
+                key={m.mapping_id}
+                className="account-mappings__row"
+                data-testid={`mapping-row-${m.mapping_id}`}
+              >
+                <div>
+                  <strong>{m.label ?? '(senza etichetta)'}</strong>
+                  <span className="muted">
+                    {' '}
+                    {m.doc_type ?? '—'} · {m.size_bytes} byte ·{' '}
+                    {new Date(m.created_at).toLocaleString('it-IT')}
+                    {m.last_accessed_at && (
+                      <>
+                        {' · ultimo accesso '}
+                        {new Date(m.last_accessed_at).toLocaleString('it-IT')}
+                      </>
+                    )}
+                  </span>
+                  {unlockingId === m.mapping_id && (
+                    <div className="account-mappings__unlock">
+                      <p className="hint">
+                        Master key non in memoria. Inserisci la password per
+                        decifrare e aprire <strong>{m.label}</strong>.
+                      </p>
+                      <input
+                        type="password"
+                        className="auth-input"
+                        value={unlockPassword}
+                        onChange={(e) => setUnlockPassword(e.target.value)}
+                        placeholder="Password"
+                        data-testid={`unlock-input-${m.mapping_id}`}
+                      />
+                      <div className="actions">
+                        <button
+                          type="button"
+                          className="btn btn--primary"
+                          onClick={() => void onUnlockAndOpen(m.mapping_id)}
+                          disabled={!unlockPassword}
+                        >
+                          Sblocca e apri
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--secondary"
+                          onClick={() => {
+                            setUnlockingId(null)
+                            setUnlockPassword('')
+                          }}
+                        >
+                          Annulla
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-              <div className="account-mappings__row-actions">
-                <button
-                  className="btn btn--primary"
-                  onClick={() => void onOpen(m.mapping_id)}
-                  disabled={openingId === m.mapping_id}
-                  data-testid={`open-mapping-${m.mapping_id}`}
-                >
-                  {openingId === m.mapping_id ? 'Apro…' : 'Apri'}
-                </button>
-                <button
-                  className="btn btn--danger"
-                  onClick={() => onDeleteOne(m.mapping_id)}
-                  data-testid={`delete-mapping-${m.mapping_id}`}
-                >
-                  Elimina
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+                  )}
+                </div>
+                <div className="account-mappings__row-actions">
+                  <button
+                    className="btn btn--primary"
+                    onClick={() => void onOpen(m.mapping_id)}
+                    disabled={openingId === m.mapping_id}
+                    data-testid={`open-mapping-${m.mapping_id}`}
+                  >
+                    {openingId === m.mapping_id ? 'Apro…' : 'Apri'}
+                  </button>
+                  <button
+                    className="btn btn--danger"
+                    onClick={() => onDeleteOne(m.mapping_id)}
+                    data-testid={`delete-mapping-${m.mapping_id}`}
+                  >
+                    Elimina
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
 
-        <div className="bulk-delete">
-          <label className="field">
-            <span className="field__label">
-              Elimina mapping creati prima di (YYYY-MM-DD)
-            </span>
-            <input
-              type="date"
-              value={olderThan}
-              onChange={(e) => setOlderThan(e.target.value)}
-              className="auth-input"
-            />
-          </label>
-          <button
-            className="btn btn--danger"
-            onClick={onBulkDelete}
-            disabled={!olderThan}
-          >
-            Elimina in blocco
-          </button>
-        </div>
-      </section>
-
-      <section className="panel">
-        <h3>Falsi positivi memorizzati ({fps.length})</h3>
-        {fps.length === 0 && (
-          <p className="review-empty">
-            Nessun falso positivo segnato finora.
+          <div className="bulk-delete">
+            <label className="field">
+              <span className="field__label">
+                Elimina mapping creati prima di (YYYY-MM-DD)
+              </span>
+              <input
+                type="date"
+                value={olderThan}
+                onChange={(e) => setOlderThan(e.target.value)}
+                className="auth-input"
+              />
+            </label>
+            <button
+              className="btn btn--danger"
+              onClick={onBulkDelete}
+              disabled={!olderThan}
+            >
+              Elimina in blocco
+            </button>
+          </div>
+        </section>
+      ) : (
+        <section
+          className="panel panel--disabled"
+          aria-disabled="true"
+          data-testid="free-mappings-panel"
+        >
+          <h3 className="muted">Mapping salvati</h3>
+          <p className="hint" data-testid="free-mappings-info">
+            I tuoi mapping sono salvati localmente in questo browser. Recode IT
+            li riconosce automaticamente quando riapri un documento. La gestione
+            e la lista dei mapping è disponibile con il piano €25 una tantum.
           </p>
-        )}
-        <ul className="account-fps">
-          {fps.map((fp, i) => (
-            <li key={`${fp.term}::${fp.category}::${i}`}>
-              <code>{fp.term}</code> — <em>{fp.category}</em>
-            </li>
-          ))}
-        </ul>
-      </section>
+        </section>
+      )}
+
+      {isPro ? (
+        <section className="panel">
+          <h3>Falsi positivi memorizzati ({fps.length})</h3>
+          {fps.length === 0 && (
+            <p className="review-empty">
+              Nessun falso positivo segnato finora.
+            </p>
+          )}
+          <ul className="account-fps">
+            {fps.map((fp, i) => (
+              <li key={`${fp.term}::${fp.category}::${i}`}>
+                <code>{fp.term}</code> — <em>{fp.category}</em>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : (
+        <section
+          className="panel panel--disabled"
+          aria-disabled="true"
+          data-testid="free-fps-panel"
+        >
+          <h3 className="muted">Falsi positivi memorizzati</h3>
+          <p className="hint" data-testid="free-fps-info">
+            I falsi positivi che marchi durante la pseudonimizzazione restano
+            attivi nella sessione corrente. La memorizzazione persistente lato
+            account è disponibile con il piano €25 una tantum.
+          </p>
+        </section>
+      )}
 
       <section className="panel panel--danger">
         <h3>Elimina definitivamente l'account</h3>
-        <p className="hint">
-          Operazione irreversibile. Account + recovery codes + mapping cifrati
-          + preferenze: tutto cancellato.
-        </p>
+        {isPro ? (
+          <p className="hint">
+            Operazione irreversibile. Account + recovery codes + mapping cifrati
+            + preferenze: tutto cancellato.
+          </p>
+        ) : (
+          <p className="hint" data-testid="delete-account-copy-free">
+            Operazione irreversibile. Account + recovery codes: tutto cancellato.
+            I mapping locali nel tuo browser restano fino a quando non cancelli
+            i dati del sito (vedi sotto).
+          </p>
+        )}
         <label className="field">
           <span className="field__label">Password</span>
           <input
@@ -334,6 +389,17 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
           Elimina account
         </button>
       </section>
+
+      {!isPro && (
+        <p
+          className="hint account-dashboard__browser-data-helper"
+          data-testid="browser-data-helper"
+        >
+          Per cancellare i mapping locali di Recode IT dal tuo browser: apri le
+          impostazioni del browser → Privacy / Dati siti → Cancella dati per il
+          sito <code>recode.micheleloi.pro</code>.
+        </p>
+      )}
     </section>
   )
 }
