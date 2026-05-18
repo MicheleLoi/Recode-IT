@@ -69,6 +69,7 @@ PDL ratificato 2026-05-17 articola la costruzione in 7 fasi (Phase 0–6 in `IMP
 | 4 — NER WASM + equivalence test | onnxruntime-web GLiNER + test di equivalenza numerica vs Python | **DONE con sostituzione modello** — vedi §5 delta D1 | commit `7dba25e` + pivot `6887387` + `7e0ff63` |
 | 5 — Falso-positivo UX | tre bottoni in entity review | **FOLDED in Phase 2** | commit `4fd7fb7` |
 | 6 — Launch readiness | DOCX/PDF support, OCR-Pro framing, deploy + TLS, MIME headers, end-to-end smoke | **DEPLOY DONE; END-TO-END ACCEPTANCE TEST PENDING FOUNDER** | commits `71078ed` `911ea3e` (DOCX/PDF) + `1b93135` (model URL fix) — vedi §5 D7 + D8 |
+| Account zero-euro (€0, named) — IndexedDB locale + signup nome+marketing consent | tier free persistence client-side, signup esteso, banner verifica email, schema utenti backend con `name` + `marketing_consent_*` | **DONE in branch `feat/zero-euro-tier-indexeddb`** (pending merge a main + acceptance founder) | commits `d59445e..HEAD` (backend tier=free + storage IDB + auth tier-aware + UI signup+banner + tests cleanup) — vedi §9 |
 
 **Stato empirico end-to-end (2026-05-18 SID-20260518-143605):** Recode IT LIVE su `https://recode.micheleloi.pro/`. Deploy stack: nginx subdomain dedicato + TLS Let's Encrypt + COOP/COEP/CORP cross-origin isolation + MIME types corretti per `.mjs`/`.wasm`/`.onnx` + backend Starlette ASGI in systemd su `127.0.0.1:8001` proxy via nginx. Frontend bundle SPA in `/var/www/recode-it/` con worker NER + modello DistilBERT IT 67 MB int8. **ORT InferenceSession.create verificato green nel browser** (input names: `input_ids`, `attention_mask`). Pseudonimizza-recode su singolo documento in singola sessione funziona. Persistenza server-side (save/open/extend mapping cross-doc cross-session via gesto "estendi") implementata e in attesa di acceptance test founder.
 
@@ -261,6 +262,17 @@ Storage del tier zero-euro via IndexedDB nel browser (no `localStorage` — Inde
 
 Razionale: il browser dell'avvocato vive sullo stesso PC dove sta il file Word originale con i nomi veri. La chiave (Mario Rossi → Tizio) ha lo stesso livello di sensibilità del file originale e vive nello stesso luogo. Cifrarla con una password aggiuntiva sarebbe sicurezza teatrale — chi entra nel browser ha già accesso al file originale a portata di mano. Sicurezza coerente con il modello fisico del computer privato dell'avvocato.
 
+**Schema IndexedDB canonico** (implementato in `feat/zero-euro-tier-indexeddb`):
+
+- **Database name**: `recode-it`
+- **Schema version**: `v1` (bump + `onupgradeneeded` handler per migration future)
+- **Object store**: `mappings`
+- **keyPath**: `id` — UUID v4 client-generato via `crypto.randomUUID()`
+- **Indice secondario**: `updatedAt` — per sort ordinato lista mapping (lavoro più recente in cima)
+- **Shape record**: `{ id, name, mappingBlob, createdAt, updatedAt, userEmail }` (`mappingBlob` = serializzazione JSON del PseudonymMapper, in chiaro).
+
+Dispatcher tier-aware (`src/storage/mapping-store.ts`): se `auth.tier === 'free'` → IndexedDB; se `tier === 'pro'` → endpoint server cifrato esistente. Il `ClipboardWidget` e `active-mapping-context` delegano tutti i CRUD a `mapping-store`, mai direttamente a IDB o fetch.
+
 ### 9.2 Upgrade flow zero-euro → paid €25 una tantum
 
 Bottone canonico: **"Trasferisci chiavi sul cloud"**. Non "Trasferisci tutto". La precisione è doctrine — l'utente capisce che si trasferisce solo il vocabolario di sostituzione, NON documenti né contenuti.
@@ -301,11 +313,16 @@ Razionale: prezzo una tantum di €25 non sostiene storage illimitato perpetuo a
 
 ### 9.6 Cambiamenti backend
 
-**Schema utenti** (`recode_users`): aggiungere campo `tier` (`'free' | 'pro'`, già presente in DESIGN §6) + colonna `marketing_consent: boolean DEFAULT 0` per tracking GDPR consensual newsletter.
+**Schema utenti** (`recode_users`) — implementato in branch `feat/zero-euro-tier-indexeddb` (commit `d59445e`):
 
-**Endpoint nuovo**: `POST /recode/me/marketing-consent` per opt-in/opt-out newsletter.
+- `tier TEXT NOT NULL DEFAULT 'free'` (`'free' | 'pro'`, già previsto in DESIGN §6)
+- `name TEXT NULL` — nome utente raccolto al signup (zero-euro tier)
+- `marketing_consent_requested INTEGER NOT NULL DEFAULT 0` — flag opt-in al signup (checkbox dedicata, default OFF; GDPR Art. 6(1)(a))
+- `marketing_consent_verified_at TEXT NULL` — timestamp ISO 8601 settato dal verify-email endpoint quando il token aveva flag marketing, a chiusura del double opt-in. `NULL` = consenso non ancora confermato via email link (oppure utente non ha mai chiesto newsletter).
 
-**Storage tracking**: query aggregata `SELECT SUM(size_bytes) FROM encrypted_mappings WHERE user_id = ?` per controllare cap. Aggiungere index su `(user_id, size_bytes)` per performance.
+**Endpoint nuovo (futuro)**: `POST /recode/me/marketing-consent` per opt-out post-signup.
+
+**Storage tracking (tier paid)**: query aggregata `SELECT SUM(size_bytes) FROM encrypted_mappings WHERE user_id = ?` per controllare cap. Aggiungere index su `(user_id, size_bytes)` per performance.
 
 ### 9.7 Scenari di failure UX
 
@@ -320,54 +337,6 @@ Razionale: prezzo una tantum di €25 non sostiene storage illimitato perpetuo a
 
 Authority: dialogo founder ↔ chief_of_staff SID-20260518-143605 + strategist round 1 (raccomandazione c locale) + strategist round 2 (validazione struttura 3 tier) + ratifiche founder verbatim "test: niente memoria di sessione; solo nome (acquisto a zero euro) memoria di sessione interno; 25 euro chiave sul server e diversi computer" + "email anche per newsletter, chiedendo il consenso; limite storage cloud; test permanente ma senza garanzie".
 
-### 9.1 Storage — IndexedDB in chiaro, no cifratura
-
-Persistenza locale via **IndexedDB** (non `localStorage` — IndexedDB scala oltre 5MB e supporta blob strutturati). Database privato del browser ("recode-it"), letture/scritture async, dato in cartella privata del browser sul disco utente.
-
-**Decisione: dato in chiaro, niente cifratura aggiuntiva.**
-
-Razionale: il browser dell'avvocato vive sullo stesso PC dove sta il file Word originale con i nomi veri. La chiave (Mario Rossi → Tizio) ha lo stesso livello di sensibilità del file originale e vive nello stesso luogo. Cifrarla con una password aggiuntiva sarebbe sicurezza teatrale — chi entra nel browser ha già accesso al file originale a portata di mano. Sicurezza coerente con il modello fisico del computer privato dell'avvocato.
-
-### 9.2 Upgrade flow free → paid — bottone "Trasferisci chiavi sul cloud"
-
-Formulazione esatta: **"Trasferisci chiavi sul cloud"**. Non "Trasferisci tutto". La precisione è doctrine — l'utente capisce che si trasferisce solo il vocabolario di sostituzione, NON documenti né contenuti.
-
-Behavior: l'utente firma per il paid, riceve dialog "Trasferisci chiavi sul cloud", click → il browser deriva master_key da password+argon2_salt → cifra ogni mapping locale lato browser → POST `/recode/mappings/` per ciascuno. Da quel momento i mapping vivono sul server (cifrati), il locale può essere svuotato o restare come copia ridondante (decisione UX da raffinare).
-
-### 9.3 Claim zero-knowledge — dove va chiarito nella UI
-
-Tre punti specifici, non uno solo:
-
-1. **Dialog del trasferimento** (frase canonica candidata):
-   > *"Le tue chiavi vengono cifrate qui nel tuo browser con la tua password, e mandate sul nostro server come dati incomprensibili. Né noi né nessun altro può leggerle senza la tua password — nemmeno se ce le chiedono i giudici."*
-   
-   La chiusa *"nemmeno se ce le chiedono i giudici"* è cruciale: materializza il claim invece di lasciarlo astratto, e parla la lingua di un avvocato.
-
-2. **Landing page del paid** (banner sopra il fold):
-   > *"Le chiavi del tuo studio, cifrate nel tuo browser prima di partire. Sul nostro server arrivano già illeggibili."*
-
-3. **Dashboard "I miei mapping" del paid** (riga sotto il titolo):
-   > *"Tutte le chiavi qui sono cifrate end-to-end. Il server vede solo bytes incomprensibili."*
-
-Vocabolario: si descrive il behavior, NON si nomina "zero-knowledge" come termine tecnico marketing. L'avvocato non-tech deve capire cosa succede, non imparare un'etichetta.
-
-### 9.4 Cambiamenti backend
-
-**Zero.** Il free locale non parla mai col server. Il backend esistente (commit `ac164ff` Phase 3) serve solo il paid.
-
-### 9.5 Scenari di failure UX
-
-Da gestire nella implementazione di seconda iterazione:
-- Utente cambia browser sullo stesso PC → mapping locali non visibili dal nuovo browser. Messaggio: *"Non trovi le tue chiavi? Sono nel browser dove le hai salvate. Per averle dappertutto, considera l'upgrade."*
-- Utente cancella i dati del browser ("cancella cronologia / cookie / dati siti") → mapping locali persi. Avviso onboarding free al primo salvataggio: *"Le chiavi vivono nel browser di questo computer. Se cancelli i dati del browser, vanno perse. Per averle al sicuro su cloud, considera l'upgrade."*
-- Utente cambia computer → mapping non disponibili. Stessa narrazione di upgrade.
-
-### 9.6 Status
-
-**Pending decisione pricing.** Implementazione attivata solo se Branch X (freemium con local). Se Branch Y (single-session free pura) o altra configurazione, questa sezione resta come specifica archiviata, non eseguita.
-
-Authority: dialogo founder ↔ chief_of_staff SID-20260518-143605, ratifica founder verbatim "cifrare: no, assurdità" + bottone "Trasferisci chiavi sul cloud" + chiarire subito la cifratura zero knowledge.
-
 ---
 
-*Recode IT capabilities_index — last synced SID-20260518-143605 (post-deploy 2026-05-18). Authored by MHC-Work portfolio governance. Coerenza con PDL ratificato 2026-05-17 + decision_log 2026-05-17 §"Pivot architetturale" + ratifica founder in-session 2026-05-18 §9 (persistenza locale design) + deploy ratifica §3 stato + §5 deltas D7 D8 D9 + lessons learned in `OPEN_RISKS.md` R-09 resolution + R-11.*
+*Recode IT capabilities_index — last synced SID-20260518-143605 (post-deploy 2026-05-18) + aggiornamento `feat/zero-euro-tier-indexeddb` (schema IDB canonico §9.1 + `marketing_consent_verified_at` §9.6 + stato §3 zero-euro tier implementato). Authored by MHC-Work portfolio governance. Coerenza con PDL ratificato 2026-05-17 + decision_log 2026-05-17 §"Pivot architetturale" + ratifica founder in-session 2026-05-18 §9 (persistenza locale design + struttura 3 tier strategist round 2) + deploy ratifica §3 stato + §5 deltas D7 D8 D9 + lessons learned in `OPEN_RISKS.md` R-09 resolution + R-11. Le ex-sezioni §9.1–§9.6 v1 (pre-strategist round 2) sono state rimosse perché duplicate da §9.0–§9.8 v2 sopra.*
