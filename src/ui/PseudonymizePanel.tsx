@@ -11,8 +11,11 @@
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ChangeEvent } from 'react'
 import { anonymize } from '../engine/engine'
 import { GlinerRunner } from '../engine/gliner_runner'
+import type { GlinerProgressEvent } from '../engine/gliner_runner'
 import type { MappingEntry, NerDetection } from '../types/engine'
 import { EntityReviewList } from './EntityReviewList'
+import { ModelLoadingState } from './ModelLoadingState'
+import type { ModelLoadPhase } from './ModelLoadingState'
 import type { ReviewEntity, SwitchableCategory } from './types'
 
 type Props = {
@@ -49,6 +52,11 @@ export function PseudonymizePanel({
   const [nerStatus, setNerStatus] = useState<'idle' | 'loading' | 'running' | 'unavailable'>(
     'idle',
   )
+  const [loadProgress, setLoadProgress] = useState<{
+    phase: ModelLoadPhase
+    loaded: number
+    total: number
+  } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const runnerRef = useRef<GlinerRunner | null>(null)
 
@@ -152,12 +160,17 @@ export function PseudonymizePanel({
     try {
       if (!runnerRef.current) {
         setNerStatus('loading')
+        setLoadProgress({ phase: 'wasm', loaded: 0, total: 0 })
         runnerRef.current = new GlinerRunner()
-        await runnerRef.current.init()
+        await runnerRef.current.init((evt: GlinerProgressEvent) => {
+          setLoadProgress({ phase: evt.phase, loaded: evt.loaded, total: evt.total })
+        })
+        setLoadProgress(null)
       }
       setNerStatus('running')
       nerDetections = await runnerRef.current.predict(originalText)
     } catch (err) {
+      setLoadProgress(null)
       runnerRef.current = null
       setNerStatus('unavailable')
       const rawMsg = (err as Error).message ?? 'errore sconosciuto'
@@ -262,7 +275,7 @@ export function PseudonymizePanel({
           data-testid="pseudonymize-btn"
         >
           {nerStatus === 'loading'
-            ? 'Caricamento modello NER…'
+            ? 'Caricamento modello AI…'
             : nerStatus === 'running'
               ? 'Riconoscimento entità in corso…'
               : 'Pseudonimizza'}
@@ -286,11 +299,17 @@ export function PseudonymizePanel({
         </button>
       </div>
 
-      {(nerStatus === 'loading' || nerStatus === 'running') && (
+      {nerStatus === 'loading' && loadProgress && (
+        <ModelLoadingState
+          phase={loadProgress.phase}
+          loaded={loadProgress.loaded}
+          total={loadProgress.total}
+        />
+      )}
+
+      {nerStatus === 'running' && (
         <div className="ner-status" role="status" data-testid="ner-status">
-          {nerStatus === 'loading'
-            ? 'Caricamento del modello NER (può richiedere 5-10 secondi al primo avvio).'
-            : 'Riconoscimento entità in corso…'}
+          Riconoscimento entità in corso…
         </div>
       )}
 

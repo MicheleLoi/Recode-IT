@@ -18,6 +18,16 @@
 
 import type { NerDetection } from '../types/engine'
 
+/** Progress information forwarded from the GLiNER worker during init(). */
+export type GlinerProgressEvent = {
+  /** Loading phase. */
+  phase: 'wasm' | 'download' | 'session'
+  /** Bytes downloaded so far (0 for non-download phases). */
+  loaded: number
+  /** Total expected bytes (0 when Content-Length is unavailable). */
+  total: number
+}
+
 export type GlinerRunnerOptions = {
   /** Absolute or root-relative URL to the ONNX model. */
   modelUrl?: string
@@ -109,8 +119,14 @@ export class GlinerRunner {
       })
   }
 
-  /** Boot the worker and load the ONNX model. Idempotent. */
-  async init(): Promise<void> {
+  /**
+   * Boot the worker and load the ONNX model. Idempotent.
+   *
+   * @param onProgress — optional callback called with progress events during
+   *   model download and initialisation. Safe to ignore; the promise resolves
+   *   when the model is fully ready regardless.
+   */
+  async init(onProgress?: (event: GlinerProgressEvent) => void): Promise<void> {
     if (this.ready) return
     if (typeof Worker === 'undefined') {
       throw new Error(
@@ -137,6 +153,12 @@ export class GlinerRunner {
         } else if (data?.type === 'error') {
           this.worker?.removeEventListener('message', onReady)
           reject(new Error(data.error ?? 'GLiNER init failed'))
+        } else if (data?.type === 'progress' && onProgress) {
+          onProgress({
+            phase: data.phase as GlinerProgressEvent['phase'],
+            loaded: data.loaded as number,
+            total: data.total as number,
+          })
         }
       }
       this.worker?.addEventListener('message', onReady)

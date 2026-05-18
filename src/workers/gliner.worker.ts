@@ -88,7 +88,20 @@ type IncomingMessage = InitMessage | PredictMessage | TerminateMessage
 type ReadyOut = { type: 'ready' }
 type ResultOut = { type: 'result'; id: string; entities: NerDetection[] }
 type ErrorOut = { type: 'error'; id?: string; error: string }
-type OutgoingMessage = ReadyOut | ResultOut | ErrorOut
+/**
+ * Progress message emitted during model initialisation.
+ * phase:
+ *   'wasm'     — WASM runtime importing (before fetch starts)
+ *   'download' — model bytes being fetched (loaded/total meaningful)
+ *   'session'  — InferenceSession.create() running (post-download)
+ */
+type ProgressOut = {
+  type: 'progress'
+  phase: 'wasm' | 'download' | 'session'
+  loaded: number
+  total: number
+}
+type OutgoingMessage = ReadyOut | ResultOut | ErrorOut | ProgressOut
 
 const TIERS: Array<{ threshold: number; labels: string[] }> = [
   { threshold: 0.4, labels: ['persona', 'luogo'] },
@@ -131,6 +144,74 @@ let sepTokenIds: number[] = []
 const ERR_MODEL_NOT_FOUND = 'ERR_MODEL_NOT_FOUND'
 const ERR_BACKEND_INIT = 'ERR_BACKEND_INIT'
 
+/** Emit a progress update to the main thread. */
+function postProgress(phase: ProgressOut['phase'], loaded: number, total: number): void {
+  const msg: ProgressOut = { type: 'progress', phase, loaded, total }
+  ;(self as any).postMessage(msg)
+}
+
+/**
+ * Fetch a URL with streaming progress reporting.
+ *
+ * - Reads `Content-Length` from the response header for the total size.
+ * - Reads the body chunk-by-chunk via `ReadableStream.getReader()`.
+ * - Calls `onProgress(loaded, total)` after every chunk.
+ * - Returns the completed bytes as an `ArrayBuffer`.
+ *
+ * Falls back to a plain `fetch(url).then(r => r.arrayBuffer())` when the
+ * browser doesn't expose a readable body (rare), keeping progress at 0/0.
+ */
+async function fetchModelWithProgress(
+  url: string,
+  onProgress: (loaded: number, total: number) => void,
+): Promise<ArrayBuffer> {
+  const response = await fetch(url)
+  const ct = response.headers.get('content-type') ?? ''
+  const isMissing =
+    response.status === 404 ||
+    (response.ok && (ct.startsWith('text/html') || ct.startsWith('text/plain')))
+  if (isMissing) {
+    throw new Error(`${ERR_MODEL_NOT_FOUND}: ${url}`)
+  }
+  if (!response.ok) {
+    throw new Error(`${ERR_MODEL_NOT_FOUND}: HTTP ${response.status} for ${url}`)
+  }
+
+  const contentLength = response.headers.get('content-length')
+  const total = contentLength ? parseInt(contentLength, 10) : 0
+
+  if (!response.body) {
+    // No readable stream — fall back to a single buffered read.
+    const buf = await response.arrayBuffer()
+    onProgress(buf.byteLength, buf.byteLength)
+    return buf
+  }
+
+  const reader = response.body.getReader()
+  const chunks: Uint8Array[] = []
+  let loaded = 0
+  let done = false
+
+  while (!done) {
+    const result = await reader.read()
+    done = result.done
+    if (!done && result.value) {
+      chunks.push(result.value)
+      loaded += result.value.byteLength
+      onProgress(loaded, total || loaded)
+    }
+  }
+
+  // Concatenate all chunks into a single ArrayBuffer.
+  const result = new Uint8Array(loaded)
+  let offset = 0
+  for (const chunk of chunks) {
+    result.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+  return result.buffer
+}
+
 async function init(modelUrl: string): Promise<void> {
   // Dynamic imports — kept lazy so test environments without the heavyweight
   // WASM runtime never touch them. NOTE: do NOT add /* @vite-ignore */ here —
@@ -140,6 +221,10 @@ async function init(modelUrl: string): Promise<void> {
   // the consumer reads from another, surfacing as
   //   "Cannot read properties of undefined (reading 'registerBackend')"
   // at the first `InferenceSession.create` call.
+
+  // Phase: WASM runtime loading
+  postProgress('wasm', 0, 0)
+
   let ort: any
   let transformers: any
   try {
@@ -170,32 +255,29 @@ async function init(modelUrl: string): Promise<void> {
   ;(transformers as any).env.allowRemoteModels = false
   ;(transformers as any).env.localModelPath = new URL('./', modelUrl).toString()
 
-  // Probe the model URL first so we can emit a distinct, friendly error when
-  // the founder has not yet deployed the .onnx file. ort itself would
-  // otherwise throw a generic "failed to load model" that's hard for the UI
-  // to discriminate from a real backend failure.
-  //
-  // Note: Vite's dev server SPA fallback returns 200 + text/html for any
-  // missing route, so a bare status check isn't enough — we sniff the
-  // content-type and require an octet-stream-ish response.
+  // Phase: fetch model with streaming progress reporting.
+  // We pre-fetch the model bytes ourselves (instead of passing the URL to ort)
+  // so we can read the body chunk-by-chunk and emit progress events. The
+  // fetchModelWithProgress helper also handles the model-not-found detection
+  // (replaces the earlier HEAD probe), so we no longer need a separate HEAD
+  // request.
+  let modelBuffer: ArrayBuffer
   try {
-    const head = await fetch(modelUrl, { method: 'HEAD' })
-    const ct = head.headers.get('content-type') ?? ''
-    const isMissing =
-      head.status === 404 ||
-      (head.ok && (ct.startsWith('text/html') || ct.startsWith('text/plain')))
-    if (isMissing) {
-      throw new Error(`${ERR_MODEL_NOT_FOUND}: ${modelUrl}`)
-    }
+    postProgress('download', 0, 0)
+    modelBuffer = await fetchModelWithProgress(modelUrl, (loaded, total) => {
+      postProgress('download', loaded, total)
+    })
   } catch (err) {
     const msg = (err as Error)?.message ?? String(err)
     if (msg.startsWith(ERR_MODEL_NOT_FOUND)) throw err
-    // network errors / HEAD-not-allowed: fall through to ort, which will
-    // surface its own diagnostic
+    throw new Error(`${ERR_MODEL_NOT_FOUND}: ${msg}`)
   }
 
+  // Phase: creating the ONNX InferenceSession from the pre-fetched buffer.
+  postProgress('session', 0, 0)
+
   try {
-    session = await ort.InferenceSession.create(modelUrl, {
+    session = await ort.InferenceSession.create(modelBuffer, {
       executionProviders: ['wasm'],
       graphOptimizationLevel: 'all',
     })
@@ -537,4 +619,4 @@ self.onmessage = async (event: MessageEvent<IncomingMessage>) => {
   }
 }
 
-export type { IncomingMessage, OutgoingMessage, NerDetection }
+export type { IncomingMessage, OutgoingMessage, ProgressOut, NerDetection }
