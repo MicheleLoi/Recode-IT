@@ -31,6 +31,10 @@ from starlette.applications import Starlette
 from starlette.routing import Route
 
 from .db import init_schema
+from .email_verification import (
+    marketing_consent_endpoint,
+    verify_email_endpoint,
+)
 from .http_utils import options_preflight
 from .login import login_endpoint, logout_endpoint, me_endpoint
 from .mappings import (
@@ -65,8 +69,12 @@ def build_app(cookie_secure: bool | None = None) -> Starlette:
               methods=["POST", "OPTIONS"]),
         Route("/recode/recovery/verify", verify_recovery,
               methods=["POST", "OPTIONS"]),
+        Route("/recode/verify-email/{token}", verify_email_endpoint,
+              methods=["GET", "OPTIONS"]),
         # protected
         Route("/recode/me", me_endpoint, methods=["GET", "OPTIONS"]),
+        Route("/recode/me/marketing-consent", marketing_consent_endpoint,
+              methods=["POST", "DELETE", "OPTIONS"]),
         Route("/recode/mappings/", list_mappings, methods=["GET", "OPTIONS"]),
         Route("/recode/mappings/", create_mapping, methods=["POST"]),
         Route("/recode/mappings/", delete_mappings_bulk, methods=["DELETE"]),

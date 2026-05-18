@@ -24,13 +24,26 @@ export type AuthUser = {
   email: string
   kdf_salt: string
   email_verified: boolean
+  /**
+   * Pricing tier — drives the persistence backend dispatched at runtime
+   * (capabilities_index §9 / mapping-store.ts):
+   *   'free' = IndexedDB locale in chiaro
+   *   'pro'  = server blob AES-256-GCM
+   * Falls back to 'free' on hydration from a legacy `/recode/me` response
+   * that predates the migration (defensive — server should always send it
+   * post-migration 002).
+   */
+  tier: api.Tier
+  /** Display name collected at signup. */
+  name: string
+  marketing_consent: boolean
 }
 
 export type AuthContextValue = {
   user: AuthUser | null
   masterKey: CryptoKey | null
   loading: boolean
-  signup: (email: string, password: string) => Promise<api.SignupResponse>
+  signup: (input: api.SignupInput) => Promise<api.SignupResponse>
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   /** Re-derive the master key for an existing session (user typed password again). */
@@ -55,6 +68,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
         email: me.email,
         kdf_salt: me.kdf_salt,
         email_verified: me.email_verified,
+        // Defensive defaulting: pre-migration servers don't send these fields.
+        tier: me.tier ?? 'free',
+        name: me.name ?? '',
+        marketing_consent: me.marketing_consent ?? false,
       })
     } catch {
       setUser(null)
@@ -69,8 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
   }, [refresh])
 
   const signupFn = useCallback(
-    async (email: string, password: string) => {
-      const resp = await api.signup(email, password)
+    async (input: api.SignupInput) => {
+      const resp = await api.signup(input)
       return resp
     },
     [],
@@ -78,11 +95,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
 
   const loginFn = useCallback(async (email: string, password: string) => {
     const resp = await api.login(email, password)
+    // Login response doesn't carry tier/name (existing endpoint) — derive
+    // it from a follow-up /recode/me call so the auth state is complete
+    // before any save/load gesture is enabled.
+    const me = await api.me()
     setUser({
       user_id: resp.user_id,
       email: resp.email,
       kdf_salt: resp.kdf_salt,
       email_verified: resp.email_verified,
+      tier: me.tier ?? 'free',
+      name: me.name ?? '',
+      marketing_consent: me.marketing_consent ?? false,
     })
     const key = await deriveKey(password, resp.kdf_salt)
     setMasterKey(key)

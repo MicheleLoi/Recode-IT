@@ -54,13 +54,26 @@ def connect(db_path: Path | None = None) -> sqlite3.Connection:
 
 
 def init_schema(db_path: Path | None = None) -> Path:
-    """Run all migrations in numeric order. Idempotent."""
+    """Run all migrations in numeric order. Idempotent.
+
+    SQLite's `ALTER TABLE ... ADD COLUMN` raises `duplicate column name` when
+    re-applied. To stay idempotent across already-migrated DBs, we wrap each
+    migration in a savepoint and swallow that one specific error class. Any
+    other error propagates.
+    """
     path = db_path or resolve_db_path()
     conn = connect(path)
     try:
         for migration in sorted(_MIGRATIONS_DIR.glob("*.sql")):
             sql = migration.read_text(encoding="utf-8")
-            conn.executescript(sql)
+            try:
+                conn.executescript(sql)
+            except sqlite3.OperationalError as exc:
+                msg = str(exc).lower()
+                if "duplicate column" in msg or "already exists" in msg:
+                    # Migration already applied on a previous boot.
+                    continue
+                raise
     finally:
         conn.close()
     return path

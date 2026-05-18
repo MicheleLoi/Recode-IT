@@ -92,8 +92,26 @@ export type SignupResponse = {
   warning: string
 }
 
-export function signup(email: string, password: string): Promise<SignupResponse> {
-  return request<SignupResponse>('POST', '/recode/signup', { email, password })
+export type SignupInput = {
+  email: string
+  password: string
+  /** Display name — required by the backend (1..256 char). */
+  name: string
+  /**
+   * Newsletter opt-in checkbox at signup time. Default false (decisione
+   * ratificata, capabilities_index §9). The backend stamps the consent only
+   * after the user clicks the verification email (double opt-in).
+   */
+  marketing_consent_requested?: boolean
+}
+
+export function signup(input: SignupInput): Promise<SignupResponse> {
+  return request<SignupResponse>('POST', '/recode/signup', {
+    email: input.email,
+    password: input.password,
+    name: input.name,
+    marketing_consent_requested: input.marketing_consent_requested ?? false,
+  })
 }
 
 export type LoginResponse = {
@@ -112,12 +130,23 @@ export function logout(): Promise<{ ok: true }> {
   return request<{ ok: true }>('POST', '/recode/logout')
 }
 
+export type Tier = 'free' | 'pro'
+
 export type MeResponse = {
   user_id: string
   email: string
   kdf_salt: string
   email_verified: boolean
   created_at: string
+  /** 'free' = IndexedDB local mapping; 'pro' = server cifrato. */
+  tier: Tier
+  /** Display name collected at signup. */
+  name: string
+  marketing_consent: boolean
+}
+
+export function setMarketingConsent(subscribe: boolean): Promise<{ marketing_consent: boolean }> {
+  return request(subscribe ? 'POST' : 'DELETE', '/recode/me/marketing-consent')
 }
 
 export function me(): Promise<MeResponse> {
