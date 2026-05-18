@@ -5,10 +5,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { VerifiedBanner } from '../VerifiedBanner'
-
-const ORIGINAL_HREF = 'http://localhost/'
 
 function setUrl(url: string): void {
   window.history.replaceState({}, '', url)
@@ -16,7 +14,10 @@ function setUrl(url: string): void {
 
 describe('VerifiedBanner', () => {
   beforeEach(() => setUrl('/'))
-  afterEach(() => setUrl(ORIGINAL_HREF))
+  afterEach(() => {
+    cleanup()
+    setUrl('/')
+  })
 
   it('renders the banner when ?verified=1 is present', () => {
     setUrl('/?verified=1')
