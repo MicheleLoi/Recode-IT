@@ -804,3 +804,54 @@ code {
   color: #6a7280;
   font-size: 0.85rem;
 }
+
+/* ----- Zero-euro tier additions ----- */
+
+.verified-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #e6f4ea;
+  border-bottom: 1px solid #b7dfc3;
+  color: #1e5631;
+  font-size: 0.95rem;
+}
+
+.verified-banner__text {
+  flex: 1;
+}
+
+.verified-banner__dismiss {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.1rem 0.5rem;
+}
+
+.verified-banner__dismiss:hover {
+  background: rgba(30, 86, 49, 0.1);
+  border-radius: 4px;
+}
+
+.field--checkbox {
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 0.5rem;
+}
+
+.field--checkbox input[type='checkbox'] {
+  margin-top: 0.3rem;
+  flex: 0 0 auto;
+}
+
+.field--checkbox span {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #4b5563;
+  line-height: 1.4;
+}

@@ -22,6 +22,7 @@ import { GIT_SHA } from './buildInfo'
 import { AuthProvider, useAuth } from './auth/auth-context'
 import { ActiveMappingProvider, useActiveMapping } from './auth/active-mapping-context'
 import { ClipboardWidget } from './ui/ClipboardWidget'
+import { VerifiedBanner } from './ui/VerifiedBanner'
 import { LoginPage } from './ui/auth/LoginPage'
 import { SignupPage } from './ui/auth/SignupPage'
 import { RecoveryPage } from './ui/auth/RecoveryPage'
@@ -199,6 +200,7 @@ function AppInner(): JSX.Element {
 
   return (
     <div className="app">
+      <VerifiedBanner />
       <AppHeader view={view} onNavigate={setView} />
       <AppShell view={view} onNavigate={setView} />
       <footer className="app__footer">
