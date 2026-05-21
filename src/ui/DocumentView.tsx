@@ -210,10 +210,16 @@ export function DocumentView({
    */
   const handleMouseUp = useCallback(() => {
     if (!onManualAnnotate) return
-    if (displayMode !== 'originale') {
-      // Manual annotation only meaningful when the document shows originals.
-      return
-    }
+    // Allow manual annotation in BOTH 'originale' and 'pseudonimo' display
+    // modes. The user notices unmasked names while reading the pseudonymized
+    // view — they should be able to fix them in-place, without switching view.
+    // Offset strategy:
+    //   - 'originale' mode: rendered text === originalText, walk DOM for offsets.
+    //   - 'pseudonimo' mode: rendered text contains substitutions of different
+    //     lengths; DOM offsets don't map to originalText. Since we already
+    //     reject selections that touch a highlight span (the substituted
+    //     entities), the selected text is non-substituted = verbatim copy of
+    //     a slice of originalText. We string-search to find its offset.
     const sel = window.getSelection()
     if (!sel || sel.isCollapsed) {
       setManualMenuPos(null)
@@ -233,32 +239,45 @@ export function DocumentView({
       setManualMenuPos(null)
       return
     }
-    // Compute offset against the rendered text by walking text nodes.
-    const offsetIntoRendered = (node: Node, off: number): number => {
-      let acc = 0
-      const walker = document.createTreeWalker(doc, NodeFilter.SHOW_TEXT)
-      let n: Node | null = walker.nextNode()
-      while (n) {
-        if (n === node) return acc + off
-        acc += (n.textContent ?? '').length
-        n = walker.nextNode()
+    const selectedText = sel.toString()
+    if (!selectedText.trim()) return
+
+    let start: number, end: number
+    if (displayMode === 'originale') {
+      // Walk text nodes to compute offset against rendered text.
+      const offsetIntoRendered = (node: Node, off: number): number => {
+        let acc = 0
+        const walker = document.createTreeWalker(doc, NodeFilter.SHOW_TEXT)
+        let n: Node | null = walker.nextNode()
+        while (n) {
+          if (n === node) return acc + off
+          acc += (n.textContent ?? '').length
+          n = walker.nextNode()
+        }
+        return -1
       }
-      return -1
+      const startOffRendered = offsetIntoRendered(
+        range.startContainer,
+        range.startOffset,
+      )
+      const endOffRendered = offsetIntoRendered(
+        range.endContainer,
+        range.endOffset,
+      )
+      if (startOffRendered < 0 || endOffRendered < 0) return
+      start = Math.min(startOffRendered, endOffRendered)
+      end = Math.max(startOffRendered, endOffRendered)
+    } else {
+      // 'pseudonimo' mode: string-search the selected text in originalText.
+      // First-occurrence is fine — onManualAnnotate at the engine level
+      // applies the substitution to every occurrence in the document.
+      const idx = originalText.indexOf(selectedText)
+      if (idx < 0) return
+      start = idx
+      end = idx + selectedText.length
     }
-    const startOffRendered = offsetIntoRendered(
-      range.startContainer,
-      range.startOffset,
-    )
-    const endOffRendered = offsetIntoRendered(
-      range.endContainer,
-      range.endOffset,
-    )
-    if (startOffRendered < 0 || endOffRendered < 0) return
-    const start = Math.min(startOffRendered, endOffRendered)
-    const end = Math.max(startOffRendered, endOffRendered)
+
     if (start === end) return
-    // In 'originale' mode rendered text === originalText so offsets are
-    // directly usable.
     const rect = range.getBoundingClientRect()
     setManualMenuPos({
       top: rect.bottom + window.scrollY + 4,
@@ -266,7 +285,7 @@ export function DocumentView({
       start,
       end,
     })
-  }, [displayMode, onManualAnnotate])
+  }, [displayMode, originalText, onManualAnnotate])
 
   // Close manual menu on outside click / Escape.
   useEffect(() => {
@@ -306,11 +325,12 @@ export function DocumentView({
 
   return (
     <div className="docview-wrapper">
-      {displayMode === 'originale' && !emptyState && (
+      {!emptyState && entities.length > 0 && (
         <p className="docview__manual-hint" data-testid="docview-manual-hint">
-          Se il modello NER non ha riconosciuto un'entità, selezionala qui sotto e
-          scegli la categoria dal menu che appare. Basta selezionarla una volta —
-          la sostituzione si applica a tutte le occorrenze nel documento.
+          Se vedi un nome o un dato sensibile <strong>in chiaro</strong> nel testo
+          qui sotto (il modello NER non l'ha riconosciuto), selezionalo e scegli
+          la categoria dal menu che appare. Basta selezionarlo una volta — la
+          sostituzione si applica a tutte le occorrenze nel documento.
         </p>
       )}
       <div
