@@ -1516,6 +1516,16 @@ code {
   border-bottom: 1px solid var(--rule);
 }
 
+.compare-view__pane-hint {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--muted);
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--rule);
+}
+
 .compare-view__divider {
   background: var(--rule);
   width: 1px;
