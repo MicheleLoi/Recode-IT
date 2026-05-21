@@ -50,6 +50,19 @@ export function RecodePanel({
     return () => window.clearTimeout(handle)
   }, [claudeResponse, mapping])
 
+  const handleRecodeNow = () => {
+    setError(null)
+    if (!claudeResponse.trim()) {
+      setRecoded('')
+      return
+    }
+    try {
+      setRecoded(recodeText(claudeResponse, mapping))
+    } catch (err) {
+      setError(`Errore durante il recoding: ${(err as Error).message}`)
+    }
+  }
+
   const handleCopy = async () => {
     if (!recoded) return
     try {
@@ -73,8 +86,9 @@ export function RecodePanel({
       <header className="panel__header">
         <h2>Recode</h2>
         <p className="panel__subtitle">
-          Incolla qui la risposta di Claude. I pseudonimi vengono sostituiti
-          con i valori originali in locale.
+          Incolla qui la risposta di Claude (che contiene gli pseudonimi). I
+          pseudonimi vengono sostituiti con i valori originali, in locale, via
+          reverse-mapping della tabella di sostituzione.
         </p>
         {isSlideIn && onClose && (
           <button
@@ -89,11 +103,29 @@ export function RecodePanel({
         )}
       </header>
 
+      {hasMapping && (
+        <div
+          className="recode-mapping-badge"
+          data-testid="recode-mapping-badge"
+        >
+          <strong>{mapping.length}</strong>{' '}
+          {mapping.length === 1
+            ? 'sostituzione attiva'
+            : 'sostituzioni attive'}
+        </div>
+      )}
+
       {!hasMapping && (
-        <p className="hint" data-testid="recode-no-mapping-hint">
-          Pseudonimizza prima un documento per popolare la mappa di
-          sostituzione.
-        </p>
+        <div
+          className="hint hint--warning"
+          data-testid="recode-no-mapping-hint"
+        >
+          <strong>Nessuna mappa di sostituzione attiva.</strong>{' '}
+          Pseudonimizza prima un documento (bottone &laquo;Pseudonimizza&raquo;
+          a sinistra) per popolare la tabella di reverse-mapping. Una volta
+          fatto, potrai incollare qui la risposta di Claude e vedere i nomi
+          originali apparire automaticamente sotto.
+        </div>
       )}
 
       <label className="field">
@@ -121,6 +153,22 @@ export function RecodePanel({
       </label>
 
       <div className="actions">
+        <button
+          type="button"
+          className="btn btn--secondary"
+          onClick={handleRecodeNow}
+          disabled={!claudeResponse.trim() || !hasMapping}
+          data-testid="recode-now-btn"
+          title={
+            !hasMapping
+              ? 'Serve una mappa di sostituzione attiva (pseudonimizza prima un documento).'
+              : !claudeResponse.trim()
+                ? 'Incolla la risposta di Claude qui sopra.'
+                : 'Esegui subito il reverse-mapping (succede anche automaticamente dopo qualche istante).'
+          }
+        >
+          Recode
+        </button>
         <button
           type="button"
           className="btn btn--primary"
