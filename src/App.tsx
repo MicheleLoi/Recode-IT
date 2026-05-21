@@ -21,6 +21,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { GIT_SHA } from './buildInfo'
 import { AuthProvider, useAuth } from './auth/auth-context'
 import { ActiveMappingProvider, useActiveMapping } from './auth/active-mapping-context'
+import {
+  BRAND_BY_LANG,
+  LanguageProvider,
+  SUPPORTED_LANGUAGES,
+  TAGLINE_BY_LANG,
+  useLanguage,
+  type Language,
+} from './ui/LanguageContext'
 import { ClipboardWidget } from './ui/ClipboardWidget'
 import { VerifiedBanner } from './ui/VerifiedBanner'
 import { LoginPage } from './ui/auth/LoginPage'
@@ -40,6 +48,7 @@ function AppHeader({
 }): JSX.Element {
   const { user, logout, masterKey } = useAuth()
   const { active } = useActiveMapping()
+  const { language, setLanguage } = useLanguage()
 
   const onLogout = useCallback(async () => {
     await logout()
@@ -51,8 +60,26 @@ function AppHeader({
       <div className="app__header-inner">
         <div className="app__header-row">
           <div>
-            <h1>Recode IT</h1>
-            <p className="tagline">Pseudonimizzazione italiana, locale.</p>
+            <h1>{BRAND_BY_LANG[language]}</h1>
+            <p className="tagline">{TAGLINE_BY_LANG[language]}</p>
+          </div>
+          <div className="app__lang-picker">
+            <label htmlFor="app-lang-select" className="app__lang-label">
+              Lingua documento
+            </label>
+            <select
+              id="app-lang-select"
+              data-testid="app-lang-select"
+              className="app__lang-select"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+            >
+              {SUPPORTED_LANGUAGES.map((lng) => (
+                <option key={lng} value={lng}>
+                  {BRAND_BY_LANG[lng]} ({lng.toUpperCase()})
+                </option>
+              ))}
+            </select>
           </div>
           <nav className="app__nav" aria-label="Navigazione principale">
             {user ? (
@@ -258,10 +285,12 @@ function AppInner(): JSX.Element {
 
 export function App(): JSX.Element {
   return (
-    <AuthProvider>
-      <ActiveMappingProvider>
-        <AppInner />
-      </ActiveMappingProvider>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <ActiveMappingProvider>
+          <AppInner />
+        </ActiveMappingProvider>
+      </AuthProvider>
+    </LanguageProvider>
   )
 }

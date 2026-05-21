@@ -30,6 +30,7 @@ import {
 } from 'react'
 import { anonymize } from '../engine/engine'
 import { NerRunner } from '../engine/ner_runner'
+import { useLanguage } from './LanguageContext'
 import type { NerProgressEvent } from '../engine/ner_runner'
 import type { PseudonymMapper } from '../engine/pseudonym_mapper'
 import type { MappingEntry, NerDetection } from '../types/engine'
@@ -137,6 +138,7 @@ export function PseudonymizePanel({
   onOpenRecode,
   recodeOpen = false,
 }: Props): JSX.Element {
+  const { language } = useLanguage()
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle')
@@ -170,7 +172,7 @@ export function PseudonymizePanel({
     if (typeof Worker === 'undefined') {
       return
     }
-    const runner = new NerRunner()
+    const runner = new NerRunner({ language })
     runnerRef.current = runner
     setNerStatus('loading')
     setLoadProgress({ phase: 'wasm', loaded: 0, total: 0 })
@@ -208,7 +210,9 @@ export function PseudonymizePanel({
       runner.terminate()
       runnerRef.current = null
     }
-  }, [])
+    // Re-init when the document language changes so the correct ONNX model
+    // (it / en / de / fr) is reloaded into the worker.
+  }, [language])
 
   const handleFiles = useCallback(
     async (files: FileList | null) => {

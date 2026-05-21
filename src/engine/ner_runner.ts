@@ -18,6 +18,7 @@
  */
 
 import type { NerDetection } from '../types/engine'
+import { getModelUrl, type Language } from '../ui/LanguageContext'
 
 /** Progress information forwarded from the NER worker during init(). */
 export type NerProgressEvent = {
@@ -30,7 +31,16 @@ export type NerProgressEvent = {
 }
 
 export type NerRunnerOptions = {
-  /** Absolute or root-relative URL to the ONNX model. */
+  /**
+   * NER language. Drives which ONNX model is loaded and which raw-label
+   * scheme the worker decodes (IO for Italian, BIO for English/German/
+   * French). Defaults to 'it' so existing call sites keep working.
+   */
+  language?: Language
+  /**
+   * Absolute or root-relative URL to the ONNX model. Overrides the URL
+   * derived from `language` — used by tests that mount mock workers.
+   */
   modelUrl?: string
   /** Override the worker constructor — used in tests. */
   workerFactory?: () => Worker
@@ -78,23 +88,10 @@ function nextId(): string {
 }
 
 /**
- * Default model URL — env-aware:
- *
- *   1. `VITE_NER_MODEL_URL` (set in .env / .env.production / .env.local)
- *      always wins when defined.
- *   2. Otherwise: same-origin relative path `/models/distilbert_italian_ner_q8.onnx`.
- *      Works in both dev (Vite serves `public/models/`) and prod (nginx
- *      serves `/var/www/recode-it/models/`). Same-origin avoids COEP
- *      cross-origin fetch blocks and keeps the privacy claim "nulla esce
- *      dal computer dell'utente" architecturally enforced.
- *
- * Kept inside `ner_runner.ts` (not the worker) so the env var resolves at
- * main-thread bundle time — Vite's `import.meta.env` substitution does not
- * cross the worker boundary in the same way.
+ * Default language when none is provided in {@link NerRunnerOptions} —
+ * preserves backward compatibility with pre-multilingual call sites.
  */
-const DEFAULT_MODEL_URL =
-  (import.meta.env.VITE_NER_MODEL_URL as string | undefined) ||
-  '/models/distilbert_italian_ner_q8.onnx'
+const DEFAULT_LANGUAGE: Language = 'it'
 
 /**
  * Split text into chunks of at most `maxChars` characters, snapping on
@@ -130,11 +127,13 @@ export class NerRunner {
   private worker: Worker | null = null
   private ready = false
   private readonly pending = new Map<string, PendingRequest>()
+  private readonly language: Language
   private readonly modelUrl: string
   private readonly workerFactory: () => Worker
 
   constructor(options: NerRunnerOptions = {}) {
-    this.modelUrl = options.modelUrl ?? DEFAULT_MODEL_URL
+    this.language = options.language ?? DEFAULT_LANGUAGE
+    this.modelUrl = options.modelUrl ?? getModelUrl(this.language)
     this.workerFactory =
       options.workerFactory ??
       (() => {
@@ -191,7 +190,7 @@ export class NerRunner {
       this.worker?.addEventListener('message', onReady)
       this.worker?.postMessage({
         type: 'init',
-        payload: { modelUrl: this.modelUrl },
+        payload: { modelUrl: this.modelUrl, language: this.language },
       })
     })
   }

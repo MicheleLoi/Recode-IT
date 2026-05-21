@@ -16,7 +16,23 @@
  */
 
 import { ITALIAN_ARTICLES, stripTitle } from './stoplist'
-import { CITY_POOL, COMPANY_POOL, PERSON_POOL, STREET_POOL } from './pools'
+import {
+  CITY_POOL,
+  COMPANY_POOL,
+  PERSON_POOL,
+  STREET_POOL,
+  getPoolsForLanguage,
+  type LanguagePools,
+} from './pools'
+
+export type PseudonymMapperOptions = {
+  /**
+   * Language code that selects which pseudonym pool quartet (persons,
+   * companies, cities, streets) the mapper allocates from. Defaults to
+   * 'it' to preserve the original Italian behavior.
+   */
+  language?: string
+}
 
 export class PseudonymMapper {
   private readonly personMap = new Map<string, string>()
@@ -34,6 +50,23 @@ export class PseudonymMapper {
   private cityIdx = 0
   private streetIdx = 0
 
+  private readonly pools: LanguagePools
+
+  constructor(options: PseudonymMapperOptions = {}) {
+    // Default behavior (no options) remains Italian — preserves the contract
+    // of every existing call site (tests, ClipboardWidget, etc.).
+    if (options.language && options.language !== 'it') {
+      this.pools = getPoolsForLanguage(options.language)
+    } else {
+      this.pools = {
+        PERSON_POOL,
+        COMPANY_POOL,
+        CITY_POOL,
+        STREET_POOL,
+      }
+    }
+  }
+
   // -------------------------------------------------------------------------
   // Internal pool allocators — same overflow pattern as the Python reference
   // (`{pool[0]}_{idx + 1}` once the pool is exhausted).
@@ -42,29 +75,33 @@ export class PseudonymMapper {
   private nextPerson(): string {
     const idx = this.personIdx
     this.personIdx += 1
-    if (idx < PERSON_POOL.length) return PERSON_POOL[idx] as string
-    return `${PERSON_POOL[0]}_${idx + 1}`
+    const pool = this.pools.PERSON_POOL
+    if (idx < pool.length) return pool[idx] as string
+    return `${pool[0]}_${idx + 1}`
   }
 
   private nextCompany(): string {
     const idx = this.companyIdx
     this.companyIdx += 1
-    if (idx < COMPANY_POOL.length) return COMPANY_POOL[idx] as string
-    return `${COMPANY_POOL[0]}_${idx + 1}`
+    const pool = this.pools.COMPANY_POOL
+    if (idx < pool.length) return pool[idx] as string
+    return `${pool[0]}_${idx + 1}`
   }
 
   private nextCity(): string {
     const idx = this.cityIdx
     this.cityIdx += 1
-    if (idx < CITY_POOL.length) return CITY_POOL[idx] as string
-    return `${CITY_POOL[0]}_${idx + 1}`
+    const pool = this.pools.CITY_POOL
+    if (idx < pool.length) return pool[idx] as string
+    return `${pool[0]}_${idx + 1}`
   }
 
   private nextStreet(): string {
     const idx = this.streetIdx
     this.streetIdx += 1
-    if (idx < STREET_POOL.length) return STREET_POOL[idx] as string
-    return `${STREET_POOL[0]}_${idx + 1}`
+    const pool = this.pools.STREET_POOL
+    if (idx < pool.length) return pool[idx] as string
+    return `${pool[0]}_${idx + 1}`
   }
 
   // -------------------------------------------------------------------------

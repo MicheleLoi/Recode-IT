@@ -135,3 +135,48 @@ export const VOCAB_RAW = {
   luogo: VOCAB_LUOGO,
   organizzazione: VOCAB_ORG,
 }
+
+// ---------------------------------------------------------------------------
+// Multi-language pool resolver
+//
+// The Italian pools above remain the default for backward compat. For the
+// other languages we ship pure list pools (no vocab.json — those are an
+// Italian-specific concept the founder curates for legal Latin tradition).
+// ---------------------------------------------------------------------------
+
+import {
+  PERSON_POOL_EN,
+  COMPANY_POOL_EN,
+  CITY_POOL_EN,
+  STREET_POOL_EN,
+} from './pools_en'
+
+export type LanguagePools = {
+  PERSON_POOL: string[]
+  COMPANY_POOL: string[]
+  CITY_POOL: string[]
+  STREET_POOL: string[]
+}
+
+const POOLS_BY_LANG: Record<string, LanguagePools> = {
+  it: {
+    PERSON_POOL,
+    COMPANY_POOL,
+    CITY_POOL,
+    STREET_POOL,
+  },
+  en: {
+    PERSON_POOL: PERSON_POOL_EN,
+    COMPANY_POOL: COMPANY_POOL_EN,
+    CITY_POOL: CITY_POOL_EN,
+    STREET_POOL: STREET_POOL_EN,
+  },
+}
+
+/**
+ * Resolve the pool quartet for a given language code. Unknown languages
+ * fall back to Italian so the mapper never starves on missing data.
+ */
+export function getPoolsForLanguage(language: string = 'it'): LanguagePools {
+  return POOLS_BY_LANG[language] ?? POOLS_BY_LANG.it!
+}

@@ -57,7 +57,7 @@ import type { NerDetection } from '../types/engine'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-type InitMessage = { type: 'init'; payload: { modelUrl: string } }
+type InitMessage = { type: 'init'; payload: { modelUrl: string; language?: string } }
 type PredictMessage = {
   type: 'predict'
   payload: {
@@ -117,13 +117,52 @@ const THRESHOLDS: Record<string, number> = {
  */
 const DEFAULT_FALLBACK_THRESHOLD = 0.4
 
-/** id2label — must match public/models/config.json exactly. */
-const ID2LABEL: Record<number, string> = {
-  0: 'O',
-  1: 'PER',
-  2: 'LOC',
-  3: 'ORG',
-  4: 'MISC',
+/**
+ * id2label by language — must match each model's `config.json` exactly.
+ *
+ * IT (DistilBERT-italian-cased): 5-class IO scheme.
+ * EN (Xenova/bert-base-NER from dslim): 9-class BIO scheme — B-/I- prefixes
+ * are normalized away at decode time so the same IO-style decoder handles
+ * both. Same for DE/FR when they ship.
+ */
+const ID2LABEL_BY_LANG: Record<string, Record<number, string>> = {
+  it: {
+    0: 'O',
+    1: 'PER',
+    2: 'LOC',
+    3: 'ORG',
+    4: 'MISC',
+  },
+  en: {
+    0: 'O',
+    1: 'B-MISC',
+    2: 'I-MISC',
+    3: 'B-PER',
+    4: 'I-PER',
+    5: 'B-ORG',
+    6: 'I-ORG',
+    7: 'B-LOC',
+    8: 'I-LOC',
+  },
+}
+
+/** Active model's id2label — set during init(), defaults to Italian. */
+let ID2LABEL: Record<number, string> = ID2LABEL_BY_LANG.it!
+
+/**
+ * Strip BIO scheme prefix (`B-` / `I-`) to obtain the base entity class.
+ * Models like `dslim/bert-base-NER` emit `B-PER`/`I-PER`; the legacy
+ * Italian model emits the bare `PER`. This normalization lets the
+ * downstream IO-decoder + LABEL_MAP lookup work for both schemes.
+ *
+ * Collapsing B-/I- to a single class loses the "new entity vs continuation"
+ * signal that BIO encodes — in practice this only matters when two
+ * different entities of the same class appear adjacent (e.g. "Mr. Smith,
+ * Ms. Jones" with no separator). For legal documents these adjacencies
+ * are rare and recoverable via manual annotation (Fix 1A).
+ */
+function normalizeRawLabel(raw: string): string {
+  return raw.replace(/^[BI]-/, '')
 }
 
 let session: any = null
@@ -190,7 +229,11 @@ async function fetchModelWithProgress(
   return result.buffer
 }
 
-async function init(modelUrl: string): Promise<void> {
+async function init(modelUrl: string, language: string = 'it'): Promise<void> {
+  // Switch id2label to the active language. Unknown languages fall back to
+  // the Italian map (degrades gracefully — at worst the new model's labels
+  // won't decode meaningfully, but init won't crash).
+  ID2LABEL = ID2LABEL_BY_LANG[language] ?? ID2LABEL_BY_LANG.it!
   // Dynamic imports — kept lazy so test environments without the heavyweight
   // WASM runtime never touch them. NOTE: do NOT add /* @vite-ignore */ here —
   // Vite must resolve and code-split these modules so the worker bundle and
@@ -514,12 +557,20 @@ function decodeIoScheme(
       close()
       continue
     }
-    const rawLabel = ID2LABEL[Number(predIds[i])] ?? 'O'
+    const rawLabelFull = ID2LABEL[Number(predIds[i])] ?? 'O'
+    const rawLabel = normalizeRawLabel(rawLabelFull)
     if (rawLabel === 'O') {
       close()
       continue
     }
     const score = Number(predScores[i] ?? 0)
+    // BIO signal: B- prefix means "new entity starts here", even when the
+    // base class matches the active span. Close the active span and open
+    // a new one to preserve adjacency boundaries.
+    const isBPrefix = rawLabelFull.startsWith('B-')
+    if (isBPrefix && active !== null) {
+      close()
+    }
     if (active === null) {
       active = { start: s, end: e, rawLabel, minScore: score }
       continue
@@ -647,7 +698,7 @@ self.onmessage = async (event: MessageEvent<IncomingMessage>) => {
   const msg = event.data
   try {
     if (msg.type === 'init') {
-      await init(msg.payload.modelUrl)
+      await init(msg.payload.modelUrl, msg.payload.language ?? 'it')
       const out: ReadyOut = { type: 'ready' }
       ;(self as any).postMessage(out)
       return

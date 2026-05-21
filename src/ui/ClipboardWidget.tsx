@@ -15,6 +15,7 @@ import { PseudonymizePanel } from './PseudonymizePanel'
 import { RecodePanel } from './RecodePanel'
 import type { ReviewEntity, SwitchableCategory } from './types'
 import { useActiveMapping } from '../auth/active-mapping-context'
+import { useLanguage } from './LanguageContext'
 import { useAuth } from '../auth/auth-context'
 import { ApiError } from '../api/client'
 import { PseudonymMapper } from '../engine/pseudonym_mapper'
@@ -79,6 +80,7 @@ function mergeEntries(
 export function ClipboardWidget(): JSX.Element {
   const { active, saveActive, closeActive, updateEntries } = useActiveMapping()
   const { user, masterKey } = useAuth()
+  const { language } = useLanguage()
 
   const [originalText, setOriginalText] = useState('')
   const [pseudonymizedText, setPseudonymizedText] = useState('')
@@ -270,7 +272,7 @@ export function ClipboardWidget(): JSX.Element {
     if (active?.mapper instanceof PseudonymMapper) {
       mapper = active.mapper
     } else {
-      mapper = new PseudonymMapper()
+      mapper = new PseudonymMapper({ language })
       // Seed from entities the NER + regex layer has already allocated.
       // Skip preserved (toggle β OFF) and falsePositive entries — their
       // pseudonyms aren't really claiming a slot in the substitution map.
