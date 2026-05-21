@@ -269,9 +269,16 @@ export function DocumentView({
 
     if (start === end) return
     const rect = range.getBoundingClientRect()
+    // position: fixed (see styles.css .manual-menu) — coords are viewport-
+    // relative, so don't add scrollY/X. Clamp to viewport to avoid clipping
+    // when the selection is near the right/bottom edge.
+    const menuW = 220
+    const menuH = 180
+    const top = Math.min(rect.bottom + 4, window.innerHeight - menuH - 8)
+    const left = Math.min(rect.left, window.innerWidth - menuW - 8)
     setManualMenuPos({
-      top: rect.bottom + window.scrollY + 4,
-      left: rect.left + window.scrollX,
+      top: Math.max(8, top),
+      left: Math.max(8, left),
       start,
       end,
     })

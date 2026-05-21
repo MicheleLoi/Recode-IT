@@ -1329,7 +1329,7 @@ code {
 
 /* Manual annotation floating menu (selection > category) */
 .manual-menu {
-  position: absolute;
+  position: fixed;
   z-index: 65;
   background: var(--surface);
   border: 1px solid var(--rule);
