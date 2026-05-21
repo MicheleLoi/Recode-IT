@@ -210,16 +210,6 @@ export function DocumentView({
    */
   const handleMouseUp = useCallback(() => {
     if (!onManualAnnotate) return
-    // Allow manual annotation in BOTH 'originale' and 'pseudonimo' display
-    // modes. The user notices unmasked names while reading the pseudonymized
-    // view — they should be able to fix them in-place, without switching view.
-    // Offset strategy:
-    //   - 'originale' mode: rendered text === originalText, walk DOM for offsets.
-    //   - 'pseudonimo' mode: rendered text contains substitutions of different
-    //     lengths; DOM offsets don't map to originalText. Since we already
-    //     reject selections that touch a highlight span (the substituted
-    //     entities), the selected text is non-substituted = verbatim copy of
-    //     a slice of originalText. We string-search to find its offset.
     const sel = window.getSelection()
     if (!sel || sel.isCollapsed) {
       setManualMenuPos(null)
