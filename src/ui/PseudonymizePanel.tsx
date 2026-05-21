@@ -374,6 +374,16 @@ export function PseudonymizePanel({
   const hasDocument = originalText.length > 0
   const hasResult = pseudonymizedText.length > 0
 
+  /** Design C v2 — empty-state tab for the hero loader: file drop vs paste. */
+  const [loadTab, setLoadTab] = useState<'file' | 'paste'>('file')
+  const [pasteBuffer, setPasteBuffer] = useState('')
+
+  const handleResetDocument = () => {
+    onOriginalChange('')
+    setPasteBuffer('')
+    setLoadTab('file')
+  }
+
   return (
     <section className="panel panel--pseudonymize" aria-label="Pseudonimizzazione">
       {/*
@@ -385,68 +395,187 @@ export function PseudonymizePanel({
       */}
       <h2 className="panel__heading-sr">Pseudonimizza</h2>
 
-      {/* Toolbar — Design C primary control surface */}
-      <div className="docview-toolbar" data-testid="docview-toolbar">
-        <div className="docview-toolbar__left">
-          <div
-            className="docview-toggle"
-            role="radiogroup"
-            aria-label="Modalità visualizzazione documento"
-          >
+      {/*
+        Design C v2 — empty-state hero loader. Avvocato fresh-arrival: the
+        first thing they should see is "carica un documento" at hero scale.
+        Once a document is present we switch to the compact toolbar layout
+        with a discreet "nuovo documento" button.
+      */}
+      {!hasDocument && (
+        <div className="drop-hero" data-testid="drop-hero">
+          <div className="drop-hero__tabs" role="tablist" aria-label="Modalità di caricamento">
             <button
               type="button"
-              role="radio"
-              aria-checked={displayMode === 'pseudonimo'}
-              className={`docview-toggle__btn${displayMode === 'pseudonimo' ? ' is-active' : ''}`}
-              onClick={() => setDisplayMode('pseudonimo')}
-              data-testid="toggle-pseudonimo"
+              role="tab"
+              aria-selected={loadTab === 'file'}
+              className={`drop-hero__tab${loadTab === 'file' ? ' is-active' : ''}`}
+              onClick={() => setLoadTab('file')}
+              data-testid="loadtab-file"
             >
-              Pseudonimizzato
+              Carica file
             </button>
             <button
               type="button"
-              role="radio"
-              aria-checked={displayMode === 'originale'}
-              className={`docview-toggle__btn${displayMode === 'originale' ? ' is-active' : ''}`}
-              onClick={() => setDisplayMode('originale')}
-              data-testid="toggle-originale"
+              role="tab"
+              aria-selected={loadTab === 'paste'}
+              className={`drop-hero__tab${loadTab === 'paste' ? ' is-active' : ''}`}
+              onClick={() => setLoadTab('paste')}
+              data-testid="loadtab-paste"
             >
-              Originale
+              Incolla testo
             </button>
           </div>
-        </div>
-        <div className="docview-toolbar__right">
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={handleCopy}
-            disabled={!pseudonymizedText}
-            data-testid="copy-pseudonymized-btn"
-            title="Copia il testo pseudonimizzato negli appunti"
-          >
-            {copyState === 'copied' ? '✓ Copiato' : 'Copia ⧉'}
-          </button>
-          {onOpenRecode && (
-            <button
-              type="button"
-              className={`btn btn--primary${recodeOpen ? ' is-active' : ''}`}
-              onClick={onOpenRecode}
-              disabled={!hasResult}
-              data-testid="open-recode-btn"
-              title={
-                hasResult
-                  ? 'Apri il pannello Recode per riportare la risposta di Claude'
-                  : 'Pseudonimizza un documento prima di aprire il recode.'
-              }
+
+          {loadTab === 'file' ? (
+            <div
+              className={`drop-zone drop-zone--hero${dragOver ? ' drop-zone--active' : ''}`}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              data-testid="drop-zone"
             >
-              Recode risposta Claude →
-            </button>
+              <div className="drop-zone__icon" aria-hidden="true">
+                ⬆
+              </div>
+              <p className="drop-zone__headline">
+                Trascina qui il documento o clicca per caricare
+              </p>
+              <p className="drop-zone__hint">
+                Formati supportati: <code>.txt</code> · <code>.md</code> ·{' '}
+                <code>.docx</code> · <code>.pdf</code>
+              </p>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => fileInputRef.current?.click()}
+                data-testid="select-file-btn"
+              >
+                Seleziona file…
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".txt,.md,.docx,.pdf,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={handleFileInput}
+                style={{ display: 'none' }}
+                data-testid="file-input"
+              />
+            </div>
+          ) : (
+            <div className="drop-hero__paste" data-testid="drop-paste">
+              <label className="field">
+                <span className="field__label">
+                  Incolla qui il testo del documento da pseudonimizzare
+                </span>
+                <textarea
+                  className="field__textarea"
+                  value={pasteBuffer}
+                  onChange={(e) => setPasteBuffer(e.target.value)}
+                  placeholder="Incolla qui il testo…"
+                  rows={10}
+                  data-testid="paste-textarea"
+                />
+              </label>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => {
+                  if (pasteBuffer.trim()) {
+                    onOriginalChange(pasteBuffer)
+                  }
+                }}
+                disabled={!pasteBuffer.trim()}
+                data-testid="paste-confirm-btn"
+              >
+                Usa questo testo
+              </button>
+            </div>
           )}
         </div>
-      </div>
+      )}
+
+      {/* Toolbar — Design C primary control surface (only when document loaded) */}
+      {hasDocument && (
+        <div className="docview-toolbar" data-testid="docview-toolbar">
+          <div className="docview-toolbar__left">
+            <div
+              className="docview-toggle"
+              role="radiogroup"
+              aria-label="Modalità visualizzazione documento"
+            >
+              <button
+                type="button"
+                role="radio"
+                aria-checked={displayMode === 'pseudonimo'}
+                className={`docview-toggle__btn${displayMode === 'pseudonimo' ? ' is-active' : ''}`}
+                onClick={() => setDisplayMode('pseudonimo')}
+                data-testid="toggle-pseudonimo"
+              >
+                Pseudonimizzato
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={displayMode === 'originale'}
+                className={`docview-toggle__btn${displayMode === 'originale' ? ' is-active' : ''}`}
+                onClick={() => setDisplayMode('originale')}
+                data-testid="toggle-originale"
+              >
+                Originale
+              </button>
+            </div>
+            <button
+              type="button"
+              className="btn btn--ghost btn--small"
+              onClick={handleResetDocument}
+              data-testid="reset-document-btn"
+              title="Carica un nuovo documento (sostituisce quello attuale)"
+            >
+              ↻ Nuovo documento
+            </button>
+            {/* hidden file input still available for the compact loader, reused via drop too */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt,.md,.docx,.pdf,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              onChange={handleFileInput}
+              style={{ display: 'none' }}
+              data-testid="file-input"
+            />
+          </div>
+          <div className="docview-toolbar__right">
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={handleCopy}
+              disabled={!pseudonymizedText}
+              data-testid="copy-pseudonymized-btn"
+              title="Copia il testo pseudonimizzato negli appunti"
+            >
+              {copyState === 'copied' ? '✓ Copiato' : 'Copia ⧉'}
+            </button>
+            {onOpenRecode && (
+              <button
+                type="button"
+                className={`btn btn--primary${recodeOpen ? ' is-active' : ''}`}
+                onClick={onOpenRecode}
+                disabled={!hasResult}
+                data-testid="open-recode-btn"
+                title={
+                  hasResult
+                    ? 'Apri il pannello Recode per riportare la risposta di Claude'
+                    : 'Pseudonimizza un documento prima di aprire il recode.'
+                }
+              >
+                Recode risposta Claude →
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Contextual sticky counters banner */}
-      {entities.length > 0 && (
+      {hasDocument && entities.length > 0 && (
         <div
           className="docview-banner"
           role="status"
@@ -460,36 +589,6 @@ export function PseudonymizePanel({
           {counters.fp === 1 ? 'lasciata originale' : 'lasciate originali'}
         </div>
       )}
-
-      {/* Drop zone — kept compact, above the document */}
-      <div
-        className={`drop-zone drop-zone--compact${dragOver ? ' drop-zone--active' : ''}`}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        data-testid="drop-zone"
-      >
-        <p>
-          Trascina qui un file <code>.txt</code> <code>.md</code>{' '}
-          <code>.docx</code> <code>.pdf</code> oppure incolla nel campo
-          dettaglio.
-        </p>
-        <button
-          type="button"
-          className="btn btn--secondary btn--small"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          Seleziona file…
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".txt,.md,.docx,.pdf,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          onChange={handleFileInput}
-          style={{ display: 'none' }}
-          data-testid="file-input"
-        />
-      </div>
 
       {/* Action row: Pseudonimizza + Save */}
       <div className="actions actions--inline">

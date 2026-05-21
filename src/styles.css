@@ -955,6 +955,149 @@ code {
   color: var(--muted);
 }
 
+/* =================================================================
+   Design C v2 — Hero drop zone (empty state, pre-load)
+   The first-arrival visual: a large prominent loader that dominates
+   the page until a document is loaded. Switches to compact mode
+   embedded in the toolbar afterwards (see .drop-zone--compact).
+   ================================================================= */
+.drop-hero {
+  margin: 24px auto 32px;
+  max-width: 760px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 32px 28px 36px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.drop-hero__tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 24px;
+}
+
+.drop-hero__tab {
+  background: transparent;
+  border: 0;
+  padding: 10px 18px;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 120ms, border-color 120ms;
+}
+
+.drop-hero__tab:hover {
+  color: var(--ink);
+}
+
+.drop-hero__tab.is-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.drop-zone--hero {
+  border: 2.5px dashed var(--rule);
+  border-radius: 10px;
+  padding: 56px 24px 48px;
+  text-align: center;
+  background: var(--surface-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: border-color 150ms, background 150ms;
+}
+
+.drop-zone--hero:hover,
+.drop-zone--hero.drop-zone--active {
+  border-color: var(--accent);
+  background: #eef4fb;
+}
+
+.drop-zone__icon {
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.drop-zone__headline {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.drop-zone__hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.drop-zone__hint code {
+  background: var(--surface);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.82rem;
+  border: 1px solid var(--rule);
+}
+
+.drop-zone--hero .btn--primary {
+  margin-top: 8px;
+  padding: 10px 24px;
+  font-size: 0.95rem;
+}
+
+.drop-hero__paste {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drop-hero__paste .field__textarea {
+  min-height: 200px;
+}
+
+/* Ghost button variant for the "↻ Nuovo documento" reset action */
+.btn--ghost {
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: var(--surface-alt);
+  color: var(--ink);
+}
+
+/* Recode panel — mapping-active badge */
+.recode-mapping-badge {
+  background: #eef7ee;
+  border: 1px solid #b7ddc1;
+  color: #1f5e2a;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.hint--warning {
+  background: #fff8e1;
+  border: 1px solid #f2d96b;
+  color: #6b5910;
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
 /* THE DOCUMENT — primary surface */
 .docview-wrapper {
   position: relative;
