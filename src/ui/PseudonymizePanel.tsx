@@ -736,11 +736,17 @@ export function PseudonymizePanel({
           {partialNotice.failedRanges.length === 1
             ? 'sezione'
             : 'sezioni'}{' '}
-          del documento (caratteri{' '}
-          {partialNotice.failedRanges
-            .map(([s, e]) => `${s}-${e}`)
-            .join(', ')}
-          ). Pseudonimizzazione completata su regex e parti riconosciute.
+          del documento. Pseudonimizzazione completata su regex e parti
+          riconosciute. <strong>Per i nomi rimasti in chiaro:</strong>{' '}
+          selezionali col mouse direttamente nel testo qui sotto e scegli
+          la categoria dal menu che appare — la sostituzione si applica
+          a tutte le occorrenze del documento.
+          <details className="partial-ner-banner__details">
+            <summary>Sezioni saltate (offset caratteri)</summary>
+            {partialNotice.failedRanges
+              .map(([s, e]) => `${s}-${e}`)
+              .join(', ')}
+          </details>
         </div>
       )}
 

@@ -150,6 +150,13 @@ const ID2LABEL_BY_LANG: Record<string, Record<number, string>> = {
 let ID2LABEL: Record<number, string> = ID2LABEL_BY_LANG.it!
 
 /**
+ * Active language code — set during init(). Drives downstream decisions
+ * that depend on the model architecture, e.g. whether to attach
+ * `token_type_ids` to the ORT feeds (BERT-family yes, DistilBERT no).
+ */
+let CURRENT_LANG: string = 'it'
+
+/**
  * Strip BIO scheme prefix (`B-` / `I-`) to obtain the base entity class.
  * Models like `dslim/bert-base-NER` emit `B-PER`/`I-PER`; the legacy
  * Italian model emits the bare `PER`. This normalization lets the
@@ -234,6 +241,7 @@ async function init(modelUrl: string, language: string = 'it'): Promise<void> {
   // the Italian map (degrades gracefully — at worst the new model's labels
   // won't decode meaningfully, but init won't crash).
   ID2LABEL = ID2LABEL_BY_LANG[language] ?? ID2LABEL_BY_LANG.it!
+  CURRENT_LANG = language
   // Dynamic imports — kept lazy so test environments without the heavyweight
   // WASM runtime never touch them. NOTE: do NOT add /* @vite-ignore */ here —
   // Vite must resolve and code-split these modules so the worker bundle and
@@ -615,9 +623,24 @@ async function predictChunk(
   if (L === 0) return []
 
   // Build feeds. The exported graph takes int64 tensors.
+  //
+  // BERT-family models (e.g. Xenova/bert-base-NER for English) require a
+  // third input `token_type_ids` — a sequence of zeros for single-sentence
+  // tasks. DistilBERT-family models (e.g. osiria/distilbert-italian-cased-ner)
+  // do NOT take this input. We decide based on the active language rather
+  // than introspecting `session.inputNames` because the onnxruntime-web
+  // ReadonlyArray exposed there does not always report as a plain JS Array
+  // and the introspection-based path silently produced empty feeds.
+  //
+  // Single source of truth for "which language uses which architecture":
+  // tracked alongside ID2LABEL_BY_LANG via CURRENT_LANG, set by init().
+  const isBertFamily = CURRENT_LANG !== 'it'
   const feeds: Record<string, any> = {
     input_ids: new ort.Tensor('int64', bigInt64(enc.inputIds), [1, L]),
     attention_mask: new ort.Tensor('int64', bigInt64(enc.attentionMask), [1, L]),
+  }
+  if (isBertFamily) {
+    feeds.token_type_ids = new ort.Tensor('int64', new BigInt64Array(L), [1, L])
   }
 
   const output = await session.run(feeds)

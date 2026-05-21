@@ -322,7 +322,7 @@ export function DocumentView({
 
   return (
     <div className="docview-wrapper">
-      {!emptyState && entities.length > 0 && (
+      {!emptyState && (
         <p className="docview__manual-hint" data-testid="docview-manual-hint">
           Se vedi un nome o un dato sensibile <strong>in chiaro</strong> nel testo
           qui sotto (il modello NER non l'ha riconosciuto), selezionalo e scegli
