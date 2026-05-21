@@ -40,11 +40,9 @@ import { ModelLoadingState } from './ModelLoadingState'
 import type { ModelLoadPhase } from './ModelLoadingState'
 import type { ReviewEntity, SwitchableCategory } from './types'
 import { DocumentView } from './DocumentView'
-import { CompareView } from './CompareView'
 import type { DisplayMode } from './EntityHighlight'
 
 /** localStorage key per la prima entrata in modalità Confronta (micro-toast). */
-const COMPARE_SEEN_LS_KEY = 'recode_compare_seen'
 
 /**
  * localStorage key for the variante-β toggle preference (opt-in
@@ -160,9 +158,7 @@ export function PseudonymizePanel({
   /** Design C — Pseudonimizzato vs Originale toggle (toolbar). */
   const [displayMode, setDisplayMode] = useState<DisplayMode>('pseudonimo')
   /** Design C v3 — modalità split-pane Confronta originale (opt-in). */
-  const [compareMode, setCompareMode] = useState(false)
   /** Micro-toast onboarding alla prima entrata in modalità confronto. */
-  const [showCompareToast, setShowCompareToast] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const runnerRef = useRef<NerRunner | null>(null)
   const originalTextareaRef = useRef<HTMLTextAreaElement>(null)
@@ -390,62 +386,7 @@ export function PseudonymizePanel({
     onOriginalChange('')
     setPasteBuffer('')
     setLoadTab('file')
-    setCompareMode(false)
   }
-
-  /**
-   * Toggle compare mode + first-time micro-toast onboarding (Design C v3).
-   * Tracked in localStorage (key `recode_compare_seen`) per i criteri del brief.
-   */
-  const handleToggleCompare = useCallback(() => {
-    setCompareMode((prev) => {
-      const next = !prev
-      if (next) {
-        // Entrando in confronto: mostra toast se prima volta.
-        try {
-          if (
-            typeof localStorage !== 'undefined' &&
-            localStorage.getItem(COMPARE_SEEN_LS_KEY) !== 'true'
-          ) {
-            setShowCompareToast(true)
-            localStorage.setItem(COMPARE_SEEN_LS_KEY, 'true')
-          }
-        } catch {
-          /* private mode / quota — non bloccare la feature */
-        }
-      } else {
-        setShowCompareToast(false)
-      }
-      return next
-    })
-  }, [])
-
-  // Auto-dismiss del toast dopo 4 secondi + dismissable via Esc/click outside.
-  useEffect(() => {
-    if (!showCompareToast) return
-    const timeout = window.setTimeout(() => setShowCompareToast(false), 4000)
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowCompareToast(false)
-    }
-    const onClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (target.closest('.compare-toast')) return
-      setShowCompareToast(false)
-    }
-    document.addEventListener('keydown', onKey)
-    // Schedule click handler nel frame successivo per evitare di catturare
-    // il click di apertura del compare button.
-    const t = window.setTimeout(
-      () => document.addEventListener('mousedown', onClick),
-      0,
-    )
-    return () => {
-      window.clearTimeout(timeout)
-      window.clearTimeout(t)
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('mousedown', onClick)
-    }
-  }, [showCompareToast])
 
   return (
     <section className="panel panel--pseudonymize" aria-label="Pseudonimizzazione">
@@ -607,21 +548,6 @@ export function PseudonymizePanel({
             />
           </div>
           <div className="docview-toolbar__right">
-            {hasResult && (
-              <button
-                type="button"
-                className={`btn btn--secondary${compareMode ? ' is-active' : ''}`}
-                onClick={handleToggleCompare}
-                data-testid="toggle-compare-btn"
-                title={
-                  compareMode
-                    ? 'Chiudi la modalità confronto e torna a vista singola.'
-                    : 'Apri vista comparativa originale ↔ pseudonimizzato per correggere manualmente.'
-                }
-              >
-                {compareMode ? '× Chiudi confronto' : '⇆ Confronta originale'}
-              </button>
-            )}
             <button
               type="button"
               className="btn btn--secondary"
@@ -829,30 +755,19 @@ export function PseudonymizePanel({
         </label>
       </div>
 
-      {/* THE DOCUMENT — Design C primary surface.
-          v3: in modalità Confronta sostituisce DocumentView con CompareView
-          split-pane. Default resta vista singola (opt-in confronto). */}
+      {/* THE DOCUMENT — Design C primary surface. */}
       {hasDocument ? (
-        compareMode && hasResult ? (
-          <CompareView
-            originalText={originalText}
-            pseudonymizedText={pseudonymizedText}
-            entities={entities}
-            onManualAnnotate={onManualAnnotate}
-          />
-        ) : (
-          <DocumentView
-            originalText={originalText}
-            pseudonymizedText={pseudonymizedText}
-            entities={entities}
-            displayMode={displayMode}
-            onAccept={onAccept}
-            onFalsePositive={onFalsePositive}
-            onChangeCategory={onChangeCategory}
-            onSubstituteAnyway={onSubstituteAnyway}
-            onManualAnnotate={onManualAnnotate}
-          />
-        )
+        <DocumentView
+          originalText={originalText}
+          pseudonymizedText={pseudonymizedText}
+          entities={entities}
+          displayMode={displayMode}
+          onAccept={onAccept}
+          onFalsePositive={onFalsePositive}
+          onChangeCategory={onChangeCategory}
+          onSubstituteAnyway={onSubstituteAnyway}
+          onManualAnnotate={onManualAnnotate}
+        />
       ) : (
         <div className="docview docview--placeholder">
           <p className="docview__empty" data-testid="docview-empty">
@@ -951,30 +866,6 @@ export function PseudonymizePanel({
           />
         </section>
       </details>
-
-      {/* Design C v3 — micro-toast onboarding alla prima entrata in
-          modalità confronto. Auto-dismiss dopo 4s, oppure Esc / click outside. */}
-      {showCompareToast && (
-        <div
-          className="compare-toast"
-          role="status"
-          aria-live="polite"
-          data-testid="compare-toast"
-        >
-          <span className="compare-toast__text">
-            Seleziona testo nel pannello sinistro per anonimizzare manualmente.
-          </span>
-          <button
-            type="button"
-            className="compare-toast__close"
-            onClick={() => setShowCompareToast(false)}
-            aria-label="Chiudi suggerimento"
-            data-testid="compare-toast-close"
-          >
-            ×
-          </button>
-        </div>
-      )}
 
       {scannedPdfModalOpen && (
         <div

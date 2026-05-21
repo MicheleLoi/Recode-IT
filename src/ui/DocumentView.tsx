@@ -306,6 +306,13 @@ export function DocumentView({
 
   return (
     <div className="docview-wrapper">
+      {displayMode === 'originale' && !emptyState && (
+        <p className="docview__manual-hint" data-testid="docview-manual-hint">
+          Se il modello NER non ha riconosciuto un'entità, selezionala qui sotto e
+          scegli la categoria dal menu che appare. Basta selezionarla una volta —
+          la sostituzione si applica a tutte le occorrenze nel documento.
+        </p>
+      )}
       <div
         ref={docRef}
         className="docview"

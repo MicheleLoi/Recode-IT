@@ -1516,14 +1516,15 @@ code {
   border-bottom: 1px solid var(--rule);
 }
 
-.compare-view__pane-hint {
-  margin: 0;
-  padding: 8px 12px;
-  font-size: 0.82rem;
+.docview__manual-hint {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
   line-height: 1.45;
   color: var(--muted);
   background: var(--surface-alt);
-  border-bottom: 1px solid var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
 }
 
 .compare-view__divider {

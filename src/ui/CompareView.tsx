@@ -284,11 +284,6 @@ export function CompareView({
     <div className="compare-view" data-testid="compare-view">
       <div className="compare-view__pane compare-view__pane--left">
         <div className="compare-view__pane-header">Originale</div>
-        <p className="compare-view__pane-hint">
-          Se il modello NER non ha riconosciuto un'entità, selezionala qui sotto e
-          scegli la categoria dal menu che appare. Basta selezionarla una volta —
-          la sostituzione si applica a tutte le occorrenze nel documento.
-        </p>
         <div
           ref={leftRef}
           className="compare-view__doc compare-view__doc--desaturated"
