@@ -855,3 +855,793 @@ code {
   color: #4b5563;
   line-height: 1.4;
 }
+
+/* ============================================================
+   Design C — document-first inline annotation
+   ============================================================ */
+
+/* Single-column document-first widget */
+.clipboard-widget--documentfirst {
+  display: block;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Sticky toolbar */
+.docview-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px 8px 0 0;
+  padding: 10px 14px;
+  margin-bottom: 0;
+}
+
+.docview-toolbar__left,
+.docview-toolbar__right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Pseudonimizzato / Originale toggle */
+.docview-toggle {
+  display: inline-flex;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface-alt);
+}
+
+.docview-toggle__btn {
+  border: 0;
+  background: transparent;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: background 0.12s, color 0.12s;
+}
+
+.docview-toggle__btn:hover {
+  background: var(--rule-soft);
+}
+
+.docview-toggle__btn.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Contextual entity counters banner */
+.docview-banner {
+  position: sticky;
+  top: 48px;
+  z-index: 29;
+  background: var(--surface-alt);
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 8px 14px;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.docview-banner strong {
+  color: var(--ink);
+}
+
+/* Compact drop zone (Design C reduces vertical footprint) */
+.drop-zone--compact {
+  padding: 8px 14px;
+  margin-top: 8px;
+  border: 1px dashed var(--rule);
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-soft);
+  font-size: 0.88rem;
+}
+
+.drop-zone--compact p {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* =================================================================
+   Design C v2 — Hero drop zone (empty state, pre-load)
+   The first-arrival visual: a large prominent loader that dominates
+   the page until a document is loaded. Switches to compact mode
+   embedded in the toolbar afterwards (see .drop-zone--compact).
+   ================================================================= */
+.drop-hero {
+  margin: 24px auto 32px;
+  max-width: 760px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 32px 28px 36px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.drop-hero__tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 24px;
+}
+
+.drop-hero__tab {
+  background: transparent;
+  border: 0;
+  padding: 10px 18px;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 120ms, border-color 120ms;
+}
+
+.drop-hero__tab:hover {
+  color: var(--ink);
+}
+
+.drop-hero__tab.is-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.drop-zone--hero {
+  border: 2.5px dashed var(--rule);
+  border-radius: 10px;
+  padding: 56px 24px 48px;
+  text-align: center;
+  background: var(--surface-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: border-color 150ms, background 150ms;
+}
+
+.drop-zone--hero:hover,
+.drop-zone--hero.drop-zone--active {
+  border-color: var(--accent);
+  background: #eef4fb;
+}
+
+.drop-zone__icon {
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.drop-zone__headline {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.drop-zone__hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.drop-zone__hint code {
+  background: var(--surface);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.82rem;
+  border: 1px solid var(--rule);
+}
+
+.drop-zone--hero .btn--primary {
+  margin-top: 8px;
+  padding: 10px 24px;
+  font-size: 0.95rem;
+}
+
+.drop-hero__paste {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drop-hero__paste .field__textarea {
+  min-height: 200px;
+}
+
+/* Ghost button variant for the "↻ Nuovo documento" reset action */
+.btn--ghost {
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: var(--surface-alt);
+  color: var(--ink);
+}
+
+/* Recode panel — mapping-active badge */
+.recode-mapping-badge {
+  background: #eef7ee;
+  border: 1px solid #b7ddc1;
+  color: #1f5e2a;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.hint--warning {
+  background: #fff8e1;
+  border: 1px solid #f2d96b;
+  color: #6b5910;
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* THE DOCUMENT — primary surface */
+.docview-wrapper {
+  position: relative;
+  margin-top: 14px;
+}
+
+.docview {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 24px 28px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.02rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  min-height: 220px;
+  color: var(--ink);
+}
+
+.docview--placeholder {
+  font-family: inherit;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+
+.docview__empty {
+  margin: 0;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Entity highlight spans */
+.entity-hl {
+  display: inline;
+  padding: 1px 4px;
+  margin: 0 1px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+  transition: filter 0.1s, box-shadow 0.1s;
+  position: relative;
+}
+
+.entity-hl:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.entity-hl:hover {
+  filter: brightness(0.96);
+}
+
+.entity-hl--active {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.entity-hl--persona {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e3a8a;
+}
+
+.entity-hl--luogo {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+  color: #065f46;
+}
+
+.entity-hl--data {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #78350f;
+}
+
+.entity-hl--organizzazione {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #4c1d95;
+}
+
+.entity-hl--identificatore {
+  background: #fce7f3;
+  border-color: #f9a8d4;
+  color: #831843;
+}
+
+.entity-hl--altro {
+  background: #e5e7eb;
+  border-color: #cbd5e1;
+  color: #374151;
+}
+
+.entity-hl--status-falsePositive,
+.entity-hl--preserved {
+  background: repeating-linear-gradient(
+    -45deg,
+    #f3f4f6,
+    #f3f4f6 5px,
+    #fff 5px,
+    #fff 10px
+  );
+  border-color: #cbd5e1;
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+/* Popover anchored under entity */
+.entity-popover {
+  position: absolute;
+  z-index: 60;
+  width: 260px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  padding: 12px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 0.88rem;
+}
+
+.entity-popover:focus {
+  outline: none;
+}
+
+.entity-popover__header {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.entity-popover__original {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.entity-popover__arrow {
+  color: var(--muted);
+}
+
+.entity-popover__pseudo {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.entity-popover__category-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--rule-soft);
+  color: var(--ink-soft);
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-bottom: 8px;
+}
+
+.entity-popover__options {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px 0;
+}
+
+.entity-popover__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 6px 8px;
+  text-align: left;
+  font: inherit;
+  font-size: 0.86rem;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.entity-popover__option:hover {
+  background: var(--surface-alt);
+}
+
+.entity-popover__option.is-selected {
+  background: var(--surface-alt);
+  font-weight: 500;
+}
+
+.entity-popover__radio {
+  font-size: 0.7rem;
+  color: var(--accent);
+}
+
+.entity-popover__submenu {
+  list-style: none;
+  padding: 4px 0 4px 24px;
+  margin: 0;
+}
+
+.entity-popover__submenu-option {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 4px 8px;
+  text-align: left;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.entity-popover__submenu-option:hover {
+  background: var(--rule-soft);
+  color: var(--ink);
+}
+
+.entity-popover__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Manual annotation floating menu (selection > category) */
+.manual-menu {
+  position: fixed;
+  z-index: 65;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  padding: 6px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.manual-menu__title {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 4px 8px 2px 8px;
+}
+
+.manual-menu__option {
+  background: transparent;
+  border: 0;
+  padding: 6px 12px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.manual-menu__option:hover {
+  background: var(--surface-alt);
+}
+
+/* Vista dettaglio disclosure */
+.detail-disclosure {
+  margin-top: 22px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface-soft);
+}
+
+.detail-disclosure > summary {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  user-select: none;
+}
+
+.detail-disclosure[open] > summary {
+  border-bottom: 1px solid var(--rule);
+}
+
+.detail-disclosure .field,
+.detail-disclosure .manual-annotate,
+.detail-disclosure .review {
+  padding: 12px 14px;
+}
+
+/* Inline actions row */
+.actions--inline {
+  margin-top: 10px;
+}
+
+/* Recode slide-in */
+.recode-slidein-host {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 42vw;
+  min-width: 380px;
+  max-width: 600px;
+  height: 100vh;
+  z-index: 70;
+  background: var(--surface);
+  border-left: 1px solid var(--rule);
+  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.08);
+  transform: translateX(100%);
+  transition: transform 0.22s ease-out;
+  overflow-y: auto;
+  padding: 18px 22px;
+}
+
+.recode-slidein-host.is-open {
+  transform: translateX(0);
+}
+
+.panel--recode-slidein .panel__header {
+  position: relative;
+  padding-right: 40px;
+}
+
+.panel__close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--ink-soft);
+}
+
+.panel__close:hover {
+  background: var(--surface-alt);
+  color: var(--ink);
+}
+
+/* Push main content left a little when recode is open on wide screens */
+@media (min-width: 1100px) {
+  .clipboard-widget--recode-open {
+    padding-right: 44vw;
+    transition: padding-right 0.22s ease-out;
+  }
+}
+
+/* Small responsive helper */
+@media (max-width: 700px) {
+  .docview-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .docview-toolbar__right {
+    justify-content: flex-end;
+  }
+  .recode-slidein-host {
+    width: 92vw;
+    min-width: 0;
+  }
+  .clipboard-widget--recode-open {
+    padding-right: 0;
+  }
+}
+
+/* btn--small was used in the toolbar — make sure it exists */
+.btn--small {
+  padding: 4px 10px;
+  font-size: 0.82rem;
+}
+
+/* Visually subtle heading — kept in DOM for a11y / test queries */
+.panel__heading-sr {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--muted);
+  margin: 0 0 8px 0;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* =================================================================
+   Design C v3 — Compare-view split-pane (Confronta originale)
+   ================================================================= */
+
+.compare-view {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+  background: var(--surface);
+  min-height: 360px;
+}
+
+.compare-view__pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* allow text wrapping inside grid column */
+}
+
+.compare-view__pane-header {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--rule);
+}
+
+.docview__manual-hint {
+  margin: 0 0 14px;
+  padding: 12px 16px 12px 44px;
+  position: relative;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #78350f;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-left: 4px solid #f59e0b;
+  border-radius: 6px;
+}
+
+.docview__manual-hint::before {
+  content: '⚠';
+  position: absolute;
+  left: 14px;
+  top: 12px;
+  font-size: 1.15rem;
+  color: #d97706;
+  line-height: 1;
+}
+
+.docview__manual-hint strong {
+  color: #92400e;
+  font-weight: 600;
+}
+
+.compare-view__divider {
+  background: var(--rule);
+  width: 1px;
+}
+
+.compare-view__doc {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: var(--ink);
+  max-height: 60vh;
+}
+
+/* Highlight desaturati nel pannello sinistro: visibili come "già gestiti"
+   ma non rubano attenzione visiva. Usa opacity ridotta sul background +
+   border meno marcato. */
+.entity-hl--desaturated {
+  opacity: 0.42;
+  cursor: default;
+  font-weight: 400;
+}
+
+.entity-hl--desaturated:hover {
+  filter: none;
+}
+
+/* Compare-mode toggle button look (riusa .btn--secondary) — quando attivo
+   inverte i colori per chiarezza visiva. */
+.btn.is-active[data-testid='toggle-compare-btn'] {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* Micro-toast onboarding al primo ingresso in modalità confronto */
+.compare-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  background: rgba(20, 24, 32, 0.94);
+  color: #fff;
+  padding: 10px 16px 10px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 92vw;
+  animation: compare-toast-in 0.24s ease-out;
+}
+
+.compare-toast__close {
+  background: transparent;
+  color: #fff;
+  border: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  opacity: 0.7;
+}
+
+.compare-toast__close:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@keyframes compare-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Responsive: stack the panes vertically on narrow viewports */
+@media (max-width: 900px) {
+  .compare-view {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1px 1fr;
+  }
+  .compare-view__divider {
+    width: auto;
+    height: 1px;
+  }
+  .compare-view__doc {
+    max-height: 40vh;
+  }
+}

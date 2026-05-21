@@ -439,6 +439,10 @@ export function ClipboardWidget(): JSX.Element {
 
   const canSave = user !== null && masterKey !== null && entities.length > 0
 
+  // Design C: slide-in recode panel state. Open/close handled here; the
+  // PseudonymizePanel surfaces the "Recode risposta Claude →" toolbar button.
+  const [recodeOpen, setRecodeOpen] = useState(false)
+
   const onSaveClick = () => {
     if (!user) {
       setSaveError('Devi accedere o creare un account per salvare i mapping.')
@@ -493,7 +497,10 @@ export function ClipboardWidget(): JSX.Element {
   }
 
   return (
-    <div className="clipboard-widget" data-testid="clipboard-widget">
+    <div
+      className={`clipboard-widget clipboard-widget--documentfirst${recodeOpen ? ' clipboard-widget--recode-open' : ''}`}
+      data-testid="clipboard-widget"
+    >
       <PseudonymizePanel
         originalText={originalText}
         pseudonymizedText={pseudonymizedText}
@@ -523,8 +530,26 @@ export function ClipboardWidget(): JSX.Element {
         }}
         activeLabel={active?.label ?? null}
         onCloseActive={closeActive}
+        onOpenRecode={() => setRecodeOpen((v) => !v)}
+        recodeOpen={recodeOpen}
       />
-      <RecodePanel mapping={effectiveMapping} />
+      {/*
+        Recode panel — slide-in when open, hidden when closed. We always
+        mount it (visibility/display rather than conditional unmount) so the
+        existing tests that query its testids (recode-no-mapping-hint,
+        claude-response-textarea, recoded-textarea, copy-recoded-btn) still
+        find them. CSS pulls the slide-in off-screen when not open.
+      */}
+      <div
+        className={`recode-slidein-host${recodeOpen ? ' is-open' : ''}`}
+        data-testid="recode-slidein-host"
+      >
+        <RecodePanel
+          mapping={effectiveMapping}
+          mode="slidein"
+          onClose={() => setRecodeOpen(false)}
+        />
+      </div>
     </div>
   )
 }
