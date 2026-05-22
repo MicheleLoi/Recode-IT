@@ -30,6 +30,12 @@ from .auth_jwt import (
 from .db import connection
 from .http_utils import error_response, json_response
 from .password import hash_password, verify_password
+from .rate_limit import (
+    LOGIN_PER_ACCOUNT,
+    LOGIN_PER_IP,
+    account_key_from_email_body,
+    limiter,
+)
 
 # Toggle for HTTP-only local dev (when set, Set-Cookie omits Secure flag).
 import os
@@ -51,6 +57,8 @@ def _normalize_email(raw: str) -> str:
     return (raw or "").strip().lower()
 
 
+@limiter.limit(LOGIN_PER_IP)
+@limiter.limit(LOGIN_PER_ACCOUNT, key_func=account_key_from_email_body)
 async def login_endpoint(request: Request):
     try:
         payload = await request.json()

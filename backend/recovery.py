@@ -40,6 +40,12 @@ from .password import (
     hash_password,
     validate_password_strength,
 )
+from .rate_limit import (
+    RECOVERY_INITIATE_PER_IP,
+    RECOVERY_VERIFY_PER_TOKEN,
+    account_key_from_token_body,
+    limiter,
+)
 
 RESET_TOKEN_TTL_HOURS = 24
 
@@ -56,6 +62,7 @@ def _normalize_email(raw: str) -> str:
     return (raw or "").strip().lower()
 
 
+@limiter.limit(RECOVERY_INITIATE_PER_IP)
 async def initiate_recovery(request: Request):
     try:
         payload = await request.json()
@@ -97,6 +104,7 @@ async def initiate_recovery(request: Request):
     return json_response({"ok": True}, status=200, request=request)
 
 
+@limiter.limit(RECOVERY_VERIFY_PER_TOKEN, key_func=account_key_from_token_body)
 async def verify_recovery(request: Request):
     try:
         payload = await request.json()

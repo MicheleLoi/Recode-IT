@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import os
 
+from slowapi.errors import RateLimitExceeded
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 
@@ -54,6 +55,11 @@ from .pro_invite import (
     my_request_endpoint,
     request_invite_endpoint,
 )
+from .rate_limit import (
+    BodyPreloadMiddleware,
+    limiter,
+    rate_limit_exceeded_handler,
+)
 from .recovery import initiate_recovery, verify_recovery
 from .signup import signup_endpoint
 from .stripe_webhook import stripe_webhook_endpoint
@@ -63,9 +69,23 @@ def _cookie_secure_default() -> bool:
     return os.environ.get("RECODE_IT_COOKIE_SECURE", "1") != "0"
 
 
-def build_app(cookie_secure: bool | None = None) -> Starlette:
-    """Construct the Starlette app. `cookie_secure=False` for local HTTP tests."""
+def build_app(
+    cookie_secure: bool | None = None,
+    *,
+    rate_limit_enabled: bool | None = None,
+) -> Starlette:
+    """Construct the Starlette app. `cookie_secure=False` for local HTTP tests.
+
+    Rate limiting (P1+P2 security review 2026-05-23):
+      - Default: enabled. Set RECODE_IT_RATE_LIMIT=0 in env or pass
+        rate_limit_enabled=False to disable (used by the per-endpoint
+        test suite to avoid 429s on rapid back-to-back requests; the
+        dedicated test_rate_limit module re-enables it explicitly).
+    """
     init_schema()
+
+    if rate_limit_enabled is None:
+        rate_limit_enabled = os.environ.get("RECODE_IT_RATE_LIMIT", "1") != "0"
 
     routes = [
         # public
@@ -113,8 +133,17 @@ def build_app(cookie_secure: bool | None = None) -> Starlette:
     app = Starlette(routes=routes)
     secure = cookie_secure if cookie_secure is not None else _cookie_secure_default()
     app.add_middleware(RecodeJWTAuthMiddleware, cookie_secure=secure)
-    # Inject a default OPTIONS handler for every protected route that didn't
-    # declare it explicitly.
+
+    # Rate limiter wiring (slowapi). Order matters: BodyPreloadMiddleware
+    # must run BEFORE the slowapi decorators trigger (which they do at
+    # endpoint call-time), so the body is in request._body when key_func
+    # introspects it for per-account keys.
+    limiter.enabled = rate_limit_enabled
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+    if rate_limit_enabled:
+        app.add_middleware(BodyPreloadMiddleware)
+
     return app
 
 

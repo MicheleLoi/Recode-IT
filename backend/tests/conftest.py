@@ -35,6 +35,9 @@ def _isolated_env(tmp_path, monkeypatch):
     )
     monkeypatch.setenv("RECODE_IT_COOKIE_SECURE", "0")
     monkeypatch.setenv("RECODE_IT_ALLOWED_ORIGIN", "http://testserver")
+    # Rate limiting OFF by default for the suite. The dedicated
+    # test_rate_limit module flips it on per-test via build_app(rate_limit_enabled=True).
+    monkeypatch.setenv("RECODE_IT_RATE_LIMIT", "0")
     # Force a clean import so build_app() picks up the fresh DB path env.
     for mod in list(sys.modules):
         if mod.startswith("backend"):
@@ -46,6 +49,14 @@ def _isolated_env(tmp_path, monkeypatch):
 def client() -> TestClient:
     server = importlib.import_module("backend.server")
     app = server.build_app(cookie_secure=False)
+    return TestClient(app, base_url="http://testserver")
+
+
+@pytest.fixture
+def client_with_rate_limit() -> TestClient:
+    """Variant that keeps the slowapi limiter active. Used by test_rate_limit."""
+    server = importlib.import_module("backend.server")
+    app = server.build_app(cookie_secure=False, rate_limit_enabled=True)
     return TestClient(app, base_url="http://testserver")
 
 

@@ -10,6 +10,15 @@ PyJWT>=2.8,<3.0
 argon2-cffi>=23.1
 bcrypt>=4.1
 
+# Rate limiting (P1 + P2 — security review 2026-05-23).
+# In-memory storage by default — adequate for single-worker uvicorn. For
+# multi-worker deploys (>=2 workers, scale horizontally), point at a
+# Redis backend via storage_uri="redis://..." in backend.rate_limit.
+# Note: this deviates slightly from the "stdlib + crypto + HTTP only" rule
+# stated above; the founder ratified the addition during the 2026-05-23
+# security hardening round (default policy from chief_of_staff).
+slowapi>=0.1.9
+
 # Dev / test
 pytest>=8.0
 pytest-asyncio>=0.23
