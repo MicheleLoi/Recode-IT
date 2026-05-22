@@ -141,11 +141,34 @@ def verify_recovery_code(stored_hash: str, code: str) -> bool:
 
 
 def find_matching_code(stored_hashes: Iterable[str], code: str) -> str | None:
-    """Linear scan over a user's stored bcrypt hashes; returns the match or None."""
+    """Linear scan over a user's stored bcrypt hashes; returns the match or None.
+
+    P7 timing surface (security review 2026-05-23): every user has at most
+    10 stored recovery codes (see signup.generate_recovery_codes default).
+    With N <= 10 and bcrypt rounds=10 (~100ms per verify) the worst-case
+    scan is bounded at ~1s — that's the *budget*, not a leak vector,
+    because:
+      - bcrypt.checkpw itself is constant-time (HMAC + consttime_bytes_eq
+        inside argon2-cffi / bcrypt), so per-iteration cost does NOT
+        depend on how many leading characters of the hash matched.
+      - We iterate ALL stored_hashes (no early return on match) to keep
+        wallclock independent of which slot the matching code occupies.
+        That removes the residual oracle "user's 1st code matched" vs
+        "user's 10th code matched".
+
+    If recovery code count ever grows beyond ~50 per user (it shouldn't —
+    UX caps at 10) this should be revisited with a pre-hashed lookup
+    keyed on a deterministic derivation of the user input (sha256 of
+    normalized code) plus a per-code salt stored alongside; the bcrypt
+    hash then verifies only the single candidate.
+    """
+    match: str | None = None
     for h in stored_hashes:
-        if verify_recovery_code(h, code):
-            return h
-    return None
+        if verify_recovery_code(h, code) and match is None:
+            match = h
+        # NB: no `break` — keep iterating so timing is independent of
+        # which slot holds the match (or whether there's a match at all).
+    return match
 
 
 def generate_kdf_salt() -> bytes:
