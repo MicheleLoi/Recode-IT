@@ -572,11 +572,11 @@ export function PseudonymizePanel({
                 data-testid="open-recode-btn"
                 title={
                   hasResult
-                    ? 'Apri il pannello Recode per riportare la risposta di Claude'
+                    ? "Apri il pannello Recode per riportare la risposta dell'AI"
                     : 'Pseudonimizza un documento prima di aprire il recode.'
                 }
               >
-                Recode risposta Claude →
+                Recode risposta AI →
               </button>
             )}
           </div>

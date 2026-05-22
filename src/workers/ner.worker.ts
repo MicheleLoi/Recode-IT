@@ -596,9 +596,19 @@ function decodeIoScheme(
     // BIO signal: B- prefix means "new entity starts here", even when the
     // base class matches the active span. Close the active span and open
     // a new one to preserve adjacency boundaries.
+    //
+    // HOWEVER: when the previous token ends exactly where this one starts
+    // (no characters in between), this is a WordPiece continuation — the
+    // tokenizer broke a single word ("Seraphine" → "Ser" + "##aph" + "##ine")
+    // and the model sometimes mislabels later sub-tokens as B-PER. Treating
+    // those as new entities yields 3 fragmented spans for one name. Skip
+    // the close in that case and let the extension logic below merge them.
     const isBPrefix = rawLabelFull.startsWith('B-')
     if (isBPrefix && active !== null) {
-      close()
+      const adjGap = text.slice(active.end, s)
+      if (adjGap.length > 0) {
+        close()
+      }
     }
     if (active === null) {
       active = { start: s, end: e, rawLabel, minScore: score }
@@ -622,6 +632,35 @@ function decodeIoScheme(
   }
   close()
   return spans
+}
+
+/**
+ * Expand each raw span to nearest word boundaries.
+ *
+ * Why: BERT WordPiece tokenizes "Loi" → ["L", "##oi"] and the model
+ * sometimes labels the trailing subtoken as O (or another class), so the
+ * IO decoder ends the entity at "Lo" instead of "Loi". Substitution then
+ * leaves orphan suffixes — "Michele Loi" → pseudonym + "i" → "John Smithi".
+ *
+ * Heuristic: a "word character" is letter/digit/underscore/hyphen/apostrophe.
+ * For each span, walk back from start over word chars and forward from end
+ * over word chars. This preserves correct entity boundaries (already at
+ * whitespace or punctuation) and only extends spans that were truncated
+ * mid-word — exactly the WordPiece failure mode.
+ *
+ * Safe with normal Latin/legal/chat content. May over-extend for unusual
+ * compound words but that's acceptable noise versus losing entire suffixes.
+ */
+function expandSpansToWordBoundaries(text: string, spans: RawSpan[]): RawSpan[] {
+  const isWordChar = (c: string): boolean => /[A-Za-zÀ-ÿ0-9_'\-]/.test(c)
+  return spans.map((span) => {
+    let start = span.start
+    let end = span.end
+    while (start > 0 && isWordChar(text[start - 1] as string)) start -= 1
+    while (end < text.length && isWordChar(text[end] as string)) end += 1
+    if (start === span.start && end === span.end) return span
+    return { ...span, start, end }
+  })
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -706,7 +745,11 @@ async function predictChunk(
   }
 
   // IO-scheme decode → raw spans (model labels, char offsets).
-  const rawSpans = decodeIoScheme(text, predIds, predScores, enc.offsets, enc.specialMask)
+  const decodedSpans = decodeIoScheme(text, predIds, predScores, enc.offsets, enc.specialMask)
+  // Post-process: extend each span to the nearest word boundaries so
+  // WordPiece truncations ("Loi" → "Lo") don't leak orphan suffixes into
+  // the substituted output. See expandSpansToWordBoundaries() jsdoc.
+  const rawSpans = expandSpansToWordBoundaries(text, decodedSpans)
 
   // Distribution of predicted classes — helps tell apart "model returned
   // all-O" (= 0 spans expected) from "spans found but filtered downstream".

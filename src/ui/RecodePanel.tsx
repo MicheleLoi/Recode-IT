@@ -86,7 +86,7 @@ export function RecodePanel({
       <header className="panel__header">
         <h2>Recode</h2>
         <p className="panel__subtitle">
-          Incolla qui la risposta di Claude (che contiene gli pseudonimi). I
+          Incolla qui la risposta dell'AI (che contiene gli pseudonimi). I
           pseudonimi vengono sostituiti con i valori originali, in locale, via
           reverse-mapping della tabella di sostituzione.
         </p>
@@ -123,18 +123,18 @@ export function RecodePanel({
           <strong>Nessuna mappa di sostituzione attiva.</strong>{' '}
           Pseudonimizza prima un documento (bottone &laquo;Pseudonimizza&raquo;
           a sinistra) per popolare la tabella di reverse-mapping. Una volta
-          fatto, potrai incollare qui la risposta di Claude e vedere i nomi
+          fatto, potrai incollare qui la risposta dell'AI e vedere i nomi
           originali apparire automaticamente sotto.
         </div>
       )}
 
       <label className="field">
-        <span className="field__label">Risposta di Claude (con pseudonimi)</span>
+        <span className="field__label">Risposta dell'AI (con pseudonimi)</span>
         <textarea
           className="field__textarea"
           value={claudeResponse}
           onChange={(e) => setClaudeResponse(e.target.value)}
-          placeholder="Incolla qui la risposta di Claude…"
+          placeholder="Incolla qui la risposta dell'AI…"
           rows={isSlideIn ? 8 : 10}
           data-testid="claude-response-textarea"
         />
@@ -163,7 +163,7 @@ export function RecodePanel({
             !hasMapping
               ? 'Serve una mappa di sostituzione attiva (pseudonimizza prima un documento).'
               : !claudeResponse.trim()
-                ? 'Incolla la risposta di Claude qui sopra.'
+                ? "Incolla la risposta dell'AI qui sopra."
                 : 'Esegui subito il reverse-mapping (succede anche automaticamente dopo qualche istante).'
           }
         >

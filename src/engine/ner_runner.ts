@@ -103,23 +103,78 @@ export function splitIntoChunks(
   maxChars = 800,
 ): Array<{ start: number; text: string }> {
   const chunks: Array<{ start: number; text: string }> = []
+  // Three-tier splitter:
+  //   1. Try paragraph boundaries (\n\s*\n) — keeps related sentences
+  //      together when the document has paragraph structure.
+  //   2. If any resulting "part" still exceeds maxChars, fall back to
+  //      single-newline boundaries — handles flat-line documents like
+  //      WhatsApp chat exports where every message is one line and
+  //      paragraphs never appear.
+  //   3. If a single line still exceeds maxChars (extreme case), hard-cut
+  //      at maxChars boundaries. Prevents the worker from being asked to
+  //      tokenize a sequence > BERT's 512-token capacity, which fails
+  //      silently and causes the partial-NER banner with 0 entities.
+  const flush = (chunk: string, start: number): void => {
+    if (chunk.length > 0) chunks.push({ start, text: chunk })
+  }
+
+  const splitByNewline = (segment: string, segmentStart: number): void => {
+    const lines = segment.split(/(\n)/) // preserve newlines as separator tokens
+    let buf = ''
+    let bufStart = segmentStart
+    for (const line of lines) {
+      // If a single line is itself too long, hard-cut it.
+      if (line.length > maxChars) {
+        if (buf) {
+          flush(buf, bufStart)
+          bufStart += buf.length
+          buf = ''
+        }
+        for (let i = 0; i < line.length; i += maxChars) {
+          chunks.push({
+            start: bufStart + i,
+            text: line.slice(i, i + maxChars),
+          })
+        }
+        bufStart += line.length
+        continue
+      }
+      if (buf.length + line.length <= maxChars) {
+        buf += line
+      } else {
+        flush(buf, bufStart)
+        bufStart += buf.length
+        buf = line
+      }
+    }
+    flush(buf, bufStart)
+  }
+
   const parts = text.split(/(\n\s*\n)/)
   let currentStart = 0
   let currentChunk = ''
   for (const part of parts) {
+    if (part.length > maxChars) {
+      // Paragraph alone exceeds budget — emit any pending buffer, then
+      // descend to newline-level splitting for this part.
+      if (currentChunk) {
+        flush(currentChunk, currentStart)
+        currentStart += currentChunk.length
+        currentChunk = ''
+      }
+      splitByNewline(part, currentStart)
+      currentStart += part.length
+      continue
+    }
     if (currentChunk.length + part.length <= maxChars) {
       currentChunk += part
     } else {
-      if (currentChunk) {
-        chunks.push({ start: currentStart, text: currentChunk })
-      }
-      currentStart = currentStart + currentChunk.length
+      flush(currentChunk, currentStart)
+      currentStart += currentChunk.length
       currentChunk = part
     }
   }
-  if (currentChunk) {
-    chunks.push({ start: currentStart, text: currentChunk })
-  }
+  flush(currentChunk, currentStart)
   return chunks
 }
 
