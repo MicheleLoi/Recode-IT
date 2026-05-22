@@ -37,17 +37,46 @@ JWT_TTL_SECONDS = 30 * 24 * 3600  # 30 days
 JWT_REFRESH_THRESHOLD_SECONDS = 7 * 24 * 3600
 
 ENV_JWT_SECRET = "RECODE_IT_JWT_SECRET"
+ENV_ALLOW_INSECURE = "RECODE_IT_ALLOW_INSECURE_JWT"
+ENV_PYTEST = "PYTEST_CURRENT_TEST"
 
 _SECRET_DEFAULT_TEST = "test-only-do-not-use-in-prod-" + "x" * 32
 
 
+def _is_test_mode() -> bool:
+    """Detect test / dev opt-in. Tightly scoped — production never matches."""
+    if os.environ.get(ENV_PYTEST):
+        return True
+    if os.environ.get(ENV_ALLOW_INSECURE) == "1":
+        return True
+    return False
+
+
 def _get_secret() -> str:
+    """
+    Resolve the JWT signing secret.
+
+    Production contract: RECODE_IT_JWT_SECRET MUST be set. Absence is a
+    fail-fast condition (RuntimeError) — silently falling back to a static
+    default would let an attacker forge sessions if the env var disappears
+    after a reboot or redeploy.
+
+    Test / dev escape hatch: when PYTEST_CURRENT_TEST is in env (pytest sets
+    it automatically) OR RECODE_IT_ALLOW_INSECURE_JWT=1 (explicit local-dev
+    opt-in), the static default is used. Both bypass conditions are
+    impossible to hit accidentally in production.
+    """
     secret = os.environ.get(ENV_JWT_SECRET)
-    if not secret:
-        # Tests opt in via env; in prod the absence of the env var is a
-        # configuration error surfaced at handler-time, not at import.
-        secret = _SECRET_DEFAULT_TEST
-    return secret
+    if secret:
+        return secret
+    if _is_test_mode():
+        return _SECRET_DEFAULT_TEST
+    raise RuntimeError(
+        f"{ENV_JWT_SECRET} env var is required in production. "
+        f"Set a 32+ byte random value (e.g. `openssl rand -hex 32`) and "
+        f"reload the systemd unit. For local development set "
+        f"{ENV_ALLOW_INSECURE}=1 to opt into the insecure default."
+    )
 
 
 @dataclass(frozen=True)
