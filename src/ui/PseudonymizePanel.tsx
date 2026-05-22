@@ -269,6 +269,7 @@ export function PseudonymizePanel({
         nerDetections,
         seedMapper: seedMapper ?? undefined,
         includeCategoriesPass2: includePlaces,
+        language,
       })
       onResult({
         originalText,

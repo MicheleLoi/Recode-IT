@@ -87,6 +87,12 @@ export type AnonymizeOptions = {
    */
   seedMapper?: unknown
   /**
+   * Document language code — drives which pseudonym pool a freshly-created
+   * PseudonymMapper uses when no seedMapper is provided. Defaults to 'it'
+   * to preserve the original Italian-only behaviour.
+   */
+  language?: string
+  /**
    * Variante β — when `false` (default), Pass 2 categories
    * (`luogo`, `organizzazione`, `tribunale`) are RECORDED in the mapping as
    * preserved entries (`isPreserved: true`, `pseudonym === realValue`) but

@@ -184,6 +184,20 @@ function postProgress(phase: ProgressOut['phase'], loaded: number, total: number
 }
 
 /**
+ * Send a diagnostic log message to the main thread. The main thread's
+ * NerRunner relays this to `console.log` so the worker's view of the
+ * world is visible via the regular DevTools console — workers' own
+ * console output is not always captured by remote inspection tools.
+ */
+function postDiag(label: string, payload: any): void {
+  try {
+    ;(self as any).postMessage({ type: 'log', label, payload })
+  } catch {
+    /* postMessage can fail with non-cloneable values — best-effort. */
+  }
+}
+
+/**
  * Fetch a URL with streaming progress reporting. Identical contract to the
  * helper that lived in the prior worker.
  */
@@ -242,6 +256,7 @@ async function init(modelUrl: string, language: string = 'it'): Promise<void> {
   // won't decode meaningfully, but init won't crash).
   ID2LABEL = ID2LABEL_BY_LANG[language] ?? ID2LABEL_BY_LANG.it!
   CURRENT_LANG = language
+  postDiag('[NER-WORKER] init start', { modelUrl, language, id2labelKeys: Object.keys(ID2LABEL).length })
   // Dynamic imports — kept lazy so test environments without the heavyweight
   // WASM runtime never touch them. NOTE: do NOT add /* @vite-ignore */ here —
   // Vite must resolve and code-split these modules so the worker bundle and
@@ -310,6 +325,12 @@ async function init(modelUrl: string, language: string = 'it'): Promise<void> {
     session = await ort.InferenceSession.create(modelBuffer, {
       executionProviders: ['wasm'],
       graphOptimizationLevel: 'all',
+    })
+    postDiag('[NER-WORKER] session created', {
+      inputNames: session.inputNames,
+      outputNames: session.outputNames,
+      inputType: typeof session.inputNames,
+      inputIsArray: Array.isArray(session.inputNames),
     })
   } catch (err) {
     const msg = (err as Error)?.message ?? String(err)
@@ -642,6 +663,13 @@ async function predictChunk(
   if (isBertFamily) {
     feeds.token_type_ids = new ort.Tensor('int64', new BigInt64Array(L), [1, L])
   }
+  postDiag('[NER-WORKER] predictChunk feeds prepared', {
+    lang: CURRENT_LANG,
+    L,
+    feedKeys: Object.keys(feeds),
+    inputNamesAtRunTime: (session as any).inputNames,
+    firstTokens: enc.inputIds.slice(0, 8),
+  })
 
   const output = await session.run(feeds)
   const logitsTensor: any = output.logits ?? output[Object.keys(output)[0] ?? 'logits']
@@ -679,6 +707,22 @@ async function predictChunk(
 
   // IO-scheme decode → raw spans (model labels, char offsets).
   const rawSpans = decodeIoScheme(text, predIds, predScores, enc.offsets, enc.specialMask)
+
+  // Distribution of predicted classes — helps tell apart "model returned
+  // all-O" (= 0 spans expected) from "spans found but filtered downstream".
+  const classCounts: Record<number, number> = {}
+  for (let i = 0; i < predIds.length; i += 1) {
+    const k = predIds[i] as number
+    classCounts[k] = (classCounts[k] ?? 0) + 1
+  }
+  postDiag('[NER-WORKER] predict logits/decode', {
+    lang: CURRENT_LANG,
+    L,
+    C,
+    classCounts,
+    rawSpansCount: rawSpans.length,
+    sampleSpans: rawSpans.slice(0, 5).map(s => ({ label: s.rawLabel, text: text.slice(s.start, s.end) })),
+  })
 
   // Map labels + threshold filter + assemble NerDetection.
   const out: NerDetection[] = []

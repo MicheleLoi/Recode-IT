@@ -51,10 +51,17 @@ export class PseudonymMapper {
   private streetIdx = 0
 
   private readonly pools: LanguagePools
+  /**
+   * Public language code this mapper was built for — callers can use it to
+   * decide whether to reuse this mapper across a language switch (they
+   * shouldn't: a mapper holds language-specific pseudonym allocations).
+   */
+  public readonly language: string
 
   constructor(options: PseudonymMapperOptions = {}) {
     // Default behavior (no options) remains Italian — preserves the contract
     // of every existing call site (tests, ClipboardWidget, etc.).
+    this.language = options.language ?? 'it'
     if (options.language && options.language !== 'it') {
       this.pools = getPoolsForLanguage(options.language)
     } else {
@@ -280,6 +287,22 @@ export class PseudonymMapper {
     const text = original.trim()
     const key = text.toLowerCase()
     if (this.orgMap.has(key)) return this.orgMap.get(key) as string
+
+    // Non-Italian path: skip the Italian institutional patterns
+    // ("Ordine degli Avvocati di X", "Camera di Commercio di Y",
+    // "Ente di ${pseudoCity}" fallback) — they're domain-specific to Italian
+    // legal/civil bodies and produce nonsense like "Ente di Springfield" for
+    // English orgs like Microsoft. For EN/DE/FR allocate directly from the
+    // language's COMPANY_POOL so each distinct organisation gets a distinct
+    // pseudonym (Acme Corp., Globex Inc., Initech LLC, ...).
+    if (this.language !== 'it') {
+      const result = this.companyBase.has(key)
+        ? (this.companyBase.get(key) as string)
+        : this.nextCompany()
+      this.orgMap.set(key, result)
+      if (!this.companyBase.has(key)) this.companyBase.set(key, result)
+      return result
+    }
 
     let city = ''
     const cityMatch = /\bdi\s+(\w[\w\s]*)$/i.exec(text)

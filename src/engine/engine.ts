@@ -425,7 +425,7 @@ export function anonymize(
   const mapper =
     options.seedMapper instanceof PseudonymMapper
       ? (options.seedMapper as PseudonymMapper)
-      : new PseudonymMapper()
+      : new PseudonymMapper({ language: options.language })
 
   // A-2 pre-pass: GDPR Recital 27 — exempt deceased persons before any NER /
   // mapper allocation. Runs in every mode (regex-only AND NER-enabled).

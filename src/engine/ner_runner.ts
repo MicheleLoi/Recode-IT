@@ -342,6 +342,21 @@ export class NerRunner {
   private onMessage = (event: MessageEvent) => {
     const data = event.data
     if (!data || typeof data !== 'object') return
+    if (data.type === 'log') {
+      // Diagnostic relay from the worker — bubble up to the page console
+      // so DevTools (and remote inspection tools that only see main-thread
+      // console messages) can observe the worker's internal state. We
+      // serialize the payload into the label so that single-arg console
+      // capture (e.g. Chrome MCP read_console_messages) sees the data.
+      try {
+        // eslint-disable-next-line no-console
+        console.log(`${data.label} ${JSON.stringify(data.payload)}`)
+      } catch {
+        // eslint-disable-next-line no-console
+        console.log(data.label, data.payload)
+      }
+      return
+    }
     if (data.type === 'result' || data.type === 'error') {
       const id: string | undefined = data.id
       if (!id) return

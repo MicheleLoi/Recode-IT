@@ -269,7 +269,14 @@ export function ClipboardWidget(): JSX.Element {
   const ensureLocalMapper = (currentEntities: ReviewEntity[]): PseudonymMapper => {
     if (localMapperRef.current !== null) return localMapperRef.current
     let mapper: PseudonymMapper
-    if (active?.mapper instanceof PseudonymMapper) {
+    // Reuse the active mapping's mapper ONLY when it was built for the
+    // current language. Reusing across a language switch (e.g. user worked
+    // in IT then switched to EN) is wrong — the mapper still holds the
+    // Italian pool and would output "Tizio" for English persons.
+    if (
+      active?.mapper instanceof PseudonymMapper &&
+      active.mapper.language === language
+    ) {
       mapper = active.mapper
     } else {
       mapper = new PseudonymMapper({ language })
@@ -514,7 +521,17 @@ export function ClipboardWidget(): JSX.Element {
         onFalsePositive={handleFalsePositive}
         onSubstituteAnyway={handleSubstituteAnyway}
         onManualAnnotate={handleManualAnnotate}
-        seedMapper={active?.mapper ?? null}
+        seedMapper={
+          // Only seed the engine with the active mapping's mapper when it
+          // was built for the current document language. Otherwise the
+          // engine allocates pseudonyms from the wrong pool — e.g. an
+          // English document handed an Italian mapper would still emit
+          // "Tizio" / "Caia" because the legacy mapper's pools are frozen.
+          active?.mapper instanceof PseudonymMapper &&
+          active.mapper.language === language
+            ? active.mapper
+            : null
+        }
         seedFalsePositives={userFalsePositiveTerms}
         canSave={canSave}
         loggedIn={user !== null}
