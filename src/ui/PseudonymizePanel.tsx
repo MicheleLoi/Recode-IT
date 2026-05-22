@@ -138,7 +138,7 @@ export function PseudonymizePanel({
   onOpenRecode,
   recodeOpen = false,
 }: Props): JSX.Element {
-  const { language, t } = useLanguage()
+  const { docLanguage: language, t } = useLanguage()
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle')

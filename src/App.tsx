@@ -48,7 +48,7 @@ function AppHeader({
 }): JSX.Element {
   const { user, logout, masterKey } = useAuth()
   const { active, closeActive } = useActiveMapping()
-  const { language, setLanguage, t } = useLanguage()
+  const { uiLanguage, setUiLanguage, docLanguage, setDocLanguage, t } = useLanguage()
 
   const onLogout = useCallback(async () => {
     await logout()
@@ -60,26 +60,46 @@ function AppHeader({
       <div className="app__header-inner">
         <div className="app__header-row">
           <div>
-            <h1>{BRAND_BY_LANG[language]}</h1>
-            <p className="tagline">{TAGLINE_BY_LANG[language]}</p>
+            <h1>{BRAND_BY_LANG[uiLanguage]}</h1>
+            <p className="tagline">{TAGLINE_BY_LANG[uiLanguage]}</p>
           </div>
-          <div className="app__lang-picker">
-            <label htmlFor="app-lang-select" className="app__lang-label">
-              {t('lang.label')}
-            </label>
-            <select
-              id="app-lang-select"
-              data-testid="app-lang-select"
-              className="app__lang-select"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value as Language)}
-            >
-              {SUPPORTED_LANGUAGES.map((lng) => (
-                <option key={lng} value={lng}>
-                  {BRAND_BY_LANG[lng]} ({lng.toUpperCase()})
-                </option>
-              ))}
-            </select>
+          <div className="app__lang-pickers">
+            <div className="app__lang-picker">
+              <label htmlFor="app-ui-lang-select" className="app__lang-label">
+                {t('lang.ui.label')}
+              </label>
+              <select
+                id="app-ui-lang-select"
+                data-testid="app-ui-lang-select"
+                className="app__lang-select"
+                value={uiLanguage}
+                onChange={(e) => setUiLanguage(e.target.value as Language)}
+              >
+                {SUPPORTED_LANGUAGES.map((lng) => (
+                  <option key={lng} value={lng}>
+                    {BRAND_BY_LANG[lng]} ({lng.toUpperCase()})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="app__lang-picker">
+              <label htmlFor="app-doc-lang-select" className="app__lang-label">
+                {t('lang.doc.label')}
+              </label>
+              <select
+                id="app-doc-lang-select"
+                data-testid="app-doc-lang-select"
+                className="app__lang-select"
+                value={docLanguage}
+                onChange={(e) => setDocLanguage(e.target.value as Language)}
+              >
+                {SUPPORTED_LANGUAGES.map((lng) => (
+                  <option key={lng} value={lng}>
+                    {lng.toUpperCase()} — {t(`lang.doc.option.${lng}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <nav className="app__nav" aria-label="Navigazione principale">
             {user ? (
@@ -255,7 +275,7 @@ function useInviteTokenFromUrl(): string | null {
 
 function AppInner(): JSX.Element {
   const { user, loading } = useAuth()
-  const { language, t } = useLanguage()
+  const { uiLanguage, t } = useLanguage()
   const [view, setView] = useState<View>('work')
   const inviteToken = useInviteTokenFromUrl()
   const [upgradeDismissed, setUpgradeDismissed] = useState(false)
@@ -293,7 +313,7 @@ function AppInner(): JSX.Element {
       )}
       <footer className="app__footer">
         <span>
-          {BRAND_BY_LANG[language]} — {t('app.footer.tagline')}
+          {BRAND_BY_LANG[uiLanguage]} — {t('app.footer.tagline')}
         </span>
         <span className="app__footer-links">
           <a href="/privacy">{t('app.footer.privacy')}</a>

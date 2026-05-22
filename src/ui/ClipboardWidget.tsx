@@ -80,7 +80,7 @@ function mergeEntries(
 export function ClipboardWidget(): JSX.Element {
   const { active, saveActive, closeActive, updateEntries } = useActiveMapping()
   const { user, masterKey } = useAuth()
-  const { language } = useLanguage()
+  const { docLanguage: language } = useLanguage()
 
   const [originalText, setOriginalText] = useState('')
   const [pseudonymizedText, setPseudonymizedText] = useState('')

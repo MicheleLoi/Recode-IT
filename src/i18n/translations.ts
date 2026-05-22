@@ -33,6 +33,12 @@ const it: Catalog = {
   'nav.lockedHint': '(bloccato)',
   'nav.lockedTitle': 'Master key non in memoria: serve riaprire la password per cifrare/decifrare i mapping.',
   'lang.label': 'Lingua documento',
+  'lang.ui.label': 'Lingua interfaccia',
+  'lang.doc.label': 'Lingua documento',
+  'lang.doc.option.it': 'Italiano',
+  'lang.doc.option.en': 'Inglese',
+  'lang.doc.option.de': 'Tedesco',
+  'lang.doc.option.fr': 'Francese',
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Mapping attivo:',
@@ -122,6 +128,12 @@ const en: Catalog = {
   'nav.lockedHint': '(locked)',
   'nav.lockedTitle': 'Master key not in memory: re-enter your password to encrypt/decrypt mappings.',
   'lang.label': 'Document language',
+  'lang.ui.label': 'Interface language',
+  'lang.doc.label': 'Document language',
+  'lang.doc.option.it': 'Italian',
+  'lang.doc.option.en': 'English',
+  'lang.doc.option.de': 'German',
+  'lang.doc.option.fr': 'French',
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Active mapping:',
@@ -211,6 +223,12 @@ const de: Catalog = {
   'nav.lockedHint': '(gesperrt)',
   'nav.lockedTitle': 'Hauptschlüssel nicht im Speicher: Passwort erneut eingeben, um Mappings zu ver-/entschlüsseln.',
   'lang.label': 'Dokumentsprache',
+  'lang.ui.label': 'Sprache der Oberfläche',
+  'lang.doc.label': 'Dokumentsprache',
+  'lang.doc.option.it': 'Italienisch',
+  'lang.doc.option.en': 'Englisch',
+  'lang.doc.option.de': 'Deutsch',
+  'lang.doc.option.fr': 'Französisch',
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Aktives Mapping:',
@@ -300,6 +318,12 @@ const fr: Catalog = {
   'nav.lockedHint': '(verrouillé)',
   'nav.lockedTitle': 'Clé principale absente de la mémoire : ressaisissez votre mot de passe pour chiffrer/déchiffrer les mappings.',
   'lang.label': 'Langue du document',
+  'lang.ui.label': 'Langue de l’interface',
+  'lang.doc.label': 'Langue du document',
+  'lang.doc.option.it': 'Italien',
+  'lang.doc.option.en': 'Anglais',
+  'lang.doc.option.de': 'Allemand',
+  'lang.doc.option.fr': 'Français',
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Mapping actif :',
