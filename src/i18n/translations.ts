@@ -116,6 +116,62 @@ const it: Catalog = {
   'docview.menu.menuHide': 'Nascondi',
   'docview.menu.copyOriginal': 'Copia testo originale',
   'docview.menu.lookup': 'Cerca su web',
+
+  // ────────────────────────── Privacy page ──────────────────────────
+  'privacy.title': 'Privacy',
+  'privacy.lastUpdated': 'Ultimo aggiornamento: 22 maggio 2026',
+  'privacy.back': '← Torna allo strumento',
+
+  'privacy.intro.title': 'In breve',
+  'privacy.intro.body': 'Recode IT, ENcode, DEcode e ChiFRer (lo stesso strumento sotto quattro nomi, uno per lingua) sostituiscono nomi e dati sensibili nei tuoi documenti prima che tu li condivida con un\'AI. Tutto il lavoro avviene sul tuo browser. Il documento originale non lascia mai il tuo computer.',
+
+  'privacy.local.title': 'Cosa resta sul tuo computer',
+  'privacy.local.body': 'Tutto ciò che riguarda il contenuto del documento è elaborato localmente nel browser, senza alcuna comunicazione di rete. In particolare:',
+  'privacy.local.list.document': 'Il documento originale che carichi o incolli (Word, PDF, testo) — non viene mai caricato sui nostri server, né su servizi terzi.',
+  'privacy.local.list.ner': 'Il riconoscimento delle entità (nomi, luoghi, organizzazioni) — eseguito da un modello AI scaricato una volta dal nostro server e poi attivo dentro il tuo browser in un Web Worker isolato.',
+  'privacy.local.list.mapping': 'La tabella di sostituzione (chi diventa quale pseudonimo) — vive in memoria del browser. Per gli account "gratuito con nome" è salvata anche localmente nel browser via IndexedDB.',
+  'privacy.local.list.manual': 'Le tue correzioni manuali (selezioni di testo che marchi come Persona, Luogo, ecc.) — restano sul tuo computer.',
+
+  'privacy.server.title': 'Cosa inviamo al nostro server (solo se crei un account)',
+  'privacy.server.body': 'Se decidi di creare un account, raccogliamo il minimo indispensabile per farti usare il prodotto:',
+  'privacy.server.list.email': 'La tua email — per identificarti, verificare l\'account e inviarti il link di conferma.',
+  'privacy.server.list.name': 'Il tuo nome (facoltativo) — solo se decidi di fornirlo durante la registrazione, per personalizzare le comunicazioni.',
+  'privacy.server.list.marketing': 'Il tuo consenso esplicito a ricevere comunicazioni di prodotto — solo se metti la spunta. Il consenso usa doppio opt-in via email.',
+  'privacy.server.list.password': 'La tua password — non viene mai memorizzata in chiaro; salviamo solo un hash crittograficamente sicuro (Argon2id).',
+  'privacy.server.note': 'Anche dopo la registrazione, il contenuto del documento che pseudonimizzi NON viene mai inviato al nostro server.',
+
+  'privacy.store.title': 'Dove e per quanto tempo conserviamo i dati',
+  'privacy.store.anonymous.title': 'Senza account (anonimo):',
+  'privacy.store.anonymous.body': 'niente persistenza, né locale né server. Chiudendo la pagina perdi la tabella di sostituzione. Nulla viene salvato da nessuna parte.',
+  'privacy.store.free.title': 'Account gratuito (zero-euro, con nome):',
+  'privacy.store.free.body': 'la tabella di sostituzione è salvata nel tuo browser via IndexedDB. Sul nostro server conserviamo solo l\'email, il nome (se fornito), e il flag di consenso marketing. Puoi cancellare l\'account in qualunque momento dalla dashboard "I miei mapping".',
+  'privacy.store.paid.title': 'Account a pagamento (€25 una tantum, in fase di attivazione):',
+  'privacy.store.paid.body': 'la tabella di sostituzione è cifrata sul tuo computer con una chiave derivata dalla tua password (Argon2id + AES-GCM) e poi inviata cifrata al server. Sul server NON possiamo decifrarla: è "zero-knowledge". Se perdi la password, i dati cifrati non sono recuperabili.',
+
+  'privacy.thirdParty.title': 'Servizi terzi',
+  'privacy.thirdParty.body': 'Usiamo il minimo indispensabile e solo quando strettamente necessario:',
+  'privacy.thirdParty.list.resend': 'Resend — servizio di delivery email per la conferma dell\'indirizzo e per email transazionali. Vede solo la tua email, il nome (se fornito) e il flag di consenso marketing. Hosting EU (Irlanda).',
+  'privacy.thirdParty.list.stripe': 'Stripe — gestore dei pagamenti per l\'account a pagamento (€25 una tantum). Attivo solo se sottoscrivi il piano a pagamento. Vede solo i dati di pagamento; non condividiamo con Stripe alcuna informazione sul contenuto dei tuoi documenti.',
+  'privacy.thirdParty.list.noAI': 'NESSUN provider AI esterno. Il modello che riconosce i nomi è scaricato una volta dal nostro server e gira dentro il tuo browser. Non chiamiamo OpenAI, Anthropic, Google né altri fornitori AI durante la pseudonimizzazione.',
+  'privacy.thirdParty.list.noAnalytics': 'NESSUNA analytics, tracker, pixel di Facebook, Google Analytics o simili. Il sito non sa quante volte lo apri.',
+
+  'privacy.cookies.title': 'Cookie e storage locale',
+  'privacy.cookies.body': 'Non usiamo cookie di profilazione. Usiamo solo storage tecnico necessario al funzionamento:',
+  'privacy.cookies.list.language': 'Le tue scelte di lingua (interfaccia e documento) sono salvate in localStorage per ricordarle al prossimo accesso.',
+  'privacy.cookies.list.indexeddb': 'Per gli account gratuiti, la tabella di sostituzione è salvata in IndexedDB del tuo browser. Tu sei l\'unico a vederla.',
+  'privacy.cookies.list.session': 'Per gli account registrati, un cookie tecnico di sessione (httpOnly, secure) mantiene il login attivo. Scade quando ti disconnetti.',
+
+  'privacy.rights.title': 'I tuoi diritti',
+  'privacy.rights.body': 'In base al GDPR (Regolamento UE 2016/679) puoi in qualunque momento:',
+  'privacy.rights.list.delete': 'Cancellare il tuo account e tutti i dati associati (email, nome, eventuali mapping salvati lato server) dalla dashboard "I miei mapping".',
+  'privacy.rights.list.export': 'Richiedere una copia dei tuoi dati (email, nome, mapping in chiaro per account gratuiti — i mapping cifrati per account a pagamento sono già in tuo possesso lato browser).',
+  'privacy.rights.list.contact': 'Contattarci per qualunque dubbio, richiesta o reclamo (vedi sotto). Puoi anche rivolgerti al Garante per la Protezione dei Dati Personali (garanteprivacy.it).',
+
+  'privacy.contact.title': 'Contatti',
+  'privacy.contact.body': 'Titolare del trattamento:',
+
+  'privacy.changes.title': 'Modifiche a questo documento',
+  'privacy.changes.body': 'Se cambiamo le pratiche di trattamento dei dati, aggiorniamo questo documento e cambiamo la data in cima. Per cambiamenti sostanziali (nuovi servizi terzi, nuove categorie di dati raccolti) ti informiamo via email se hai un account.',
 }
 
 const en: Catalog = {
@@ -211,6 +267,62 @@ const en: Catalog = {
   'docview.menu.menuHide': 'Hide',
   'docview.menu.copyOriginal': 'Copy original text',
   'docview.menu.lookup': 'Look up on the web',
+
+  // ────────────────────────── Privacy page ──────────────────────────
+  'privacy.title': 'Privacy',
+  'privacy.lastUpdated': 'Last updated: 22 May 2026',
+  'privacy.back': '← Back to the tool',
+
+  'privacy.intro.title': 'In short',
+  'privacy.intro.body': 'Recode IT, ENcode, DEcode and ChiFRer (the same tool under four names, one per language) replace names and sensitive data in your documents before you share them with an AI. All work happens in your browser. The original document never leaves your computer.',
+
+  'privacy.local.title': 'What stays on your computer',
+  'privacy.local.body': 'Everything related to your document\'s content is processed locally in the browser, with no network communication. Specifically:',
+  'privacy.local.list.document': 'The original document you upload or paste (Word, PDF, text) — it is never uploaded to our servers, nor to any third-party service.',
+  'privacy.local.list.ner': 'Entity recognition (names, places, organizations) — performed by an AI model downloaded once from our server and then running inside your browser in an isolated Web Worker.',
+  'privacy.local.list.mapping': 'The substitution table (who becomes which pseudonym) — lives in browser memory. For "free with name" accounts it is also saved locally in the browser via IndexedDB.',
+  'privacy.local.list.manual': 'Your manual corrections (text selections you mark as Person, Location, etc.) — they stay on your computer.',
+
+  'privacy.server.title': 'What we send to our server (only if you create an account)',
+  'privacy.server.body': 'If you choose to create an account, we collect the minimum needed to let you use the product:',
+  'privacy.server.list.email': 'Your email — to identify you, verify the account and send you the confirmation link.',
+  'privacy.server.list.name': 'Your name (optional) — only if you choose to provide it during registration, to personalize communications.',
+  'privacy.server.list.marketing': 'Your explicit consent to receive product communications — only if you check the box. Consent uses double opt-in via email.',
+  'privacy.server.list.password': 'Your password — never stored in plaintext; we only save a cryptographically secure hash (Argon2id).',
+  'privacy.server.note': 'Even after registering, the content of the document you pseudonymize is NEVER sent to our server.',
+
+  'privacy.store.title': 'Where and how long we keep data',
+  'privacy.store.anonymous.title': 'Without an account (anonymous):',
+  'privacy.store.anonymous.body': 'no persistence, neither local nor server-side. Closing the page wipes the substitution table. Nothing is saved anywhere.',
+  'privacy.store.free.title': 'Free account (zero-euro, with name):',
+  'privacy.store.free.body': 'the substitution table is saved in your browser via IndexedDB. On our server we keep only your email, name (if provided), and the marketing consent flag. You can delete your account at any time from the "My mappings" dashboard.',
+  'privacy.store.paid.title': 'Paid account (€25 one-time, currently being activated):',
+  'privacy.store.paid.body': 'the substitution table is encrypted on your computer with a key derived from your password (Argon2id + AES-GCM) and then sent encrypted to the server. On the server we CANNOT decrypt it: it is "zero-knowledge". If you lose your password, the encrypted data is unrecoverable.',
+
+  'privacy.thirdParty.title': 'Third-party services',
+  'privacy.thirdParty.body': 'We use the minimum necessary and only where strictly required:',
+  'privacy.thirdParty.list.resend': 'Resend — email delivery service for address confirmation and transactional email. Sees only your email, name (if provided) and the marketing consent flag. EU hosting (Ireland).',
+  'privacy.thirdParty.list.stripe': 'Stripe — payment processor for the paid account (€25 one-time). Active only if you subscribe to the paid plan. Sees only payment data; we share no information with Stripe about the content of your documents.',
+  'privacy.thirdParty.list.noAI': 'NO external AI providers. The model that recognizes names is downloaded once from our server and runs inside your browser. We do not call OpenAI, Anthropic, Google or any other AI provider during pseudonymization.',
+  'privacy.thirdParty.list.noAnalytics': 'NO analytics, trackers, Facebook pixel, Google Analytics or similar. The site does not know how many times you open it.',
+
+  'privacy.cookies.title': 'Cookies and local storage',
+  'privacy.cookies.body': 'We do not use profiling cookies. We only use technical storage necessary for operation:',
+  'privacy.cookies.list.language': 'Your language choices (interface and document) are saved in localStorage so we remember them on your next visit.',
+  'privacy.cookies.list.indexeddb': 'For free accounts, the substitution table is saved in your browser\'s IndexedDB. You are the only one who can see it.',
+  'privacy.cookies.list.session': 'For registered accounts, a technical session cookie (httpOnly, secure) keeps your login active. It expires when you log out.',
+
+  'privacy.rights.title': 'Your rights',
+  'privacy.rights.body': 'Under the GDPR (EU Regulation 2016/679) you can at any time:',
+  'privacy.rights.list.delete': 'Delete your account and all associated data (email, name, any server-side saved mappings) from the "My mappings" dashboard.',
+  'privacy.rights.list.export': 'Request a copy of your data (email, name, plaintext mappings for free accounts — encrypted mappings for paid accounts are already in your possession in the browser).',
+  'privacy.rights.list.contact': 'Contact us with any question, request or complaint (see below). You can also reach out to your national data protection authority.',
+
+  'privacy.contact.title': 'Contact',
+  'privacy.contact.body': 'Data controller:',
+
+  'privacy.changes.title': 'Changes to this notice',
+  'privacy.changes.body': 'If we change our data handling practices, we update this notice and bump the date at the top. For substantive changes (new third-party services, new categories of data collected) we will notify you by email if you have an account.',
 }
 
 const de: Catalog = {
@@ -306,6 +418,62 @@ const de: Catalog = {
   'docview.menu.menuHide': 'Ausblenden',
   'docview.menu.copyOriginal': 'Originaltext kopieren',
   'docview.menu.lookup': 'Im Web suchen',
+
+  // ────────────────────────── Privacy page ──────────────────────────
+  'privacy.title': 'Datenschutz',
+  'privacy.lastUpdated': 'Zuletzt aktualisiert: 22. Mai 2026',
+  'privacy.back': '← Zurück zum Werkzeug',
+
+  'privacy.intro.title': 'Kurz gesagt',
+  'privacy.intro.body': 'Recode IT, ENcode, DEcode und ChiFRer (dasselbe Werkzeug unter vier Namen, einer pro Sprache) ersetzen Namen und sensible Daten in Ihren Dokumenten, bevor Sie diese mit einer KI teilen. Die gesamte Verarbeitung erfolgt in Ihrem Browser. Das Originaldokument verlässt nie Ihren Computer.',
+
+  'privacy.local.title': 'Was auf Ihrem Computer bleibt',
+  'privacy.local.body': 'Alles, was den Inhalt Ihres Dokuments betrifft, wird lokal im Browser verarbeitet, ohne Netzwerkkommunikation. Im Einzelnen:',
+  'privacy.local.list.document': 'Das Originaldokument, das Sie hochladen oder einfügen (Word, PDF, Text) — es wird nie auf unsere Server oder zu Dritten hochgeladen.',
+  'privacy.local.list.ner': 'Die Entitätserkennung (Namen, Orte, Organisationen) — wird von einem KI-Modell durchgeführt, das einmal von unserem Server heruntergeladen wird und dann in Ihrem Browser in einem isolierten Web Worker läuft.',
+  'privacy.local.list.mapping': 'Die Ersetzungstabelle (wer welches Pseudonym erhält) — lebt im Browserspeicher. Für "kostenlos mit Namen"-Konten wird sie auch lokal im Browser über IndexedDB gespeichert.',
+  'privacy.local.list.manual': 'Ihre manuellen Korrekturen (Textauswahlen, die Sie als Person, Ort usw. markieren) — bleiben auf Ihrem Computer.',
+
+  'privacy.server.title': 'Was wir an unseren Server senden (nur wenn Sie ein Konto erstellen)',
+  'privacy.server.body': 'Wenn Sie sich entscheiden, ein Konto zu erstellen, erfassen wir das Mindestmaß, das nötig ist, um Sie das Produkt nutzen zu lassen:',
+  'privacy.server.list.email': 'Ihre E-Mail-Adresse — um Sie zu identifizieren, das Konto zu verifizieren und Ihnen den Bestätigungslink zu senden.',
+  'privacy.server.list.name': 'Ihren Namen (optional) — nur wenn Sie ihn bei der Registrierung angeben möchten, um die Kommunikation zu personalisieren.',
+  'privacy.server.list.marketing': 'Ihre ausdrückliche Einwilligung in Produktmitteilungen — nur wenn Sie das Kontrollkästchen aktivieren. Die Einwilligung erfolgt per Double-Opt-In via E-Mail.',
+  'privacy.server.list.password': 'Ihr Passwort — wird nie im Klartext gespeichert; wir speichern nur einen kryptografisch sicheren Hash (Argon2id).',
+  'privacy.server.note': 'Auch nach der Registrierung wird der Inhalt des Dokuments, das Sie pseudonymisieren, NIEMALS an unseren Server gesendet.',
+
+  'privacy.store.title': 'Wo und wie lange wir Daten speichern',
+  'privacy.store.anonymous.title': 'Ohne Konto (anonym):',
+  'privacy.store.anonymous.body': 'keine Persistenz, weder lokal noch serverseitig. Beim Schließen der Seite ist die Ersetzungstabelle weg. Nichts wird irgendwo gespeichert.',
+  'privacy.store.free.title': 'Kostenloses Konto (Null-Euro, mit Namen):',
+  'privacy.store.free.body': 'Die Ersetzungstabelle wird in Ihrem Browser über IndexedDB gespeichert. Auf unserem Server speichern wir nur Ihre E-Mail, den Namen (falls angegeben) und das Marketing-Einwilligungsflag. Sie können Ihr Konto jederzeit über das "Meine Mappings"-Dashboard löschen.',
+  'privacy.store.paid.title': 'Bezahltes Konto (25 € einmalig, in Aktivierung):',
+  'privacy.store.paid.body': 'Die Ersetzungstabelle wird auf Ihrem Computer mit einem aus Ihrem Passwort abgeleiteten Schlüssel verschlüsselt (Argon2id + AES-GCM) und dann verschlüsselt an den Server gesendet. Auf dem Server können wir sie NICHT entschlüsseln: es ist "Zero-Knowledge". Wenn Sie Ihr Passwort verlieren, sind die verschlüsselten Daten nicht wiederherstellbar.',
+
+  'privacy.thirdParty.title': 'Drittanbieter-Dienste',
+  'privacy.thirdParty.body': 'Wir verwenden das Nötigste und nur wo unbedingt erforderlich:',
+  'privacy.thirdParty.list.resend': 'Resend — E-Mail-Zustelldienst für Adressbestätigung und transaktionale E-Mails. Sieht nur Ihre E-Mail, den Namen (falls angegeben) und das Marketing-Einwilligungsflag. EU-Hosting (Irland).',
+  'privacy.thirdParty.list.stripe': 'Stripe — Zahlungsabwickler für das bezahlte Konto (25 € einmalig). Nur aktiv, wenn Sie den Bezahlplan abonnieren. Sieht nur Zahlungsdaten; wir teilen mit Stripe keine Informationen über den Inhalt Ihrer Dokumente.',
+  'privacy.thirdParty.list.noAI': 'KEINE externen KI-Anbieter. Das Modell, das Namen erkennt, wird einmal von unserem Server heruntergeladen und läuft in Ihrem Browser. Während der Pseudonymisierung rufen wir weder OpenAI, Anthropic, Google noch andere KI-Anbieter auf.',
+  'privacy.thirdParty.list.noAnalytics': 'KEINE Analytics, Tracker, Facebook-Pixel, Google Analytics oder Ähnliches. Die Seite weiß nicht, wie oft Sie sie öffnen.',
+
+  'privacy.cookies.title': 'Cookies und lokaler Speicher',
+  'privacy.cookies.body': 'Wir verwenden keine Profiling-Cookies. Wir verwenden nur technische Speicherung, die für den Betrieb notwendig ist:',
+  'privacy.cookies.list.language': 'Ihre Sprachauswahl (Oberfläche und Dokument) wird in localStorage gespeichert, damit wir uns beim nächsten Besuch daran erinnern.',
+  'privacy.cookies.list.indexeddb': 'Für kostenlose Konten wird die Ersetzungstabelle im IndexedDB Ihres Browsers gespeichert. Nur Sie können sie sehen.',
+  'privacy.cookies.list.session': 'Für registrierte Konten hält ein technisches Sitzungs-Cookie (httpOnly, secure) Ihre Anmeldung aktiv. Es läuft ab, wenn Sie sich abmelden.',
+
+  'privacy.rights.title': 'Ihre Rechte',
+  'privacy.rights.body': 'Gemäß der DSGVO (Verordnung (EU) 2016/679) können Sie jederzeit:',
+  'privacy.rights.list.delete': 'Ihr Konto und alle zugehörigen Daten (E-Mail, Name, serverseitig gespeicherte Mappings) über das "Meine Mappings"-Dashboard löschen.',
+  'privacy.rights.list.export': 'Eine Kopie Ihrer Daten anfordern (E-Mail, Name, Klartext-Mappings für kostenlose Konten — verschlüsselte Mappings für bezahlte Konten sind bereits in Ihrem Besitz im Browser).',
+  'privacy.rights.list.contact': 'Sich mit jeder Frage, Anfrage oder Beschwerde an uns wenden (siehe unten). Sie können sich auch an Ihre nationale Datenschutzbehörde wenden.',
+
+  'privacy.contact.title': 'Kontakt',
+  'privacy.contact.body': 'Verantwortlicher:',
+
+  'privacy.changes.title': 'Änderungen an dieser Erklärung',
+  'privacy.changes.body': 'Wenn wir unsere Datenverarbeitungspraktiken ändern, aktualisieren wir diese Erklärung und passen das Datum oben an. Bei wesentlichen Änderungen (neue Drittanbieter, neue Kategorien erhobener Daten) benachrichtigen wir Sie per E-Mail, wenn Sie ein Konto haben.',
 }
 
 const fr: Catalog = {
@@ -401,6 +569,62 @@ const fr: Catalog = {
   'docview.menu.menuHide': 'Masquer',
   'docview.menu.copyOriginal': 'Copier le texte original',
   'docview.menu.lookup': 'Rechercher sur le web',
+
+  // ────────────────────────── Privacy page ──────────────────────────
+  'privacy.title': 'Confidentialité',
+  'privacy.lastUpdated': 'Dernière mise à jour : 22 mai 2026',
+  'privacy.back': '← Retour à l’outil',
+
+  'privacy.intro.title': 'En bref',
+  'privacy.intro.body': 'Recode IT, ENcode, DEcode et ChiFRer (le même outil sous quatre noms, un par langue) remplacent les noms et données sensibles dans vos documents avant que vous ne les partagiez avec une IA. Tout le travail s’effectue dans votre navigateur. Le document original ne quitte jamais votre ordinateur.',
+
+  'privacy.local.title': 'Ce qui reste sur votre ordinateur',
+  'privacy.local.body': 'Tout ce qui concerne le contenu de votre document est traité localement dans le navigateur, sans aucune communication réseau. En particulier :',
+  'privacy.local.list.document': 'Le document original que vous téléversez ou collez (Word, PDF, texte) — il n’est jamais téléversé sur nos serveurs, ni vers aucun service tiers.',
+  'privacy.local.list.ner': 'La reconnaissance d’entités (noms, lieux, organisations) — effectuée par un modèle d’IA téléchargé une fois depuis notre serveur puis exécuté dans votre navigateur dans un Web Worker isolé.',
+  'privacy.local.list.mapping': 'La table de substitution (qui devient quel pseudonyme) — vit dans la mémoire du navigateur. Pour les comptes « gratuit avec nom », elle est aussi enregistrée localement dans le navigateur via IndexedDB.',
+  'privacy.local.list.manual': 'Vos corrections manuelles (sélections de texte que vous marquez comme Personne, Lieu, etc.) — elles restent sur votre ordinateur.',
+
+  'privacy.server.title': 'Ce que nous envoyons à notre serveur (uniquement si vous créez un compte)',
+  'privacy.server.body': 'Si vous choisissez de créer un compte, nous collectons le minimum nécessaire pour vous laisser utiliser le produit :',
+  'privacy.server.list.email': 'Votre email — pour vous identifier, vérifier le compte et vous envoyer le lien de confirmation.',
+  'privacy.server.list.name': 'Votre nom (facultatif) — uniquement si vous choisissez de le fournir lors de l’inscription, pour personnaliser les communications.',
+  'privacy.server.list.marketing': 'Votre consentement explicite pour recevoir des communications produit — uniquement si vous cochez la case. Le consentement utilise un double opt-in par email.',
+  'privacy.server.list.password': 'Votre mot de passe — jamais stocké en clair ; nous ne sauvegardons qu’un hash cryptographiquement sûr (Argon2id).',
+  'privacy.server.note': 'Même après l’inscription, le contenu du document que vous pseudonymisez n’est JAMAIS envoyé à notre serveur.',
+
+  'privacy.store.title': 'Où et combien de temps nous conservons les données',
+  'privacy.store.anonymous.title': 'Sans compte (anonyme) :',
+  'privacy.store.anonymous.body': 'aucune persistance, ni locale ni côté serveur. Fermer la page efface la table de substitution. Rien n’est sauvegardé nulle part.',
+  'privacy.store.free.title': 'Compte gratuit (zéro euro, avec nom) :',
+  'privacy.store.free.body': 'la table de substitution est enregistrée dans votre navigateur via IndexedDB. Sur notre serveur nous gardons uniquement votre email, votre nom (si fourni), et l’indicateur de consentement marketing. Vous pouvez supprimer votre compte à tout moment depuis le tableau de bord « Mes mappings ».',
+  'privacy.store.paid.title': 'Compte payant (25 € unique, en cours d’activation) :',
+  'privacy.store.paid.body': 'la table de substitution est chiffrée sur votre ordinateur avec une clé dérivée de votre mot de passe (Argon2id + AES-GCM) puis envoyée chiffrée au serveur. Sur le serveur nous NE POUVONS PAS la déchiffrer : c’est du « zero-knowledge ». Si vous perdez votre mot de passe, les données chiffrées ne sont pas récupérables.',
+
+  'privacy.thirdParty.title': 'Services tiers',
+  'privacy.thirdParty.body': 'Nous utilisons le strict minimum, uniquement où c’est nécessaire :',
+  'privacy.thirdParty.list.resend': 'Resend — service de livraison email pour la confirmation d’adresse et les emails transactionnels. Voit uniquement votre email, votre nom (si fourni) et l’indicateur de consentement marketing. Hébergement UE (Irlande).',
+  'privacy.thirdParty.list.stripe': 'Stripe — processeur de paiement pour le compte payant (25 € unique). Actif uniquement si vous souscrivez au plan payant. Voit uniquement les données de paiement ; nous ne partageons avec Stripe aucune information sur le contenu de vos documents.',
+  'privacy.thirdParty.list.noAI': 'AUCUN fournisseur IA externe. Le modèle qui reconnaît les noms est téléchargé une fois depuis notre serveur et s’exécute dans votre navigateur. Pendant la pseudonymisation nous n’appelons ni OpenAI, ni Anthropic, ni Google, ni aucun autre fournisseur IA.',
+  'privacy.thirdParty.list.noAnalytics': 'AUCUN analytics, tracker, pixel Facebook, Google Analytics ou similaire. Le site ne sait pas combien de fois vous l’ouvrez.',
+
+  'privacy.cookies.title': 'Cookies et stockage local',
+  'privacy.cookies.body': 'Nous n’utilisons pas de cookies de profilage. Nous n’utilisons que le stockage technique nécessaire au fonctionnement :',
+  'privacy.cookies.list.language': 'Vos choix de langue (interface et document) sont enregistrés dans localStorage afin de les retrouver à votre prochain accès.',
+  'privacy.cookies.list.indexeddb': 'Pour les comptes gratuits, la table de substitution est enregistrée dans l’IndexedDB de votre navigateur. Vous êtes le seul à pouvoir la voir.',
+  'privacy.cookies.list.session': 'Pour les comptes enregistrés, un cookie technique de session (httpOnly, secure) maintient votre connexion active. Il expire quand vous vous déconnectez.',
+
+  'privacy.rights.title': 'Vos droits',
+  'privacy.rights.body': 'En vertu du RGPD (Règlement UE 2016/679) vous pouvez à tout moment :',
+  'privacy.rights.list.delete': 'Supprimer votre compte et toutes les données associées (email, nom, éventuels mappings enregistrés côté serveur) depuis le tableau de bord « Mes mappings ».',
+  'privacy.rights.list.export': 'Demander une copie de vos données (email, nom, mappings en clair pour les comptes gratuits — les mappings chiffrés pour les comptes payants sont déjà en votre possession dans le navigateur).',
+  'privacy.rights.list.contact': 'Nous contacter pour toute question, demande ou réclamation (voir ci-dessous). Vous pouvez aussi saisir votre autorité nationale de protection des données (CNIL en France).',
+
+  'privacy.contact.title': 'Contact',
+  'privacy.contact.body': 'Responsable du traitement :',
+
+  'privacy.changes.title': 'Modifications de cette notice',
+  'privacy.changes.body': 'Si nous modifions nos pratiques de traitement des données, nous mettons à jour cette notice et changeons la date en haut. Pour des changements substantiels (nouveaux services tiers, nouvelles catégories de données collectées) nous vous prévenons par email si vous avez un compte.',
 }
 
 export const TRANSLATIONS: Record<Language, Catalog> = { it, en, de, fr }

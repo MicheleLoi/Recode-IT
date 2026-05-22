@@ -36,8 +36,9 @@ import { SignupPage } from './ui/auth/SignupPage'
 import { RecoveryPage } from './ui/auth/RecoveryPage'
 import { AccountDashboard } from './ui/auth/AccountDashboard'
 import { UpgradePage } from './ui/upgrade/UpgradePage'
+import { PrivacyPage } from './ui/PrivacyPage'
 
-type View = 'work' | 'login' | 'signup' | 'recovery' | 'dashboard'
+type View = 'work' | 'login' | 'signup' | 'recovery' | 'dashboard' | 'privacy'
 
 function AppHeader({
   view,
@@ -250,6 +251,9 @@ function AppShell({
           onOpened={() => onNavigate('work')}
         />
       )}
+      {view === 'privacy' && (
+        <PrivacyPage onBack={() => onNavigate('work')} />
+      )}
     </main>
   )
 }
@@ -289,6 +293,17 @@ function AppInner(): JSX.Element {
     // — they can pseudonymize locally without an account.
   }, [loading, user, view])
 
+  // Deep-link support: if the URL path is /privacy on first mount, land
+  // on the privacy view. Footer links use full hrefs so external pages
+  // (Google results, shared links, RSS feeds) keep working.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (window.location.pathname === '/privacy' && view !== 'privacy') {
+      setView('privacy')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Invite token path: when ?t=<token> is present we override the regular
   // view dispatch and show UpgradePage. The user can still dismiss to the
   // regular flow with the "Torna alla home" button (sets upgradeDismissed).
@@ -316,7 +331,25 @@ function AppInner(): JSX.Element {
           {BRAND_BY_LANG[uiLanguage]} — {t('app.footer.tagline')}
         </span>
         <span className="app__footer-links">
-          <a href="/privacy">{t('app.footer.privacy')}</a>
+          <a
+            href="/privacy"
+            onClick={(e) => {
+              // Intercept the link click so we render the React route in-app
+              // (preserves header/footer/active language) instead of doing a
+              // full page navigation. The href stays as /privacy so the link
+              // is still shareable, openable in a new tab, and indexable.
+              if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+                e.preventDefault()
+                setView('privacy')
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({}, '', '/privacy')
+                }
+              }
+            }}
+            data-testid="footer-privacy-link"
+          >
+            {t('app.footer.privacy')}
+          </a>
           <span className="app__build">{t('app.footer.build')} {GIT_SHA}</span>
         </span>
       </footer>
