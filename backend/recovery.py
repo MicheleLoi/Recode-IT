@@ -119,7 +119,8 @@ async def verify_recovery(request: Request):
         validate_password_strength(new_password)
     except WeakPasswordError as exc:
         return error_response("weak_password", str(exc),
-                              status=400, extra={"min_length": 12},
+                              status=400,
+                              extra={"min_length": 12, "min_classes": 3},
                               request=request)
 
     token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()

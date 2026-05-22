@@ -65,7 +65,7 @@ def test_auth_required_on_mappings(client):
 
 def test_user_isolation(client):
     # Register user A, create a mapping.
-    sa = {"email": "a@a.it", "password": "12345 6789012 secret", "name": "Alice"}
+    sa = {"email": "a@a.it", "password": "Twelve 6789012 Secret!", "name": "Alice"}
     client.post("/recode/signup", json=sa)
     client.post("/recode/login", json=sa)
     mid = str(uuid.uuid4())
@@ -73,7 +73,7 @@ def test_user_isolation(client):
                 json={"mapping_id": mid, "blob": _b64(_mk_blob(32))})
     client.post("/recode/logout")
     # Register user B and try to fetch A's mapping.
-    sb = {"email": "b@b.it", "password": "12345 6789012 secret", "name": "Bob"}
+    sb = {"email": "b@b.it", "password": "Twelve 6789012 Secret!", "name": "Bob"}
     client.post("/recode/signup", json=sb)
     client.post("/recode/login", json=sb)
     r = client.get(f"/recode/mappings/{mid}")
@@ -146,12 +146,12 @@ def test_delete_account_cascades(registered):
            json={"mapping_id": mid, "blob": _b64(_mk_blob(16))})
     # Missing confirm string.
     r = c.request("DELETE", "/recode/account/",
-                  json={"password": "correct horse battery staple"})
+                  json={"password": "Correct Horse Battery Staple 9"})
     assert r.status_code == 400
     # Correct confirm.
     r = c.request(
         "DELETE", "/recode/account/",
-        json={"password": "correct horse battery staple",
+        json={"password": "Correct Horse Battery Staple 9",
               "confirm": "DELETE MY ACCOUNT"},
     )
     assert r.status_code == 200, r.text

@@ -51,9 +51,10 @@ def client() -> TestClient:
 
 @pytest.fixture
 def signup_payload():
+    # Satisfies post-P4 policy: 12+ chars + 3 classes (lower, upper, digit).
     return {
         "email": "avvocato@studio.it",
-        "password": "correct horse battery staple",
+        "password": "Correct Horse Battery Staple 9",
         "name": "Studio Legale Test",
     }
 

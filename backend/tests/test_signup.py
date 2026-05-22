@@ -37,6 +37,20 @@ def test_signup_password_too_short(client):
     body = resp.json()
     assert body["error"] == "weak_password"
     assert body["min_length"] == 12
+    assert body["min_classes"] == 3
+
+
+def test_signup_password_single_class_rejected(client):
+    """Post-P4: 12+ chars but only one character class must be rejected."""
+    resp = client.post(
+        "/recode/signup",
+        json={"email": "x@y.it", "password": "alllowercaseword",
+              "name": "Tester"},
+    )
+    assert resp.status_code == 400
+    body = resp.json()
+    assert body["error"] == "weak_password"
+    assert body["min_classes"] == 3
 
 
 def test_signup_invalid_email(client):
@@ -44,7 +58,7 @@ def test_signup_invalid_email(client):
         "/recode/signup",
         json={
             "email": "notanemail",
-            "password": "long enough password!",
+            "password": "Long Enough 99 password!",
             "name": "Tester",
         },
     )

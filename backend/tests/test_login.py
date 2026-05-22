@@ -19,14 +19,16 @@ def test_login_success_sets_cookie(client, signup_payload):
 def test_login_wrong_password(client, signup_payload):
     client.post("/recode/signup", json=signup_payload)
     resp = client.post("/recode/login",
-                       json={**signup_payload, "password": "wrong wrong wrong wrong"})
+                       json={**signup_payload, "password": "Wrong Wrong Wrong 9"})
     assert resp.status_code == 401
     assert resp.json()["error"] == "invalid_credentials"
 
 
 def test_login_unknown_email(client):
+    # Note: login doesn't validate password strength (verify_password just fails);
+    # any string works for the unknown-email path.
     resp = client.post("/recode/login",
-                       json={"email": "nobody@nowhere.it", "password": "doesnt matter at all"})
+                       json={"email": "nobody@nowhere.it", "password": "Doesnt Matter 99"})
     assert resp.status_code == 401
     # Generic error — no oracle.
     assert resp.json()["error"] == "invalid_credentials"

@@ -6,9 +6,14 @@ for new deployments in 2026). bcrypt for recovery-code hashes (one-time
 codes, low computation cost acceptable; rate-limited at the endpoint
 level).
 
-Minimum password length: 12 chars (R-04 mitigation indirect — reduces
-weak-password surface for the AES key derived client-side from the
-password material).
+Password policy (applied to NEW passwords only — signup + recovery reset.
+NOT retroactive to existing accounts):
+  - Minimum 12 characters (R-04 mitigation indirect — reduces weak-password
+    surface for the AES key derived client-side from the password material).
+  - At least 3 character classes from {lowercase, uppercase, digit, special}
+    (security hardening 2026-05-23 P4 — defeats single-class dictionary
+    attacks while staying friendly to passphrases, which can satisfy the
+    rule by mixing case + a punctuation mark).
 
 Recovery code format: 3 alphanumeric uppercase groups of 4 chars each,
 joined by dashes (e.g. `A7K3-9P2M-X4N8`). Twelve characters of base32-ish
@@ -39,6 +44,7 @@ _PASSWORD_HASHER = PasswordHasher(
 )
 
 MIN_PASSWORD_LENGTH = 12
+MIN_PASSWORD_CLASSES = 3
 RECOVERY_CODE_GROUPS = 3
 RECOVERY_CODE_GROUP_LEN = 4
 # Crockford base32-ish: dropped I, L, O, U, 0, 1 to avoid visual confusion.
@@ -49,11 +55,42 @@ class WeakPasswordError(ValueError):
     """Raised when a user-supplied password violates policy."""
 
 
+def _count_character_classes(password: str) -> int:
+    """Count how many of {lowercase, uppercase, digit, special} appear.
+
+    Special = anything that is not alphanumeric (punctuation, symbols,
+    whitespace, non-ASCII letters all roll into 'special' deliberately —
+    we don't want to be paternalistic about exotic Unicode).
+    """
+    classes = 0
+    if any(c.islower() and c.isascii() for c in password):
+        classes += 1
+    if any(c.isupper() and c.isascii() for c in password):
+        classes += 1
+    if any(c.isdigit() and c.isascii() for c in password):
+        classes += 1
+    if any(not c.isalnum() for c in password):
+        classes += 1
+    return classes
+
+
 def validate_password_strength(password: str) -> None:
-    """Raise WeakPasswordError on policy violations."""
+    """Raise WeakPasswordError on policy violations.
+
+    Policy (NEW passwords only — signup + recovery reset, NOT retroactive):
+      - length >= MIN_PASSWORD_LENGTH (12)
+      - at least MIN_PASSWORD_CLASSES (3) classes from
+        {lowercase, uppercase, digit, special-non-alphanumeric}
+    """
     if len(password) < MIN_PASSWORD_LENGTH:
         raise WeakPasswordError(
             f"password must be at least {MIN_PASSWORD_LENGTH} characters"
+        )
+    classes = _count_character_classes(password)
+    if classes < MIN_PASSWORD_CLASSES:
+        raise WeakPasswordError(
+            f"password must include at least {MIN_PASSWORD_CLASSES} of: "
+            f"lowercase, uppercase, digit, special (got {classes})"
         )
 
 
@@ -128,6 +165,7 @@ def _normalize_recovery_code(code: str) -> str:
 
 __all__ = [
     "MIN_PASSWORD_LENGTH",
+    "MIN_PASSWORD_CLASSES",
     "WeakPasswordError",
     "validate_password_strength",
     "hash_password",

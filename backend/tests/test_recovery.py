@@ -80,7 +80,7 @@ def test_recovery_full_flow(client, signup_payload, monkeypatch):
         conn.close()
 
     # 5) Verify the recovery code + reset password.
-    new_pw = "freshly chosen long password!!!"
+    new_pw = "Freshly chosen LONG password 99!"
     verify = client.post(
         "/recode/recovery/verify",
         json={"token": token, "recovery_code": recovery_code,
@@ -109,7 +109,7 @@ def test_recovery_full_flow(client, signup_payload, monkeypatch):
     r = client.post(
         "/recode/recovery/verify",
         json={"token": token2, "recovery_code": recovery_code,
-              "new_password": "another long passphrase ok"},
+              "new_password": "Another long passphrase 99!"},
     )
     assert r.status_code == 400
     assert r.json()["error"] == "invalid_recovery_code"

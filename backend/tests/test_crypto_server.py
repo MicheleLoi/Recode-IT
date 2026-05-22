@@ -19,15 +19,36 @@ from backend import auth_jwt, password
 
 
 def test_argon2_password_round_trip():
+    # Note: hash_password itself doesn't enforce policy (validate_password_strength
+    # is called separately by signup/recovery endpoints). Round-trip works on any
+    # input string.
     h = password.hash_password("a long enough passphrase to pass policy")
     assert password.verify_password(h, "a long enough passphrase to pass policy")
     assert not password.verify_password(h, "different password entirely")
 
 
 def test_password_policy_min_length():
-    with pytest.raises(password.WeakPasswordError):
+    with pytest.raises(password.WeakPasswordError, match="at least 12"):
         password.validate_password_strength("short")
-    password.validate_password_strength("twelvecharspw")  # exactly 13
+    # 12+ chars + 3 classes (lower, upper, digit) is the smallest passing
+    # password under post-P4 policy.
+    password.validate_password_strength("AbcdefGhij12")
+
+
+def test_password_policy_requires_three_character_classes():
+    # 12+ chars but single class — must fail.
+    with pytest.raises(password.WeakPasswordError, match="3 of"):
+        password.validate_password_strength("alllowercase!")  # 13 ch, 2 classes
+    with pytest.raises(password.WeakPasswordError, match="3 of"):
+        password.validate_password_strength("ALLUPPERCASE!")  # 13 ch, 2 classes
+    with pytest.raises(password.WeakPasswordError, match="3 of"):
+        password.validate_password_strength("twelvecharspw")  # 13 ch, 1 class
+    # 12+ chars + 3 classes (any 3): passes.
+    password.validate_password_strength("Lowerupper99")           # lower+upper+digit
+    password.validate_password_strength("lowercase 99!")          # lower+digit+special
+    password.validate_password_strength("UPPER lower!")           # upper+lower+special
+    # 12+ chars + all 4 classes also passes.
+    password.validate_password_strength("Mixed Case 99!")
 
 
 def test_recovery_codes_are_unique_and_well_formed():

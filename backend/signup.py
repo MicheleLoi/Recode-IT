@@ -98,7 +98,9 @@ async def signup_endpoint(request: Request):
     except WeakPasswordError as exc:
         return error_response(
             "weak_password", str(exc),
-            status=400, extra={"min_length": 12}, request=request,
+            status=400,
+            extra={"min_length": 12, "min_classes": 3},
+            request=request,
         )
 
     user_id = str(uuid.uuid4())
