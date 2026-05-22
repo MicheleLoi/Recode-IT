@@ -29,11 +29,18 @@ from .auth_jwt import (
 )
 from .db import connection
 from .http_utils import error_response, json_response
-from .password import verify_password
+from .password import hash_password, verify_password
 
 # Toggle for HTTP-only local dev (when set, Set-Cookie omits Secure flag).
 import os
 _COOKIE_SECURE_DEFAULT = os.environ.get("RECODE_IT_COOKIE_SECURE", "1") != "0"
+
+# P6 timing-attack mitigation: when the user lookup misses we still pay the
+# Argon2id verify cost so the response time does not leak account existence.
+# Computed once at import; the password we compare against never matches any
+# real plaintext (it's the hash of a random ephemeral string).
+import secrets as _secrets
+_DUMMY_PASSWORD_HASH = hash_password(_secrets.token_urlsafe(32))
 
 
 def _now_iso() -> str:
@@ -74,7 +81,14 @@ async def login_endpoint(request: Request):
             (email,),
         ).fetchone()
 
-    if not row or row["status"] != "active":
+    # P6 timing-attack mitigation: always run verify_password (against the
+    # real hash if the user exists, against a dummy hash otherwise) so the
+    # response time does not leak account existence. Compute the boolean
+    # outcome first, then collapse the two failure paths into one generic
+    # error.
+    if row is None or row["status"] != "active":
+        # Spend the verify cost on a hash that will never match.
+        verify_password(_DUMMY_PASSWORD_HASH, password)
         return error_response(
             "invalid_credentials",
             "Invalid email or password.",

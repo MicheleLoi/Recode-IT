@@ -55,3 +55,31 @@ def test_logout_clears_cookie(registered):
     # Subsequent /recode/me should now 401.
     resp2 = c.get("/recode/me")
     assert resp2.status_code == 401
+
+
+def test_login_unknown_email_runs_verify_for_constant_time(client, signup_payload):
+    """P6: unknown-email path must spend verify_password cost so it doesn't
+    short-circuit (timing-attack oracle). We can't reliably assert wallclock
+    in CI, but we CAN assert the dummy verify code path actually executes
+    by patching verify_password and observing it gets called."""
+    client.post("/recode/signup", json=signup_payload)
+
+    from backend import login as login_mod
+    calls: list[str] = []
+    real_verify = login_mod.verify_password
+
+    def spy(stored_hash, pwd):
+        calls.append(stored_hash[:20])  # prefix only, not the full hash
+        return real_verify(stored_hash, pwd)
+
+    login_mod.verify_password = spy
+    try:
+        # Unknown email: verify_password MUST still be invoked (on dummy hash).
+        resp = client.post(
+            "/recode/login",
+            json={"email": "nobody@nowhere.it", "password": "Wrong Wrong 99!"},
+        )
+        assert resp.status_code == 401
+        assert len(calls) == 1, "verify_password must run on unknown-email path"
+    finally:
+        login_mod.verify_password = real_verify
