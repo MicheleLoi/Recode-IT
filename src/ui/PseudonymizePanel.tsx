@@ -138,7 +138,7 @@ export function PseudonymizePanel({
   onOpenRecode,
   recodeOpen = false,
 }: Props): JSX.Element {
-  const { language } = useLanguage()
+  const { language, t } = useLanguage()
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle')
@@ -193,15 +193,10 @@ export function PseudonymizePanel({
         setNerStatus('unavailable')
         const rawMsg = (err as Error)?.message ?? 'errore sconosciuto'
         if (rawMsg.includes('ERR_MODEL_NOT_FOUND')) {
-          setError(
-            'Modello NER non disponibile. La pseudonimizzazione resta attiva ' +
-              'per CF, IBAN, email e altri identificatori strutturati.',
-          )
+          setError(t('pseudo.error.nerUnavailable'))
         } else {
           setError(
-            'Errore tecnico nel caricamento del runtime NER. La ' +
-              'pseudonimizzazione regex resta attiva (CF, IBAN, email, ecc.). ' +
-              `Dettaglio: ${rawMsg.replace(/^ERR_BACKEND_INIT:\s*/, '')}`,
+            `${t('pseudo.error.nerBackend')} ${rawMsg.replace(/^ERR_BACKEND_INIT:\s*/, '')}`,
           )
         }
       })
@@ -402,7 +397,7 @@ export function PseudonymizePanel({
         ClipboardWidget.test and matches the AppHeader's screen-reader
         outline.
       */}
-      <h2 className="panel__heading-sr">Pseudonimizza</h2>
+      <h2 className="panel__heading-sr">{t('pseudo.heading')}</h2>
 
       {/*
         Design C v2 — empty-state hero loader. Avvocato fresh-arrival: the
@@ -520,7 +515,7 @@ export function PseudonymizePanel({
                 onClick={() => setDisplayMode('pseudonimo')}
                 data-testid="toggle-pseudonimo"
               >
-                Pseudonimizzato
+                {t('pseudo.toggle.pseudonimo')}
               </button>
               <button
                 type="button"
@@ -530,7 +525,7 @@ export function PseudonymizePanel({
                 onClick={() => setDisplayMode('originale')}
                 data-testid="toggle-originale"
               >
-                Originale
+                {t('pseudo.toggle.originale')}
               </button>
             </div>
             <button
@@ -538,9 +533,9 @@ export function PseudonymizePanel({
               className="btn btn--ghost btn--small"
               onClick={handleResetDocument}
               data-testid="reset-document-btn"
-              title="Carica un nuovo documento (sostituisce quello attuale)"
+              title={t('pseudo.button.newDocumentTitle')}
             >
-              ↻ Nuovo documento
+              {t('pseudo.button.newDocument')}
             </button>
             {/* hidden file input still available for the compact loader, reused via drop too */}
             <input
@@ -572,11 +567,11 @@ export function PseudonymizePanel({
                 data-testid="open-recode-btn"
                 title={
                   hasResult
-                    ? "Apri il pannello Recode per riportare la risposta dell'AI"
-                    : 'Pseudonimizza un documento prima di aprire il recode.'
+                    ? t('pseudo.button.openRecodeReady')
+                    : t('pseudo.button.openRecodeEmpty')
                 }
               >
-                Recode risposta AI →
+                {t('pseudo.button.openRecode')}
               </button>
             )}
           </div>
@@ -611,12 +606,12 @@ export function PseudonymizePanel({
           data-testid="pseudonymize-btn"
         >
           {nerStatus === 'loading'
-            ? 'Caricamento modello AI…'
+            ? t('pseudo.button.loading')
             : nerStatus === 'running'
-              ? 'Riconoscimento entità in corso…'
+              ? t('pseudo.button.running')
               : activeLabel
-                ? 'Estendi mapping'
-                : 'Pseudonimizza'}
+                ? t('pseudo.button.extend')
+                : t('pseudo.button.pseudonimize')}
         </button>
         <button
           type="button"
@@ -716,7 +711,7 @@ export function PseudonymizePanel({
 
       {nerStatus === 'running' && (
         <div className="ner-status" role="status" data-testid="ner-status">
-          Riconoscimento entità in corso…
+          {t('pseudo.status.running')}
         </div>
       )}
 
@@ -732,18 +727,14 @@ export function PseudonymizePanel({
           role="status"
           data-testid="partial-ner-banner"
         >
-          <strong>Riconoscimento entità incompleto</strong> su{' '}
+          <strong>{t('pseudo.partial.title')}</strong>{' '}
           {partialNotice.failedRanges.length}{' '}
           {partialNotice.failedRanges.length === 1
-            ? 'sezione'
-            : 'sezioni'}{' '}
-          del documento. Pseudonimizzazione completata su regex e parti
-          riconosciute. <strong>Per i nomi rimasti in chiaro:</strong>{' '}
-          selezionali col mouse direttamente nel testo qui sotto e scegli
-          la categoria dal menu che appare — la sostituzione si applica
-          a tutte le occorrenze del documento.
+            ? t('pseudo.partial.singular')
+            : t('pseudo.partial.plural')}{' '}
+          {t('pseudo.partial.body')} {t('pseudo.partial.manualHint')}
           <details className="partial-ner-banner__details">
-            <summary>Sezioni saltate (offset caratteri)</summary>
+            <summary>{t('pseudo.partial.skippedSections')}</summary>
             {partialNotice.failedRanges
               .map(([s, e]) => `${s}-${e}`)
               .join(', ')}
@@ -761,7 +752,7 @@ export function PseudonymizePanel({
             data-testid="toggle-pass2-checkbox"
           />
           <span className="toggle-pass2__text">
-            Sostituisci anche luoghi, organizzazioni e tribunali
+            {t('pseudo.toggle.places')}
           </span>
         </label>
       </div>

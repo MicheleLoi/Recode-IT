@@ -48,7 +48,7 @@ function AppHeader({
 }): JSX.Element {
   const { user, logout, masterKey } = useAuth()
   const { active, closeActive } = useActiveMapping()
-  const { language, setLanguage } = useLanguage()
+  const { language, setLanguage, t } = useLanguage()
 
   const onLogout = useCallback(async () => {
     await logout()
@@ -65,7 +65,7 @@ function AppHeader({
           </div>
           <div className="app__lang-picker">
             <label htmlFor="app-lang-select" className="app__lang-label">
-              Lingua documento
+              {t('lang.label')}
             </label>
             <select
               id="app-lang-select"
@@ -90,7 +90,7 @@ function AppHeader({
                   onClick={() => onNavigate('work')}
                   data-testid="nav-work"
                 >
-                  Strumento
+                  {t('nav.work')}
                 </button>
                 <button
                   type="button"
@@ -98,17 +98,17 @@ function AppHeader({
                   onClick={() => onNavigate('dashboard')}
                   data-testid="nav-dashboard"
                 >
-                  I miei mapping
+                  {t('nav.dashboard')}
                 </button>
                 <span className="app__user" data-testid="auth-user-email">
                   {user.email}
                   {user.tier === 'pro' && !masterKey && (
                     <span
                       className="app__user-lock"
-                      title="Master key non in memoria: serve riaprire la password per cifrare/decifrare i mapping."
+                      title={t('nav.lockedTitle')}
                     >
                       {' '}
-                      (bloccato)
+                      {t('nav.lockedHint')}
                     </span>
                   )}
                 </span>
@@ -118,7 +118,7 @@ function AppHeader({
                   onClick={() => void onLogout()}
                   data-testid="logout-btn"
                 >
-                  Esci
+                  {t('nav.logout')}
                 </button>
               </>
             ) : (
@@ -129,7 +129,7 @@ function AppHeader({
                   onClick={() => onNavigate('login')}
                   data-testid="nav-login"
                 >
-                  Accedi
+                  {t('nav.login')}
                 </button>
                 <button
                   type="button"
@@ -137,7 +137,7 @@ function AppHeader({
                   onClick={() => onNavigate('signup')}
                   data-testid="nav-signup"
                 >
-                  Crea account
+                  {t('nav.signup')}
                 </button>
               </>
             )}
@@ -146,15 +146,16 @@ function AppHeader({
         {active && view === 'work' && (
           <div className="active-mapping-banner" data-testid="active-mapping-banner">
             <span className="active-mapping-banner__label">
-              Mapping attivo:{' '}
+              {t('banner.active.label')}{' '}
               <strong>{active.label}</strong>
               {active.dirty && (
-                <span className="active-mapping-banner__dirty"> · modifiche non salvate</span>
+                <span className="active-mapping-banner__dirty">
+                  {' '}{t('banner.active.dirty')}
+                </span>
               )}
             </span>
             <span className="active-mapping-banner__hint">
-              I prossimi documenti che trascini saranno pseudonimizzati con
-              gli stessi pseudonimi (continuità di causa).
+              {t('banner.active.hint')}
             </span>
             <button
               type="button"
@@ -163,19 +164,17 @@ function AppHeader({
                 if (
                   active.dirty &&
                   // eslint-disable-next-line no-alert
-                  !window.confirm(
-                    'Eliminare il mapping attivo? Le sostituzioni di questo caso verranno dimenticate e i prossimi documenti ripartiranno da zero. Le modifiche non salvate andranno perse.',
-                  )
+                  !window.confirm(t('banner.active.deleteConfirm'))
                 ) {
                   return
                 }
                 closeActive()
               }}
               data-testid="close-active-mapping-btn"
-              title="Elimina il mapping attivo e ricomincia da zero"
-              aria-label="Elimina mapping attivo"
+              title={t('banner.active.deleteTitle')}
+              aria-label={t('banner.active.deleteAria')}
             >
-              ✕ Elimina mapping
+              {t('banner.active.delete')}
             </button>
           </div>
         )}
@@ -192,6 +191,7 @@ function AppShell({
   onNavigate: (v: View) => void
 }): JSX.Element {
   const { user, loading } = useAuth()
+  const { t } = useLanguage()
 
   // Auto-redirect to login if the user lands on a protected view while
   // unauthenticated. We do NOT lock the 'work' view — local pseudonymization
@@ -204,7 +204,7 @@ function AppShell({
   if (loading) {
     return (
       <main className="app__main">
-        <p data-testid="auth-loading">Caricamento sessione…</p>
+        <p data-testid="auth-loading">{t('app.loadingSession')}</p>
       </main>
     )
   }
@@ -255,6 +255,7 @@ function useInviteTokenFromUrl(): string | null {
 
 function AppInner(): JSX.Element {
   const { user, loading } = useAuth()
+  const { language, t } = useLanguage()
   const [view, setView] = useState<View>('work')
   const inviteToken = useInviteTokenFromUrl()
   const [upgradeDismissed, setUpgradeDismissed] = useState(false)
@@ -292,12 +293,11 @@ function AppInner(): JSX.Element {
       )}
       <footer className="app__footer">
         <span>
-          Recode IT — pseudonimizzazione e recoding in locale, senza upload del
-          documento originale.
+          {BRAND_BY_LANG[language]} — {t('app.footer.tagline')}
         </span>
         <span className="app__footer-links">
-          <a href="/privacy">Privacy</a>
-          <span className="app__build">build {GIT_SHA}</span>
+          <a href="/privacy">{t('app.footer.privacy')}</a>
+          <span className="app__build">{t('app.footer.build')} {GIT_SHA}</span>
         </span>
       </footer>
     </div>

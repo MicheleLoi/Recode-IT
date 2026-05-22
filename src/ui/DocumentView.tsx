@@ -39,6 +39,7 @@ import { EntityHighlight, type DisplayMode } from './EntityHighlight'
 import { EntityPopover } from './EntityPopover'
 import type { ReviewEntity, SwitchableCategory } from './types'
 import type { ManualCategory } from '../engine/manual_annotate'
+import { useLanguage } from './LanguageContext'
 
 type Token =
   | { kind: 'text'; content: string }
@@ -59,13 +60,13 @@ type Props = {
 
 const MANUAL_CATEGORY_OPTIONS: ReadonlyArray<{
   value: ManualCategory
-  label: string
+  labelKey: string
 }> = [
-  { value: 'persona', label: 'Persona' },
-  { value: 'luogo', label: 'Luogo' },
-  { value: 'organizzazione', label: 'Organizzazione' },
-  { value: 'tribunale', label: 'Tribunale' },
-  { value: 'altro', label: 'Altro' },
+  { value: 'persona', labelKey: 'docview.menu.persona' },
+  { value: 'luogo', labelKey: 'docview.menu.luogo' },
+  { value: 'organizzazione', labelKey: 'docview.menu.organizzazione' },
+  { value: 'tribunale', labelKey: 'docview.menu.tribunale' },
+  { value: 'altro', labelKey: 'docview.menu.altro' },
 ]
 
 /**
@@ -133,6 +134,7 @@ export function DocumentView({
   onSubstituteAnyway,
   onManualAnnotate,
 }: Props): JSX.Element {
+  const { t } = useLanguage()
   const [activeEntityId, setActiveEntityId] = useState<string | null>(null)
   const [activeAnchor, setActiveAnchor] = useState<HTMLElement | null>(null)
   const [manualMenuPos, setManualMenuPos] = useState<{
@@ -324,10 +326,9 @@ export function DocumentView({
     <div className="docview-wrapper">
       {!emptyState && (
         <p className="docview__manual-hint" data-testid="docview-manual-hint">
-          Se vedi un nome o un dato sensibile <strong>in chiaro</strong> nel testo
-          qui sotto (il modello NER non l'ha riconosciuto), selezionalo e scegli
-          la categoria dal menu che appare. Basta selezionarlo una volta — la
-          sostituzione si applica a tutte le occorrenze nel documento.
+          {t('docview.manualHint.prefix')}{' '}
+          <strong>{t('docview.manualHint.inChiaro')}</strong>{' '}
+          {t('docview.manualHint.suffix')}
         </p>
       )}
       <div
@@ -340,9 +341,7 @@ export function DocumentView({
       >
         {emptyState ? (
           <p className="docview__empty" data-testid="docview-empty">
-            Trascina un file qui sopra o incolla il testo per cominciare. Le
-            entità rilevate appariranno evidenziate direttamente nel
-            documento.
+            {t('docview.empty')}
           </p>
         ) : (
           tokens.map((tok, idx) => {
@@ -387,7 +386,7 @@ export function DocumentView({
           aria-label="Anonimizza la selezione"
           data-testid="manual-menu"
         >
-          <div className="manual-menu__title">Anonimizza come</div>
+          <div className="manual-menu__title">{t('docview.menu.anonimize')}</div>
           {MANUAL_CATEGORY_OPTIONS.map((c) => (
             <button
               key={c.value}
@@ -397,7 +396,7 @@ export function DocumentView({
               role="menuitem"
               data-testid={`manual-menu-${c.value}`}
             >
-              {c.label}
+              {t(c.labelKey)}
             </button>
           ))}
         </div>

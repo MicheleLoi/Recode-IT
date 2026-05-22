@@ -22,8 +22,9 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { translate, type Language } from '../i18n/translations'
 
-export type Language = 'it' | 'en' | 'de' | 'fr'
+export type { Language }
 
 export const SUPPORTED_LANGUAGES: ReadonlyArray<Language> = ['it', 'en', 'de', 'fr']
 
@@ -70,6 +71,12 @@ const STORAGE_KEY = 'recode-it.language'
 type LanguageContextValue = {
   language: Language
   setLanguage: (lang: Language) => void
+  /**
+   * Resolve a UI string key to the active language. Falls back to Italian
+   * (canonical source) when the active language is missing the key, then
+   * to the raw key as last resort so the UI never renders empty.
+   */
+  t: (key: string) => string
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null)
@@ -103,7 +110,12 @@ export function LanguageProvider({ children }: { children: ReactNode }): JSX.Ele
     document.documentElement.lang = language
   }, [language])
 
-  const value = useMemo(() => ({ language, setLanguage }), [language, setLanguage])
+  const t = useCallback((key: string) => translate(language, key), [language])
+
+  const value = useMemo(
+    () => ({ language, setLanguage, t }),
+    [language, setLanguage, t],
+  )
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
 }
 
@@ -118,6 +130,7 @@ const DEFAULT_LANG_CTX: LanguageContextValue = {
   setLanguage: () => {
     /* no-op when outside a provider */
   },
+  t: (key: string) => translate('it', key),
 }
 
 export function useLanguage(): LanguageContextValue {

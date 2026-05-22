@@ -14,6 +14,7 @@
 import { useEffect, useState } from 'react'
 import { recodeText } from '../engine/recode'
 import type { MappingEntry } from '../types/engine'
+import { useLanguage } from './LanguageContext'
 
 type Props = {
   mapping: MappingEntry[]
@@ -30,6 +31,7 @@ export function RecodePanel({
   mode = 'inline',
   onClose,
 }: Props): JSX.Element {
+  const { t } = useLanguage()
   const [claudeResponse, setClaudeResponse] = useState('')
   const [recoded, setRecoded] = useState('')
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle')
@@ -84,18 +86,16 @@ export function RecodePanel({
       data-mode={mode}
     >
       <header className="panel__header">
-        <h2>Recode</h2>
+        <h2>{t('recode.title')}</h2>
         <p className="panel__subtitle">
-          Incolla qui la risposta dell'AI (che contiene gli pseudonimi). I
-          pseudonimi vengono sostituiti con i valori originali, in locale, via
-          reverse-mapping della tabella di sostituzione.
+          {t('recode.subtitle')}
         </p>
         {isSlideIn && onClose && (
           <button
             type="button"
             className="panel__close"
             onClick={onClose}
-            aria-label="Chiudi pannello recode"
+            aria-label={t('recode.closeAria')}
             data-testid="recode-close-btn"
           >
             ✕
@@ -110,8 +110,8 @@ export function RecodePanel({
         >
           <strong>{mapping.length}</strong>{' '}
           {mapping.length === 1
-            ? 'sostituzione attiva'
-            : 'sostituzioni attive'}
+            ? t('recode.mappingBadge.singular')
+            : t('recode.mappingBadge.plural')}
         </div>
       )}
 
@@ -120,34 +120,31 @@ export function RecodePanel({
           className="hint hint--warning"
           data-testid="recode-no-mapping-hint"
         >
-          <strong>Nessuna mappa di sostituzione attiva.</strong>{' '}
-          Pseudonimizza prima un documento (bottone &laquo;Pseudonimizza&raquo;
-          a sinistra) per popolare la tabella di reverse-mapping. Una volta
-          fatto, potrai incollare qui la risposta dell'AI e vedere i nomi
-          originali apparire automaticamente sotto.
+          <strong>{t('recode.noMapping.title')}</strong>{' '}
+          {t('recode.noMapping.body')}
         </div>
       )}
 
       <label className="field">
-        <span className="field__label">Risposta dell'AI (con pseudonimi)</span>
+        <span className="field__label">{t('recode.field.input')}</span>
         <textarea
           className="field__textarea"
           value={claudeResponse}
           onChange={(e) => setClaudeResponse(e.target.value)}
-          placeholder="Incolla qui la risposta dell'AI…"
+          placeholder={t('recode.field.inputPlaceholder')}
           rows={isSlideIn ? 8 : 10}
           data-testid="claude-response-textarea"
         />
       </label>
 
       <label className="field">
-        <span className="field__label">Risposta recodata</span>
+        <span className="field__label">{t('recode.field.output')}</span>
         <textarea
           className="field__textarea field__textarea--readonly"
           value={recoded}
           readOnly
           rows={isSlideIn ? 8 : 10}
-          placeholder="Il testo recodato apparirà qui."
+          placeholder={t('recode.field.outputPlaceholder')}
           data-testid="recoded-textarea"
         />
       </label>
@@ -161,13 +158,13 @@ export function RecodePanel({
           data-testid="recode-now-btn"
           title={
             !hasMapping
-              ? 'Serve una mappa di sostituzione attiva (pseudonimizza prima un documento).'
+              ? t('recode.button.recodeNowTitleNoMapping')
               : !claudeResponse.trim()
-                ? "Incolla la risposta dell'AI qui sopra."
-                : 'Esegui subito il reverse-mapping (succede anche automaticamente dopo qualche istante).'
+                ? t('recode.button.recodeNowTitleEmpty')
+                : t('recode.button.recodeNowTitleReady')
           }
         >
-          Recode
+          {t('recode.button.recodeNow')}
         </button>
         <button
           type="button"
@@ -176,7 +173,7 @@ export function RecodePanel({
           disabled={!recoded}
           data-testid="copy-recoded-btn"
         >
-          {copyState === 'copied' ? '✓ Copiato' : 'Copia finale negli appunti'}
+          {copyState === 'copied' ? '✓ ' + t('pseudo.button.copied').replace(' ✓', '') : t('pseudo.button.copy')}
         </button>
       </div>
 
