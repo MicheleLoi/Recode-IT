@@ -219,7 +219,7 @@ export function PseudonymizePanel({
 
       if (!ACCEPTED_EXTENSIONS.some((ext) => name.endsWith(ext))) {
         setError(
-          `Formato non supportato. Trascina un file ${ACCEPTED_EXTENSIONS.join(', ')}, oppure incolla il testo qui sotto.`,
+          `${t('pseudo.upload.errorFormatPrefix')}${ACCEPTED_EXTENSIONS.join(', ')}${t('pseudo.upload.errorFormatSuffix')}`,
         )
         return
       }
@@ -231,10 +231,10 @@ export function PseudonymizePanel({
         }
         onOriginalChange(result.text)
       } catch (err) {
-        setError(`Impossibile leggere il file: ${(err as Error).message}`)
+        setError(`${t('pseudo.upload.errorReadPrefix')}${(err as Error).message}`)
       }
     },
-    [onOriginalChange],
+    [onOriginalChange, t],
   )
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -407,7 +407,7 @@ export function PseudonymizePanel({
       */}
       {!hasDocument && (
         <div className="drop-hero" data-testid="drop-hero">
-          <div className="drop-hero__tabs" role="tablist" aria-label="Modalità di caricamento">
+          <div className="drop-hero__tabs" role="tablist" aria-label={t('pseudo.tabs.ariaLabel')}>
             <button
               type="button"
               role="tab"
@@ -416,7 +416,7 @@ export function PseudonymizePanel({
               onClick={() => setLoadTab('file')}
               data-testid="loadtab-file"
             >
-              Carica file
+              {t('pseudo.tabs.upload')}
             </button>
             <button
               type="button"
@@ -426,7 +426,7 @@ export function PseudonymizePanel({
               onClick={() => setLoadTab('paste')}
               data-testid="loadtab-paste"
             >
-              Incolla testo
+              {t('pseudo.tabs.paste')}
             </button>
           </div>
 
@@ -442,10 +442,10 @@ export function PseudonymizePanel({
                 ⬆
               </div>
               <p className="drop-zone__headline">
-                Trascina qui il documento o clicca per caricare
+                {t('pseudo.upload.dropzone')}
               </p>
               <p className="drop-zone__hint">
-                Formati supportati: <code>.txt</code> · <code>.md</code> ·{' '}
+                {t('pseudo.upload.formats')} <code>.txt</code> · <code>.md</code> ·{' '}
                 <code>.docx</code> · <code>.pdf</code>
               </p>
               <button
@@ -454,7 +454,7 @@ export function PseudonymizePanel({
                 onClick={() => fileInputRef.current?.click()}
                 data-testid="select-file-btn"
               >
-                Seleziona file…
+                {t('pseudo.upload.selectButton')}
               </button>
               <input
                 ref={fileInputRef}
@@ -469,13 +469,13 @@ export function PseudonymizePanel({
             <div className="drop-hero__paste" data-testid="drop-paste">
               <label className="field">
                 <span className="field__label">
-                  Incolla qui il testo del documento da pseudonimizzare
+                  {t('pseudo.paste.label')}
                 </span>
                 <textarea
                   className="field__textarea"
                   value={pasteBuffer}
                   onChange={(e) => setPasteBuffer(e.target.value)}
-                  placeholder="Incolla qui il testo…"
+                  placeholder={t('pseudo.paste.placeholder')}
                   rows={10}
                   data-testid="paste-textarea"
                 />
@@ -491,7 +491,7 @@ export function PseudonymizePanel({
                 disabled={!pasteBuffer.trim()}
                 data-testid="paste-confirm-btn"
               >
-                Usa questo testo
+                {t('pseudo.paste.useButton')}
               </button>
             </div>
           )}
@@ -630,12 +630,12 @@ export function PseudonymizePanel({
           data-testid="save-mapping-btn"
         >
           {saveStatus === 'saving'
-            ? 'Salvataggio…'
+            ? t('pseudo.save.saving')
             : saveStatus === 'saved'
-              ? '✓ Salvato'
+              ? t('pseudo.save.saved')
               : activeLabel
-                ? 'Aggiorna mapping'
-                : 'Salva mapping'}
+                ? t('pseudo.save.update')
+                : t('pseudo.button.save')}
         </button>
       </div>
 
@@ -773,9 +773,7 @@ export function PseudonymizePanel({
       ) : (
         <div className="docview docview--placeholder">
           <p className="docview__empty" data-testid="docview-empty">
-            Trascina un file qui sopra o incolla il testo nel campo
-            &laquo;Vista dettaglio&raquo;. Il documento apparirà qui con le
-            entità rilevate evidenziate inline.
+            {t('pseudo.detail.placeholder')}
           </p>
         </div>
       )}
@@ -789,10 +787,10 @@ export function PseudonymizePanel({
         founder can sanity-check the document view against the raw output.
       */}
       <details className="detail-disclosure" data-testid="detail-disclosure">
-        <summary>Vista dettaglio — testo e lista entità</summary>
+        <summary>{t('pseudo.detail.title')}</summary>
 
         <label className="field">
-          <span className="field__label">Testo originale</span>
+          <span className="field__label">{t('pseudo.detail.originalLabel')}</span>
           <textarea
             ref={originalTextareaRef}
             className="field__textarea"
@@ -805,7 +803,7 @@ export function PseudonymizePanel({
             onKeyUp={updateSelectionState}
             onClick={updateSelectionState}
             onFocus={updateSelectionState}
-            placeholder="Incolla qui il documento da pseudonimizzare…"
+            placeholder={t('pseudo.detail.originalPlaceholder')}
             rows={8}
             data-testid="original-textarea"
           />
@@ -813,20 +811,20 @@ export function PseudonymizePanel({
 
         <div className="manual-annotate" data-testid="manual-annotate">
           <label className="manual-annotate__category">
-            <span className="manual-annotate__label">Categoria</span>
+            <span className="manual-annotate__label">{t('pseudo.detail.categoryLabel')}</span>
             <select
               value={manualCategory}
               onChange={(e) =>
                 setManualCategory(e.target.value as ManualCategory)
               }
               data-testid="manual-annotate-category"
-              aria-label="Categoria per anonimizzazione manuale"
+              aria-label={t('pseudo.detail.categoryAria')}
             >
-              <option value="persona">Persona</option>
-              <option value="luogo">Luogo</option>
-              <option value="organizzazione">Organizzazione</option>
-              <option value="tribunale">Tribunale</option>
-              <option value="altro">Altro (maschera generica)</option>
+              <option value="persona">{t('pseudo.detail.cat.persona')}</option>
+              <option value="luogo">{t('pseudo.detail.cat.luogo')}</option>
+              <option value="organizzazione">{t('pseudo.detail.cat.organizzazione')}</option>
+              <option value="tribunale">{t('pseudo.detail.cat.tribunale')}</option>
+              <option value="altro">{t('pseudo.detail.cat.altro')}</option>
             </select>
           </label>
           <button
@@ -836,29 +834,29 @@ export function PseudonymizePanel({
             disabled={!hasSelection || !originalText}
             title={
               !hasSelection
-                ? 'Seleziona una porzione di testo originale per anonimizzarla manualmente.'
-                : "Aggiunge l'entità selezionata al mapping con la categoria scelta."
+                ? t('pseudo.detail.manualNoSelection')
+                : t('pseudo.detail.manualHasSelection')
             }
             data-testid="manual-annotate-btn"
           >
-            Anonimizza la selezione
+            {t('pseudo.detail.manualButton')}
           </button>
         </div>
 
         <label className="field">
-          <span className="field__label">Testo pseudonimizzato</span>
+          <span className="field__label">{t('pseudo.detail.pseudoLabel')}</span>
           <textarea
             className="field__textarea field__textarea--readonly"
             value={pseudonymizedText}
             readOnly
             rows={8}
-            placeholder="L'output apparirà qui dopo Pseudonimizza."
+            placeholder={t('pseudo.detail.pseudoPlaceholder')}
             data-testid="pseudonymized-textarea"
           />
         </label>
 
-        <section className="review" aria-label="Entità rilevate">
-          <h3>Entità rilevate</h3>
+        <section className="review" aria-label={t('pseudo.detail.entitiesAria')}>
+          <h3>{t('pseudo.detail.entitiesHeader')}</h3>
           <EntityReviewList
             entities={entities}
             onAccept={onAccept}
