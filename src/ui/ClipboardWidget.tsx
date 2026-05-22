@@ -98,18 +98,36 @@ export function ClipboardWidget(): JSX.Element {
   // ONLY when the active reference changes (open / close / save), not on
   // every entries update, otherwise local UI edits would be overwritten.
   const activeMappingId = active?.mappingId ?? null
+  // Track previous active id so we can detect the "open → close" transition
+  // and treat it as a full reset (user clicked "Elimina mapping" → wants to
+  // start from a clean slate). Without this distinction, the first mount
+  // (active === null from the start) would wipe state the user has not yet
+  // produced — harmless but useless.
+  const prevActiveIdRef = useRef<string | null>(activeMappingId)
   useEffect(() => {
     if (active) {
       setEntities(buildReviewEntities(active.entries))
       // Do NOT clear pseudonymizedText / originalText — the user may have
       // a doc loaded that they want to keep working with.
       setLabelInput(active.label)
+    } else if (prevActiveIdRef.current !== null) {
+      // Explicit close: wipe document, entities, local mapper, save status.
+      // This is what makes the "✕ Elimina mapping" banner button a true
+      // reset — without it, the local mapper ref + pseudonymized text would
+      // survive and the next document would still carry the prior pseudonyms.
+      setOriginalText('')
+      setPseudonymizedText('')
+      setEntities([])
+      localMapperRef.current = null
+      setSaveStatus('idle')
+      setSaveError(null)
     } else {
-      // Closed: leave the current review state alone (don't surprise the
-      // user with an empty list); just clear save status.
+      // First-mount path (active === null from start, no prior mapping):
+      // just align save status, leave doc/entities alone.
       setSaveStatus('idle')
       setSaveError(null)
     }
+    prevActiveIdRef.current = activeMappingId
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMappingId])
 

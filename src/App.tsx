@@ -47,7 +47,7 @@ function AppHeader({
   onNavigate: (v: View) => void
 }): JSX.Element {
   const { user, logout, masterKey } = useAuth()
-  const { active } = useActiveMapping()
+  const { active, closeActive } = useActiveMapping()
   const { language, setLanguage } = useLanguage()
 
   const onLogout = useCallback(async () => {
@@ -156,6 +156,27 @@ function AppHeader({
               I prossimi documenti che trascini saranno pseudonimizzati con
               gli stessi pseudonimi (continuità di causa).
             </span>
+            <button
+              type="button"
+              className="active-mapping-banner__close"
+              onClick={() => {
+                if (
+                  active.dirty &&
+                  // eslint-disable-next-line no-alert
+                  !window.confirm(
+                    'Eliminare il mapping attivo? Le sostituzioni di questo caso verranno dimenticate e i prossimi documenti ripartiranno da zero. Le modifiche non salvate andranno perse.',
+                  )
+                ) {
+                  return
+                }
+                closeActive()
+              }}
+              data-testid="close-active-mapping-btn"
+              title="Elimina il mapping attivo e ricomincia da zero"
+              aria-label="Elimina mapping attivo"
+            >
+              ✕ Elimina mapping
+            </button>
           </div>
         )}
       </div>

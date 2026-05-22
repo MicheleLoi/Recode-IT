@@ -544,6 +544,31 @@ code {
   color: var(--muted);
 }
 
+.active-mapping-banner__close {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--rule, #c8ced6);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--danger-fg, #b00020);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.active-mapping-banner__close:hover {
+  background: var(--danger-fg, #b00020);
+  color: #fff;
+  border-color: var(--danger-fg, #b00020);
+}
+
+.active-mapping-banner__close:focus {
+  outline: 2px solid var(--accent, #2962ff);
+  outline-offset: 2px;
+}
+
 /* ============================ Auth pages ============================ */
 
 .auth-card {
