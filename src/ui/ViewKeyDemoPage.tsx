@@ -123,7 +123,7 @@ function buildActiveMappingValue(mode: DemoMode): ActiveMappingContextValue {
 }
 
 export function ViewKeyDemoPage(): JSX.Element {
-  const [mode, setMode] = useState<DemoMode>('unlocked')
+  const [mode, setMode] = useState<DemoMode>('locked-logged-in')
 
   // Recompute context values when the mode changes so the modal re-renders
   // against fresh state (avoids stale snapshots of viewKeyGranted etc.).
