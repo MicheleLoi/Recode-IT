@@ -337,6 +337,49 @@ Razionale: prezzo una tantum di €25 non sostiene storage illimitato perpetuo a
 
 Authority: dialogo founder ↔ chief_of_staff SID-20260518-143605 + strategist round 1 (raccomandazione c locale) + strategist round 2 (validazione struttura 3 tier) + ratifiche founder verbatim "test: niente memoria di sessione; solo nome (acquisto a zero euro) memoria di sessione interno; 25 euro chiave sul server e diversi computer" + "email anche per newsletter, chiedendo il consenso; limite storage cloud; test permanente ma senza garanzie".
 
+### 9.9 View-key add-on €20 una tantum (ratificato 2026-05-23)
+
+**Ratifica:** founder SID-20260523-162500 (MHC-Work `_org/decision_log.md` §"RegIA pricing model finalizzato: MHC-H free €0 + Recode view-key €20 una tantum + Pro €25 una tantum parallelo").
+
+**Problema:** utenti tier zero-euro hanno la mapping pseudonimo→reale in IndexedDB del browser in chiaro (§9.1) ma **non c'è UI per ispezionarla**. Founder + futuri tester che debuggano errori NER hanno difficoltà a correggere senza vedere la mapping. La feature originariamente prevista per Pro €25 è stata deprezzata perché Pro implica chiave server-side cifrata = vende fiducia in propria security non certificata = non-etico Phase 1.
+
+**Soluzione:** "Vedi la chiave" button nel UI Recode IT, gated da permission grant. La mapping resta in IndexedDB del browser (no server upload), il €20 sblocca solo l'**autorizzazione di UI affordance**.
+
+**Tre vie per ottenere il grant:**
+
+1. **Paid €20 una tantum** — Stripe Payment Link mode=payment (NON subscription) → webhook `checkout.session.completed` → permission set source='paid'. Privacy-paranoid friendly: chi paga sa che NON sta cedendo custodia della chiave al server.
+2. **MHC Bearer paste** — utente con Bearer key MHC-L Phase 1 / MHC-H (signup Stripe €0) incolla nel claim form Recode IT → backend valida cross-DB read-only su `/root/.mhc-l-keystore.db` (entrambi servizi root sullo stesso VPS) → permission set source='mhc_bearer' + `linked_mhc_user_email` per audit + future bundle features.
+3. **Pro tier implies** — utente con `tier='pro'` riceve granted computed at read time, source='pro_tier'. La feature è inclusa nel Pro (no extra payment).
+
+**Free for MHC ecosystem members.** Bundle synergy: ogni signup MHC-H (Stripe €0) sblocca la view-key feature in Recode IT senza ulteriore pagamento. Acquisition funnel verso MHC-H.
+
+**Backend implementato:** Recode-IT commit `8accc76` (locale, no GitHub remote):
+- `backend/migrations/004_add_view_key_permission.sql` — 3 colonne nuove su `recode_users` (`view_key_permitted_at`, `view_key_source`, `linked_mhc_user_email`)
+- `backend/view_key.py` — 3 endpoint JWT-protected:
+  - `GET /recode/view-key/permission`
+  - `POST /recode/view-key/claim-mhc-bearer`
+  - `POST /recode/view-key/claim-checkout`
+- `backend/stripe_webhook.py` — extension event handler `checkout.session.completed`
+- `backend/server.py` — wiring routes
+
+**Frontend pending** (prossima sessione): `src/auth/auth-context.tsx` extension (state `viewKeyPermitted`) + `src/storage/mapping-store.ts` reader (getCurrentMappingReadOnly) + `src/ui/ViewKeyButton.tsx` + `src/ui/ViewKeyModal.tsx` (stati locked/unlocked).
+
+**VPS deploy pending:**
+- Stripe Payment Link €20 una tantum mode=payment (founder action)
+- Env vars systemd unit `recode-it-backend.service`:
+  - `RECODE_IT_VIEW_KEY_STRIPE_PAYMENT_LINK_URL=<url>`
+  - `MHC_KEYSTORE_PATH=/root/.mhc-l-keystore.db` (default OK)
+- Backup DB + SCP + systemctl restart (pattern security hardening 2026-05-23)
+
+**Modello pricing finalizzato post-2026-05-23:**
+
+| Tier | Mapping storage | View UI | Prezzo |
+|---|---|---|---|
+| Test (anonymous) | RAM session only | nascosta | €0 |
+| Zero-euro (named) | IndexedDB browser plaintext | **nascosta** (default) | €0 |
+| **+ View-key add-on** | IndexedDB browser plaintext | **visibile** | **€20 una tantum** o free Bearer MHC |
+| Pro | Server-encrypted (Argon2id+AES-256-GCM) | visibile (implicit) | €25 una tantum (target; oggi €0/mese subscription invitation-only — refactor deferred) |
+
 ---
 
 *Recode IT capabilities_index — last synced SID-20260518-143605 (post-deploy 2026-05-18) + aggiornamento `feat/zero-euro-tier-indexeddb` (schema IDB canonico §9.1 + `marketing_consent_verified_at` §9.6 + stato §3 zero-euro tier implementato). Authored by MHC-Work portfolio governance. Coerenza con PDL ratificato 2026-05-17 + decision_log 2026-05-17 §"Pivot architetturale" + ratifica founder in-session 2026-05-18 §9 (persistenza locale design + struttura 3 tier strategist round 2) + deploy ratifica §3 stato + §5 deltas D7 D8 D9 + lessons learned in `OPEN_RISKS.md` R-09 resolution + R-11. Le ex-sezioni §9.1–§9.6 v1 (pre-strategist round 2) sono state rimosse perché duplicate da §9.0–§9.8 v2 sopra.*
