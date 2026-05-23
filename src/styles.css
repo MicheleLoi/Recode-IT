@@ -852,6 +852,121 @@ code {
   line-height: 1.45;
 }
 
+/* ───── View-key modal (capabilities_index §9.9) ───── */
+.view-key-modal {
+  max-width: 640px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.view-key-modal__pay {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: var(--toggle-bg, #f5f7fa);
+  border: 1px solid var(--rule, #d0d6de);
+  border-radius: 6px;
+}
+
+.view-key-modal__bearer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--toggle-bg, #f5f7fa);
+  border: 1px solid var(--rule, #d0d6de);
+  border-radius: 6px;
+}
+
+.view-key-modal__separator {
+  text-align: center;
+  color: var(--muted, #6a7280);
+  font-size: 0.85rem;
+  letter-spacing: 0.3em;
+  margin: 4px 0;
+}
+
+.view-key-modal__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted, #6a7280);
+  line-height: 1.4;
+}
+
+.view-key-modal__notice {
+  margin: 8px 0;
+  padding: 10px 12px;
+  background: var(--toggle-bg, #f5f7fa);
+  border: 1px solid var(--rule, #d0d6de);
+  border-left: 4px solid #4a90e2;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.view-key-modal__error {
+  margin: 4px 0 0;
+  color: #c0392b;
+  font-size: 0.85rem;
+}
+
+.view-key-modal__source-pill {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 2px 10px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: -4px;
+}
+
+.view-key-modal__table-wrap {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid var(--rule, #d0d6de);
+  border-radius: 4px;
+}
+
+.view-key-modal__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.view-key-modal__table thead {
+  position: sticky;
+  top: 0;
+  background: var(--surface, #fff);
+  z-index: 1;
+}
+
+.view-key-modal__table th {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--rule, #d0d6de);
+  font-weight: 600;
+  background: var(--toggle-bg, #f5f7fa);
+}
+
+.view-key-modal__table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--rule, #e8eaed);
+  vertical-align: top;
+  word-break: break-word;
+}
+
+.view-key-modal__table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ───── View-key button (mount in PseudonymizePanel actions row) ───── */
+.view-key-button {
+  /* Inherit btn--secondary styling from caller (via className prop). */
+}
+
 /* ---- Variante β toggle (opt-in luoghi/org/tribunali) ---- */
 .toggle-pass2 {
   margin: 8px 0 4px;
