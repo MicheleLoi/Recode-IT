@@ -349,4 +349,71 @@ export async function saveAggregateMapping(
   }
 }
 
+// ----- View-key reader (capabilities_index §9.9) ------------------------
+//
+// The "Vedi la chiave" modal needs a read-only view of the active mapping
+// as a Map<original→pseudonym>. False-positive entries are excluded (they
+// represent preserved-original terms, not substitutions worth showing in
+// the key). The mapping is sourced from the in-memory entries array that
+// active-mapping-context already maintains (which itself already handles
+// the tier dispatch: free=IDB plaintext, pro=server-encrypted-then-
+// decrypted-via-masterKey). Keeping this as a pure derive avoids
+// double-loading IDB / re-decrypting tier=pro blobs.
+
+/**
+ * Produce a read-only Map of original→pseudonym for the supplied entries.
+ * Returns `null` when there are no substitutable entries (every entry is a
+ * false positive, or the list is empty) so the caller can branch on the
+ * "no mapping to show" UI state.
+ *
+ * Note: tier-aware loading is NOT done here — the caller is expected to
+ * already hold a decrypted/decoded MappingEntry[] (from active-mapping-
+ * context.active.entries). This keeps the function synchronous, pure, and
+ * trivially testable.
+ */
+export function getCurrentMappingReadOnly(
+  entries: MappingEntry[] | null | undefined,
+): Map<string, string> | null {
+  if (!entries || entries.length === 0) return null
+  const out = new Map<string, string>()
+  for (const e of entries) {
+    if (e.isFalsePositive === true) continue
+    // realValue (original) → pseudonym. Skip duplicates (first wins): two
+    // entries with the same realValue but different pseudonyms can occur
+    // legitimately when merging across documents; the user-facing key shows
+    // the first-seen mapping.
+    if (!out.has(e.realValue)) {
+      out.set(e.realValue, e.pseudonym)
+    }
+  }
+  return out.size > 0 ? out : null
+}
+
+/**
+ * Convert a Map<original→pseudonym> into a CSV string suitable for clipboard
+ * copy or file download. UTF-8 BOM-prefixed so Excel opens it correctly.
+ * Header: "Originale,Pseudonimo" (language-agnostic at this layer — the
+ * caller can localize the header before passing if needed via the optional
+ * second argument).
+ */
+export function mappingToCsv(
+  mapping: Map<string, string>,
+  headers?: { original: string; pseudonym: string },
+): string {
+  const h = headers ?? { original: 'Originale', pseudonym: 'Pseudonimo' }
+  const escape = (v: string): string => {
+    // RFC 4180: wrap in quotes if contains comma, quote, or newline; double
+    // any internal quotes.
+    if (/[",\n\r]/.test(v)) return `"${v.replace(/"/g, '""')}"`
+    return v
+  }
+  const lines: string[] = []
+  lines.push(`${escape(h.original)},${escape(h.pseudonym)}`)
+  for (const [original, pseudonym] of mapping) {
+    lines.push(`${escape(original)},${escape(pseudonym)}`)
+  }
+  // UTF-8 BOM for Excel compatibility.
+  return '﻿' + lines.join('\r\n') + '\r\n'
+}
+
 export { IndexedDBQuotaError }
