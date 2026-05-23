@@ -39,6 +39,14 @@ export type AuthUser = {
   marketing_consent: boolean
 }
 
+/**
+ * View-key permission state — drives the "Vedi la chiave" CTA modal
+ * (capabilities_index §9.9, view-key add-on €20 una tantum / MHC Bearer free /
+ * Pro tier implicit). Field names align with backend response shape from
+ * GET /recode/view-key/permission (`granted` + `source`).
+ */
+export type ViewKeySource = 'paid' | 'mhc_bearer' | 'pro_tier' | null
+
 export type AuthContextValue = {
   user: AuthUser | null
   masterKey: CryptoKey | null
@@ -51,6 +59,20 @@ export type AuthContextValue = {
   /** Drop the in-memory key (keep the session). */
   lockKey: () => void
   refresh: () => Promise<void>
+  /**
+   * Whether the current user has unlocked the view-key feature (paid €20 add-on,
+   * validated an MHC Bearer, or holds a Pro tier subscription).
+   * `null` while permission hasn't been resolved (initial mount, no session).
+   */
+  viewKeyGranted: boolean
+  /** Which authority path granted the view-key permission. */
+  viewKeySource: ViewKeySource
+  /**
+   * Re-fetch /recode/view-key/permission and update local state. Called
+   * automatically post-login and on mount when a user is present; can also
+   * be triggered manually after a bearer validation or post-checkout return.
+   */
+  refreshViewKey: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -59,6 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
   const [user, setUser] = useState<AuthUser | null>(null)
   const [masterKey, setMasterKey] = useState<CryptoKey | null>(null)
   const [loading, setLoading] = useState(true)
+  const [viewKeyGranted, setViewKeyGranted] = useState(false)
+  const [viewKeySource, setViewKeySource] = useState<ViewKeySource>(null)
 
   const refresh = useCallback(async () => {
     try {
@@ -76,14 +100,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
     } catch {
       setUser(null)
       setMasterKey(null)
+      setViewKeyGranted(false)
+      setViewKeySource(null)
     } finally {
       setLoading(false)
+    }
+  }, [])
+
+  /**
+   * Fetch the current view-key permission from the backend and update local
+   * state. Silent on failure (anonymous users get 401, which is expected):
+   * we clear the local flags rather than surfacing an error to the user.
+   */
+  const refreshViewKey = useCallback(async () => {
+    try {
+      const resp = await api.getViewKeyPermission()
+      setViewKeyGranted(resp.granted === true)
+      setViewKeySource(resp.source)
+    } catch {
+      setViewKeyGranted(false)
+      setViewKeySource(null)
     }
   }, [])
 
   useEffect(() => {
     void refresh()
   }, [refresh])
+
+  // Auto-fetch view-key permission whenever the user identity changes (login,
+  // refresh, logout). Anonymous users see the 401 swallowed by refreshViewKey
+  // and the flags stay false — which is the correct UX (Vedi la chiave button
+  // shows the locked modal with paywall + bearer paste options).
+  const userId = user?.user_id ?? null
+  useEffect(() => {
+    if (userId === null) {
+      setViewKeyGranted(false)
+      setViewKeySource(null)
+      return
+    }
+    void refreshViewKey()
+  }, [userId, refreshViewKey])
 
   const signupFn = useCallback(
     async (input: api.SignupInput) => {
@@ -118,6 +174,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
     } finally {
       setUser(null)
       setMasterKey(null)
+      setViewKeyGranted(false)
+      setViewKeySource(null)
     }
   }, [])
 
@@ -145,8 +203,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
       unlock: unlockFn,
       lockKey: lockKeyFn,
       refresh,
+      viewKeyGranted,
+      viewKeySource,
+      refreshViewKey,
     }),
-    [user, masterKey, loading, signupFn, loginFn, logoutFn, unlockFn, lockKeyFn, refresh],
+    [
+      user,
+      masterKey,
+      loading,
+      signupFn,
+      loginFn,
+      logoutFn,
+      unlockFn,
+      lockKeyFn,
+      refresh,
+      viewKeyGranted,
+      viewKeySource,
+      refreshViewKey,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

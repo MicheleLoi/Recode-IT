@@ -298,3 +298,36 @@ export type ClaimInviteResponse = {
 export function claimProInvite(token: string): Promise<ClaimInviteResponse> {
   return request('POST', '/recode/pro/claim-invite', { token })
 }
+
+// ----- View-key add-on (capabilities_index §9.9, €20 una tantum / Bearer free / Pro implicit) -----
+
+export type ViewKeyPermissionResponse = {
+  granted: boolean
+  source: 'paid' | 'mhc_bearer' | 'pro_tier' | null
+}
+
+export function getViewKeyPermission(): Promise<ViewKeyPermissionResponse> {
+  return request<ViewKeyPermissionResponse>('GET', '/recode/view-key/permission')
+}
+
+export type ViewKeyCheckoutResponse = {
+  already_granted: boolean
+  checkout_url: string | null
+}
+
+export function claimViewKeyCheckout(): Promise<ViewKeyCheckoutResponse> {
+  return request<ViewKeyCheckoutResponse>('POST', '/recode/view-key/claim-checkout')
+}
+
+export type ViewKeyClaimBearerResponse = {
+  granted: boolean
+  source: 'mhc_bearer'
+}
+
+export function claimViewKeyByBearer(bearer: string): Promise<ViewKeyClaimBearerResponse> {
+  return request<ViewKeyClaimBearerResponse>(
+    'POST',
+    '/recode/view-key/claim-mhc-bearer',
+    { bearer },
+  )
+}
