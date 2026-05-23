@@ -63,6 +63,11 @@ from .rate_limit import (
 from .recovery import initiate_recovery, verify_recovery
 from .signup import signup_endpoint
 from .stripe_webhook import stripe_webhook_endpoint
+from .view_key import (
+    view_key_claim_checkout_endpoint,
+    view_key_claim_mhc_bearer_endpoint,
+    view_key_permission_endpoint,
+)
 
 
 def _cookie_secure_default() -> bool:
@@ -122,6 +127,16 @@ def build_app(
         Route("/recode/pro/claim-invite", claim_invite_endpoint,
               methods=["POST", "OPTIONS"]),
         Route("/recode/admin/pro/approve", admin_approve_endpoint,
+              methods=["POST", "OPTIONS"]),
+        # View-key add-on (€20 una tantum public OR free via MHC Bearer paste).
+        # Plan ratificato SID-20260523-162500. Vedi backend/view_key.py.
+        Route("/recode/view-key/permission", view_key_permission_endpoint,
+              methods=["GET", "OPTIONS"]),
+        Route("/recode/view-key/claim-mhc-bearer",
+              view_key_claim_mhc_bearer_endpoint,
+              methods=["POST", "OPTIONS"]),
+        Route("/recode/view-key/claim-checkout",
+              view_key_claim_checkout_endpoint,
               methods=["POST", "OPTIONS"]),
         # Stripe webhook (bare ASGI handler — signature verified internally).
         Mount("/recode/stripe/webhook", app=stripe_webhook_endpoint),

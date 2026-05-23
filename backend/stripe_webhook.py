@@ -1,11 +1,17 @@
 """
-stripe_webhook.py — Recode-IT Stripe webhook handler (Phase 1, pro funnel).
+stripe_webhook.py — Recode-IT Stripe webhook handler (Phase 1+, multi-tier).
 
-ASGI route POST /recode/stripe/webhook. Single event type processed:
-  - customer.subscription.created → marca recode_users.tier='pro' +
+ASGI route POST /recode/stripe/webhook. Two event types processed:
+
+  - customer.subscription.created → Pro tier funnel (€0/mese subscription,
+    invitation-only Phase 1). Marca recode_users.tier='pro' +
     recode_pro_invite_requests.status='claimed' per la latest 'approved'
-    dell'utente identificato da client_reference_id (settato a livello
-    Stripe Payment Link).
+    dell'utente identificato da client_reference_id.
+
+  - checkout.session.completed → view-key add-on funnel (€20 una tantum,
+    public). Marca recode_users.view_key_permitted_at=NOW +
+    view_key_source='paid' per l'utente identificato da
+    client_reference_id (Stripe Payment Link supporta il pass-through).
 
 Pattern di riferimento: MHC-L `mcp_server/webhook_handler.py`. Differenze
 calibrate per Recode-IT:
@@ -160,6 +166,72 @@ def _handle_subscription_created(conn: sqlite3.Connection, event: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Event handler: checkout.session.completed (view-key one-time payment €20)
+# ---------------------------------------------------------------------------
+
+def _handle_checkout_session_completed(conn: sqlite3.Connection, event: dict) -> None:
+    """Process checkout.session.completed event (view-key €20 una tantum).
+
+    Stripe Payment Link Mode='payment' (NOT subscription) emits this event
+    on successful checkout. Funnel-attribution via client_reference_id
+    (Stripe Payment Link supports query string pass-through:
+    `?client_reference_id=<recode_user_id>` appended by view_key.py).
+
+    Idempotency NOTE: the outer process_event() already filters duplicate
+    events via _event_already_processed. We additionally short-circuit
+    if the user already has view_key_permitted_at set (e.g. earlier paste
+    of MHC Bearer) — paid grant overrides only if explicit (we KEEP the
+    existing earlier source for audit).
+    """
+    obj = event["data"]["object"]
+    user_id = obj.get("client_reference_id")
+
+    if not user_id:
+        print(
+            f"[recode-stripe] checkout.session.completed "
+            f"{obj.get('id')!r}: no client_reference_id → cannot map to user — skip",
+            file=sys.stderr,
+        )
+        return
+
+    urow = conn.execute(
+        "SELECT id, view_key_permitted_at, view_key_source FROM recode_users WHERE id = ?",
+        (user_id,),
+    ).fetchone()
+    if urow is None:
+        print(
+            f"[recode-stripe] checkout.session.completed: user_id={user_id!r} not found — skip",
+            file=sys.stderr,
+        )
+        return
+
+    if urow["view_key_permitted_at"] is not None:
+        print(
+            f"[recode-stripe] checkout.session.completed: user_id={user_id!r} "
+            f"already has view-key permission (source={urow['view_key_source']!r}) — "
+            f"keeping existing source, not overwriting",
+            file=sys.stderr,
+        )
+        return
+
+    now = _now_iso()
+    conn.execute(
+        """
+        UPDATE recode_users
+           SET view_key_permitted_at = ?,
+               view_key_source = 'paid'
+         WHERE id = ?
+        """,
+        (now, user_id),
+    )
+    print(
+        f"[recode-stripe] checkout.session.completed: user_id={user_id!r} → "
+        f"view_key_permitted_at={now} source=paid",
+        file=sys.stderr,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Top-level dispatch
 # ---------------------------------------------------------------------------
 
@@ -182,6 +254,8 @@ def process_event(event: dict, db_path=None) -> None:
         try:
             if event_type == "customer.subscription.created":
                 _handle_subscription_created(conn, event)
+            elif event_type == "checkout.session.completed":
+                _handle_checkout_session_completed(conn, event)
             else:
                 print(
                     f"[recode-stripe] unsubscribed event type {event_type!r} "
