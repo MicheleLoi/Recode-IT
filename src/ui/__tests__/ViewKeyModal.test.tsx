@@ -50,11 +50,13 @@ const activeRef: ActiveRef = {
 
 vi.mock('../../auth/auth-context', () => ({
   useAuth: () => authRef.current,
+  useAuthOptional: () => authRef.current,
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
 vi.mock('../../auth/active-mapping-context', () => ({
   useActiveMapping: () => activeRef.current,
+  useActiveMappingOptional: () => activeRef.current,
   ActiveMappingProvider: ({ children }: { children: React.ReactNode }) =>
     children,
 }))

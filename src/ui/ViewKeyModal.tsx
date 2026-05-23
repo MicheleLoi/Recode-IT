@@ -21,8 +21,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ApiError, claimViewKeyByBearer, claimViewKeyCheckout } from '../api/client'
-import { useAuth } from '../auth/auth-context'
-import { useActiveMapping } from '../auth/active-mapping-context'
+import { useAuthOptional } from '../auth/auth-context'
+import { useActiveMappingOptional } from '../auth/active-mapping-context'
 import { getCurrentMappingReadOnly, mappingToCsv } from '../storage/mapping-store'
 import { useLanguage } from './LanguageContext'
 
@@ -59,8 +59,13 @@ function nowStampForFilename(): string {
 
 export function ViewKeyModal({ isOpen, onClose }: Props): JSX.Element | null {
   const { t } = useLanguage()
-  const { user, viewKeyGranted, viewKeySource, refreshViewKey } = useAuth()
-  const { active } = useActiveMapping()
+  const authCtx = useAuthOptional()
+  const user = authCtx?.user ?? null
+  const viewKeyGranted = authCtx?.viewKeyGranted ?? false
+  const viewKeySource = authCtx?.viewKeySource ?? null
+  const refreshViewKey = authCtx?.refreshViewKey ?? (async () => {})
+  const activeCtx = useActiveMappingOptional()
+  const active = activeCtx?.active ?? null
 
   const [localStatus, setLocalStatus] = useState<LocalStatus>('idle')
   const [bearerInput, setBearerInput] = useState('')

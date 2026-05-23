@@ -234,6 +234,15 @@ export function useAuth(): AuthContextValue {
   return ctx
 }
 
+/**
+ * Tolerant variant of `useAuth()` — returns `null` when no AuthProvider is
+ * mounted. Used by ancillary surfaces (view-key add-on UI) that can be
+ * rendered in test contexts without the full provider stack.
+ */
+export function useAuthOptional(): AuthContextValue | null {
+  return useContext(AuthContext)
+}
+
 export function useRequireAuth(): AuthUser {
   const { user } = useAuth()
   if (!user) {

@@ -11,7 +11,7 @@
  */
 
 import { useState } from 'react'
-import { useActiveMapping } from '../auth/active-mapping-context'
+import { useActiveMappingOptional } from '../auth/active-mapping-context'
 import { useLanguage } from './LanguageContext'
 import { ViewKeyModal } from './ViewKeyModal'
 
@@ -26,7 +26,8 @@ export function ViewKeyButton({
   className,
   disabled: disabledOverride,
 }: Props): JSX.Element {
-  const { active } = useActiveMapping()
+  const activeCtx = useActiveMappingOptional()
+  const active = activeCtx?.active ?? null
   const { t } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
 

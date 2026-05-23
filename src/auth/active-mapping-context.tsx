@@ -405,6 +405,18 @@ export function useActiveMapping(): ActiveMappingContextValue {
   return ctx
 }
 
+/**
+ * Tolerant variant of `useActiveMapping()` — returns `null` when no provider
+ * is mounted instead of throwing. Used by ancillary CTAs (ViewKeyButton /
+ * ViewKeyModal) that can be rendered in test surfaces or future contexts
+ * without the full provider stack. The strict `useActiveMapping()` remains
+ * the recommended hook for the main app paths where the provider is always
+ * present.
+ */
+export function useActiveMappingOptional(): ActiveMappingContextValue | null {
+  return useContext(ActiveMappingContext)
+}
+
 // Test-only export: tests need to round-trip the blob layout without going
 // through the full save/open cycle.
 export const __TEST__ = { entriesToBlobMap, blobMapToEntries }
