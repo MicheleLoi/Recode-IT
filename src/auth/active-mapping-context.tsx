@@ -100,7 +100,11 @@ export type ActiveMappingContextValue = {
   renameActive: (newLabel: string) => void
 }
 
-const ActiveMappingContext = createContext<ActiveMappingContextValue | null>(null)
+// Exported so dev-only demo surfaces (e.g. ViewKeyDemoPage at /view-key-demo)
+// can inject a mocked active mapping without going through the real provider.
+// Regular app code keeps using `useActiveMapping()` /
+// `useActiveMappingOptional()` and `<ActiveMappingProvider>`.
+export const ActiveMappingContext = createContext<ActiveMappingContextValue | null>(null)
 
 function genId(): string {
   // RFC 4122 v4-ish UUID; sufficient for client-side mapping ids (server

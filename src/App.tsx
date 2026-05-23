@@ -37,6 +37,7 @@ import { RecoveryPage } from './ui/auth/RecoveryPage'
 import { AccountDashboard } from './ui/auth/AccountDashboard'
 import { UpgradePage } from './ui/upgrade/UpgradePage'
 import { PrivacyPage } from './ui/PrivacyPage'
+import { ViewKeyDemoPage } from './ui/ViewKeyDemoPage'
 
 type View = 'work' | 'login' | 'signup' | 'recovery' | 'dashboard' | 'privacy'
 
@@ -358,6 +359,18 @@ function AppInner(): JSX.Element {
 }
 
 export function App(): JSX.Element {
+  // DEV-ONLY: standalone smoke surface for ViewKeyModal, mounted before the
+  // real provider stack so it works offline against a non-running backend.
+  // Vite tree-shakes the branch in production (import.meta.env.DEV = false).
+  // Remove together with src/ui/ViewKeyDemoPage.tsx when the smoke is done.
+  if (
+    import.meta.env.DEV &&
+    typeof window !== 'undefined' &&
+    window.location.pathname === '/view-key-demo'
+  ) {
+    return <ViewKeyDemoPage />
+  }
+
   return (
     <LanguageProvider>
       <AuthProvider>

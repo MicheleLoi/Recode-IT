@@ -75,7 +75,11 @@ export type AuthContextValue = {
   refreshViewKey: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null)
+// Exported so dev-only demo surfaces (e.g. ViewKeyDemoPage at /view-key-demo)
+// can inject mocked context values without going through AuthProvider's
+// network-coupled init path. Regular app code keeps using `useAuth()` /
+// `useAuthOptional()` and `<AuthProvider>` — never imports the raw context.
+export const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }): JSX.Element {
   const [user, setUser] = useState<AuthUser | null>(null)
