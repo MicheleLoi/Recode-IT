@@ -1,39 +1,50 @@
 """
-view_key.py — Recode-IT view-key permission endpoints.
+reverse_substitution.py — Recode-IT reverse-substitution permission endpoints.
 
-Three endpoints expose the "vedi la chiave" feature (UI button that displays
-the pseudonymization mapping to the user for debugging NER errors):
+Three endpoints expose the "reverse-substitution" feature (the user pastes a
+document produced by an AI containing pseudonyms; the browser performs the
+inverse mapping client-side and outputs the document with real names
+restored). The backend gates the permission flag; the substitution engine
+lives entirely in the frontend.
 
-  GET  /recode/view-key/permission         [JWT required]
+  GET  /recode/reverse-substitution/permission         [JWT required]
        → {"granted": bool, "source": "paid"|"mhc_bearer"|"pro_tier"|null}
 
-  POST /recode/view-key/claim-mhc-bearer   [JWT required]
+  POST /recode/reverse-substitution/claim-mhc-bearer   [JWT required]
        body: {"bearer": "mhc_live_<token>"}
        → validates Bearer against /root/.mhc-l-keystore.db (cross-DB,
-         read-only). If valid: marks view_key_permitted_at NOW + source=
-         'mhc_bearer' + linked_mhc_user_email on caller's recode_users row.
+         read-only). If valid: marks reverse_substitution_permitted_at NOW
+         + source='mhc_bearer' + linked_mhc_user_email on caller's
+         recode_users row.
 
-  POST /recode/view-key/claim-checkout     [JWT required]
+  POST /recode/reverse-substitution/claim-checkout     [JWT required]
        → returns {"checkout_url": "<Stripe Payment Link URL>"}
          with client_reference_id=<recode_user_id> appended for webhook
          linking on checkout.session.completed event.
 
-Strategic context (founder ratifica SID-20260523-162500):
-  - View-key è add-on €20 una tantum, free per chi ha Bearer MHC.
-  - Browser-side only: server NON tocca mai la mapping (vive in IndexedDB
-    del browser per tier free, server-encrypted con master_key client-side
-    per tier pro). Questo modulo gates SOLO il permission flag UI.
-  - Pro tier (esistente, fuori scope diretto) → permission implicita: GET
-    permission ritorna granted con source='pro_tier' anche senza
-    view_key_permitted_at persistito.
+Strategic context (pricing pivot — founder ratifica SID-20260524-051552,
+supersedes the earlier SID-20260523-162500 framing where the paywall was
+on "view the mapping"):
+  - Free (logged-in) now includes seeing AND editing the mapping.
+  - Reverse-substitution is the paid feature: €20 una tantum public, free
+    for users with an MHC Bearer (acquisition funnel into MHC-H).
+  - Browser-side only: server NEVER touches the mapping (it lives in the
+    browser IndexedDB for free tier, server-encrypted with master_key
+    client-side for Pro tier). This module gates ONLY the permission flag
+    that the frontend uses to unlock the reverse-substitution UI.
+  - Pro tier (existing, out of direct scope) → implicit permission: GET
+    permission returns granted with source='pro_tier' even without a
+    persisted reverse_substitution_permitted_at.
+
+Naming history: pre-2026-05-24 the module was `view_key.py` and the
+endpoints/columns used `view_key` semantics. The rename reflects the
+pricing pivot. Frontend rename is a separate task.
 
 Cross-DB lookup security:
-  - Recode-IT backend gira come root → file /root/.mhc-l-keystore.db
-    accessibile in lettura.
-  - Apertura con mode=ro (read-only) per safety: nessuna modifica
-    accidentale al keystore MHC.
-  - Bearer plain (mhc_live_<…>) hashato SHA-256 prima del lookup;
-    confronto con colonna key_hash della tabella api_keys.
+  - Recode-IT backend runs as root → /root/.mhc-l-keystore.db readable.
+  - Open with mode=ro for safety: no accidental writes to the MHC keystore.
+  - Plain Bearer (mhc_live_<…>) hashed SHA-256 before lookup; compared
+    against the key_hash column of the api_keys table.
 
 Stdlib only (sqlite3, hashlib, os, json) — no extra deps.
 """
@@ -60,9 +71,11 @@ from .http_utils import error_response, json_response
 ENV_MHC_KEYSTORE_PATH = "MHC_KEYSTORE_PATH"
 DEFAULT_MHC_KEYSTORE_PATH = "/root/.mhc-l-keystore.db"
 
-# Env var for the view-key Stripe Payment Link (one-time payment, €20).
+# Env var for the reverse-substitution Stripe Payment Link (one-time payment, €20).
 # Separate from the Pro tier Payment Link (subscription €0/mese).
-ENV_VIEW_KEY_STRIPE_URL = "RECODE_IT_VIEW_KEY_STRIPE_PAYMENT_LINK_URL"
+ENV_REVERSE_SUBSTITUTION_STRIPE_URL = (
+    "RECODE_IT_REVERSE_SUBSTITUTION_STRIPE_PAYMENT_LINK_URL"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -127,11 +140,11 @@ def _lookup_mhc_bearer(bearer_plain: str) -> dict[str, Any] | None:
 
 
 # ---------------------------------------------------------------------------
-# Endpoint: GET /recode/view-key/permission
+# Endpoint: GET /recode/reverse-substitution/permission
 # ---------------------------------------------------------------------------
 
-async def view_key_permission_endpoint(request: Request) -> JSONResponse:
-    """Return current user's view-key permission state."""
+async def reverse_substitution_permission_endpoint(request: Request) -> JSONResponse:
+    """Return current user's reverse-substitution permission state."""
     user = getattr(request.state, "user", None)
     if user is None:
         return error_response(401, "auth_required")
@@ -140,7 +153,7 @@ async def view_key_permission_endpoint(request: Request) -> JSONResponse:
     with connection() as conn:
         row = conn.execute(
             """
-            SELECT tier, view_key_permitted_at, view_key_source
+            SELECT tier, reverse_substitution_permitted_at, reverse_substitution_source
               FROM recode_users
              WHERE id = ?
             """,
@@ -150,26 +163,26 @@ async def view_key_permission_endpoint(request: Request) -> JSONResponse:
     if row is None:
         return error_response(404, "user_not_found")
 
-    # Pro tier implies view-key (mapping is already server-encrypted, the
-    # master_key lives in browser RAM, and Pro users expect this UX
-    # affordance bundled).
+    # Pro tier implies reverse-substitution (mapping is already
+    # server-encrypted, the master_key lives in browser RAM, and Pro users
+    # expect this UX affordance bundled).
     if row["tier"] == "pro":
         return json_response({"granted": True, "source": "pro_tier"})
 
-    if row["view_key_permitted_at"] is not None:
+    if row["reverse_substitution_permitted_at"] is not None:
         return json_response(
-            {"granted": True, "source": row["view_key_source"] or "paid"}
+            {"granted": True, "source": row["reverse_substitution_source"] or "paid"}
         )
 
     return json_response({"granted": False, "source": None})
 
 
 # ---------------------------------------------------------------------------
-# Endpoint: POST /recode/view-key/claim-mhc-bearer
+# Endpoint: POST /recode/reverse-substitution/claim-mhc-bearer
 # ---------------------------------------------------------------------------
 
-async def view_key_claim_mhc_bearer_endpoint(request: Request) -> JSONResponse:
-    """Validate a pasted MHC Bearer and grant view-key permission if valid."""
+async def reverse_substitution_claim_mhc_bearer_endpoint(request: Request) -> JSONResponse:
+    """Validate a pasted MHC Bearer and grant reverse-substitution permission if valid."""
     user = getattr(request.state, "user", None)
     if user is None:
         return error_response(401, "auth_required")
@@ -191,13 +204,13 @@ async def view_key_claim_mhc_bearer_endpoint(request: Request) -> JSONResponse:
         mhc_user = _lookup_mhc_bearer(bearer)
     except FileNotFoundError as exc:
         print(
-            f"[recode-view-key] cross-DB lookup failed (config): {exc!r}",
+            f"[recode-reverse-substitution] cross-DB lookup failed (config): {exc!r}",
             file=sys.stderr,
         )
         return error_response(500, "keystore_unavailable")
     except sqlite3.Error as exc:
         print(
-            f"[recode-view-key] cross-DB SQLite error: {exc!r}",
+            f"[recode-reverse-substitution] cross-DB SQLite error: {exc!r}",
             file=sys.stderr,
         )
         return error_response(500, "keystore_error")
@@ -218,8 +231,8 @@ async def view_key_claim_mhc_bearer_endpoint(request: Request) -> JSONResponse:
         conn.execute(
             """
             UPDATE recode_users
-               SET view_key_permitted_at = ?,
-                   view_key_source = 'mhc_bearer',
+               SET reverse_substitution_permitted_at = ?,
+                   reverse_substitution_source = 'mhc_bearer',
                    linked_mhc_user_email = ?
              WHERE id = ?
             """,
@@ -227,7 +240,7 @@ async def view_key_claim_mhc_bearer_endpoint(request: Request) -> JSONResponse:
         )
 
     print(
-        f"[recode-view-key] mhc_bearer claim ok: recode_user_id={user_id!r} "
+        f"[recode-reverse-substitution] mhc_bearer claim ok: recode_user_id={user_id!r} "
         f"linked_email={mhc_user['user_email']!r} mhc_tier={mhc_user['tier']!r}",
         file=sys.stderr,
     )
@@ -236,11 +249,11 @@ async def view_key_claim_mhc_bearer_endpoint(request: Request) -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
-# Endpoint: POST /recode/view-key/claim-checkout
+# Endpoint: POST /recode/reverse-substitution/claim-checkout
 # ---------------------------------------------------------------------------
 
-async def view_key_claim_checkout_endpoint(request: Request) -> JSONResponse:
-    """Return the Stripe Payment Link URL for the €20 view-key add-on.
+async def reverse_substitution_claim_checkout_endpoint(request: Request) -> JSONResponse:
+    """Return the Stripe Payment Link URL for the €20 reverse-substitution add-on.
 
     Appends ?client_reference_id=<recode_user_id> so the webhook
     (checkout.session.completed) can link the payment to the user.
@@ -249,20 +262,20 @@ async def view_key_claim_checkout_endpoint(request: Request) -> JSONResponse:
     if user is None:
         return error_response(401, "auth_required")
 
-    base_url = os.environ.get(ENV_VIEW_KEY_STRIPE_URL, "").strip()
+    base_url = os.environ.get(ENV_REVERSE_SUBSTITUTION_STRIPE_URL, "").strip()
     if not base_url:
         print(
-            f"[recode-view-key] {ENV_VIEW_KEY_STRIPE_URL} not set",
+            f"[recode-reverse-substitution] {ENV_REVERSE_SUBSTITUTION_STRIPE_URL} not set",
             file=sys.stderr,
         )
-        return error_response(500, "view_key_stripe_url_not_configured")
+        return error_response(500, "reverse_substitution_stripe_url_not_configured")
 
     # If already granted, no need to send to Stripe — return current state.
     user_id = user["id"]
     with connection() as conn:
         row = conn.execute(
             """
-            SELECT tier, view_key_permitted_at
+            SELECT tier, reverse_substitution_permitted_at
               FROM recode_users
              WHERE id = ?
             """,
@@ -272,7 +285,7 @@ async def view_key_claim_checkout_endpoint(request: Request) -> JSONResponse:
     if row is None:
         return error_response(404, "user_not_found")
 
-    if row["tier"] == "pro" or row["view_key_permitted_at"] is not None:
+    if row["tier"] == "pro" or row["reverse_substitution_permitted_at"] is not None:
         return json_response(
             {"already_granted": True, "checkout_url": None}
         )
@@ -288,9 +301,9 @@ async def view_key_claim_checkout_endpoint(request: Request) -> JSONResponse:
 
 
 __all__ = [
-    "view_key_permission_endpoint",
-    "view_key_claim_mhc_bearer_endpoint",
-    "view_key_claim_checkout_endpoint",
+    "reverse_substitution_permission_endpoint",
+    "reverse_substitution_claim_mhc_bearer_endpoint",
+    "reverse_substitution_claim_checkout_endpoint",
     "ENV_MHC_KEYSTORE_PATH",
-    "ENV_VIEW_KEY_STRIPE_URL",
+    "ENV_REVERSE_SUBSTITUTION_STRIPE_URL",
 ]

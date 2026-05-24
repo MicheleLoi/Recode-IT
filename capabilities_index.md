@@ -353,23 +353,26 @@ Authority: dialogo founder ↔ chief_of_staff SID-20260518-143605 + strategist r
 
 **Free for MHC ecosystem members.** Bundle synergy: ogni signup MHC-H (Stripe €0) sblocca la view-key feature in Recode IT senza ulteriore pagamento. Acquisition funnel verso MHC-H.
 
-**Backend implementato:** Recode-IT commit `8accc76` (locale, no GitHub remote):
-- `backend/migrations/004_add_view_key_permission.sql` — 3 colonne nuove su `recode_users` (`view_key_permitted_at`, `view_key_source`, `linked_mhc_user_email`)
-- `backend/view_key.py` — 3 endpoint JWT-protected:
-  - `GET /recode/view-key/permission`
-  - `POST /recode/view-key/claim-mhc-bearer`
-  - `POST /recode/view-key/claim-checkout`
+**Backend implementato:** Recode-IT commit `8accc76` (locale, no GitHub remote) + backend rename commit (2026-05-24, post-pivot):
+- `backend/migrations/004_add_reverse_substitution_permission.sql` — 3 colonne nuove su `recode_users` (`reverse_substitution_permitted_at`, `reverse_substitution_source`, `linked_mhc_user_email`)
+- `backend/migrations/005_rename_view_key_to_reverse_substitution.sql` — rename idempotente per DB pre-pivot (founder local dev)
+- `backend/reverse_substitution.py` — 3 endpoint JWT-protected:
+  - `GET /recode/reverse-substitution/permission`
+  - `POST /recode/reverse-substitution/claim-mhc-bearer`
+  - `POST /recode/reverse-substitution/claim-checkout`
 - `backend/stripe_webhook.py` — extension event handler `checkout.session.completed`
 - `backend/server.py` — wiring routes
 
-**Frontend pending** (prossima sessione): `src/auth/auth-context.tsx` extension (state `viewKeyPermitted`) + `src/storage/mapping-store.ts` reader (getCurrentMappingReadOnly) + `src/ui/ViewKeyButton.tsx` + `src/ui/ViewKeyModal.tsx` (stati locked/unlocked).
+**Frontend pending** (prossima sessione, post-rename frontend separato): rename equivalente in `src/` da view-key/ViewKey a reverse-substitution / ReverseSubstitution.
 
 **VPS deploy pending:**
 - Stripe Payment Link €20 una tantum mode=payment (founder action)
 - Env vars systemd unit `recode-it-backend.service`:
-  - `RECODE_IT_VIEW_KEY_STRIPE_PAYMENT_LINK_URL=<url>`
+  - `RECODE_IT_REVERSE_SUBSTITUTION_STRIPE_PAYMENT_LINK_URL=<url>`
   - `MHC_KEYSTORE_PATH=/root/.mhc-l-keystore.db` (default OK)
 - Backup DB + SCP + systemctl restart (pattern security hardening 2026-05-23)
+
+> **Pricing pivot 2026-05-24** (founder ratifica SID-20260524-051552, MHC-Work `_org/decision_log.md`): il paywall si è spostato. Free (con login) ora include vedere E editare il mapping; €20 una tantum è la **riconciliazione inversa** (paste documento AI con pseudonimi → output con nomi reali, browser-side, replace engine nel frontend, backend grants la permission). La narrativa strategica §9.9 sopra resta in stato pre-pivot (lente "view-key"): da riscrivere in §9.10 (TODO strategist/comm). Mechanical rename backend completato 2026-05-24 a preservare semantica corretta a livello di codice (`reverse_substitution_*` rimpiazza `view_key_*` in path file, URL endpoint, env var, colonne DB).
 
 **Modello pricing finalizzato post-2026-05-23:**
 

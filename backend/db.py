@@ -53,17 +53,78 @@ def connect(db_path: Path | None = None) -> sqlite3.Connection:
     return conn
 
 
+def _pre_migration_rename_view_key_columns(conn: sqlite3.Connection) -> None:
+    """Pre-migration hook: rename `view_key_*` columns on `recode_users` if present.
+
+    Pricing pivot 2026-05-24 (founder ratifica SID-20260524-051552) renamed
+    the paid feature from "view-key" to "reverse-substitution". Migration
+    004 was rewritten in place to create the new column names; the renamed
+    file ships alongside 005 (a Python-pre-step here, not a .sql file)
+    that handles DBs already migrated under the OLD names.
+
+    This hook must run BEFORE the .sql migration loop so that:
+      - Pre-pivot DB (founder local dev applied 004-old): columns get
+        renamed → 004-new's `ADD COLUMN reverse_substitution_*` then hits
+        "duplicate column name" and is swallowed → consistent final state.
+      - Fresh DB (no recode_users yet, or no `view_key_*` columns):
+        the column-list check returns empty → no-op → 004-new creates the
+        columns directly.
+      - Already-migrated post-pivot DB: column-list check finds the new
+        names already in place (no `view_key_*` present) → no-op.
+
+    Idempotent. Stdlib only.
+    """
+    # Check if table exists at all (true even on a fully fresh DB after 001
+    # has run via the migration loop — but this hook runs BEFORE 001, so
+    # on a truly fresh DB the table doesn't exist yet and we bail early).
+    try:
+        cols = [
+            row["name"]
+            for row in conn.execute(
+                "SELECT name FROM pragma_table_info('recode_users')"
+            ).fetchall()
+        ]
+    except sqlite3.OperationalError:
+        return  # table doesn't exist yet; nothing to rename
+    if not cols:
+        return  # table doesn't exist; nothing to rename
+
+    rename_map = {
+        "view_key_permitted_at": "reverse_substitution_permitted_at",
+        "view_key_source": "reverse_substitution_source",
+    }
+    for old, new in rename_map.items():
+        if old in cols and new not in cols:
+            conn.execute(
+                f"ALTER TABLE recode_users RENAME COLUMN {old} TO {new}"
+            )
+
+
 def init_schema(db_path: Path | None = None) -> Path:
     """Run all migrations in numeric order. Idempotent.
 
-    SQLite's `ALTER TABLE ... ADD COLUMN` raises `duplicate column name` when
-    re-applied. To stay idempotent across already-migrated DBs, we wrap each
-    migration in a savepoint and swallow that one specific error class. Any
-    other error propagates.
+    Two error classes are swallowed to keep migrations idempotent across
+    DBs in different historical states:
+
+      - `duplicate column name` / `already exists` — `ADD COLUMN` /
+        `CREATE TABLE IF NOT EXISTS` re-applied on a DB where the migration
+        already ran.
+
+    Each migration runs in its own try/except. Any other error class
+    propagates.
+
+    Pre-migration hooks (Python, not .sql) run BEFORE the .sql loop to
+    handle schema transformations that pure-SQL migrations cannot express
+    idempotently (e.g. RENAME COLUMN). See
+    `_pre_migration_rename_view_key_columns` for the 2026-05-24 pricing
+    pivot rename.
     """
     path = db_path or resolve_db_path()
     conn = connect(path)
     try:
+        # Pre-migration hooks (run before SQL migrations).
+        _pre_migration_rename_view_key_columns(conn)
+
         for migration in sorted(_MIGRATIONS_DIR.glob("*.sql")):
             sql = migration.read_text(encoding="utf-8")
             try:

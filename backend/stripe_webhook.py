@@ -8,9 +8,9 @@ ASGI route POST /recode/stripe/webhook. Two event types processed:
     recode_pro_invite_requests.status='claimed' per la latest 'approved'
     dell'utente identificato da client_reference_id.
 
-  - checkout.session.completed → view-key add-on funnel (€20 una tantum,
-    public). Marca recode_users.view_key_permitted_at=NOW +
-    view_key_source='paid' per l'utente identificato da
+  - checkout.session.completed → reverse-substitution add-on funnel (€20
+    una tantum, public). Marca recode_users.reverse_substitution_permitted_at
+    =NOW + reverse_substitution_source='paid' per l'utente identificato da
     client_reference_id (Stripe Payment Link supporta il pass-through).
 
 Pattern di riferimento: MHC-L `mcp_server/webhook_handler.py`. Differenze
@@ -166,22 +166,22 @@ def _handle_subscription_created(conn: sqlite3.Connection, event: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Event handler: checkout.session.completed (view-key one-time payment €20)
+# Event handler: checkout.session.completed (reverse-substitution one-time €20)
 # ---------------------------------------------------------------------------
 
 def _handle_checkout_session_completed(conn: sqlite3.Connection, event: dict) -> None:
-    """Process checkout.session.completed event (view-key €20 una tantum).
+    """Process checkout.session.completed event (reverse-substitution €20 una tantum).
 
     Stripe Payment Link Mode='payment' (NOT subscription) emits this event
     on successful checkout. Funnel-attribution via client_reference_id
     (Stripe Payment Link supports query string pass-through:
-    `?client_reference_id=<recode_user_id>` appended by view_key.py).
+    `?client_reference_id=<recode_user_id>` appended by reverse_substitution.py).
 
     Idempotency NOTE: the outer process_event() already filters duplicate
     events via _event_already_processed. We additionally short-circuit
-    if the user already has view_key_permitted_at set (e.g. earlier paste
-    of MHC Bearer) — paid grant overrides only if explicit (we KEEP the
-    existing earlier source for audit).
+    if the user already has reverse_substitution_permitted_at set (e.g.
+    earlier paste of MHC Bearer) — paid grant overrides only if explicit
+    (we KEEP the existing earlier source for audit).
     """
     obj = event["data"]["object"]
     user_id = obj.get("client_reference_id")
@@ -195,7 +195,8 @@ def _handle_checkout_session_completed(conn: sqlite3.Connection, event: dict) ->
         return
 
     urow = conn.execute(
-        "SELECT id, view_key_permitted_at, view_key_source FROM recode_users WHERE id = ?",
+        "SELECT id, reverse_substitution_permitted_at, reverse_substitution_source "
+        "FROM recode_users WHERE id = ?",
         (user_id,),
     ).fetchone()
     if urow is None:
@@ -205,10 +206,11 @@ def _handle_checkout_session_completed(conn: sqlite3.Connection, event: dict) ->
         )
         return
 
-    if urow["view_key_permitted_at"] is not None:
+    if urow["reverse_substitution_permitted_at"] is not None:
         print(
             f"[recode-stripe] checkout.session.completed: user_id={user_id!r} "
-            f"already has view-key permission (source={urow['view_key_source']!r}) — "
+            f"already has reverse-substitution permission "
+            f"(source={urow['reverse_substitution_source']!r}) — "
             f"keeping existing source, not overwriting",
             file=sys.stderr,
         )
@@ -218,15 +220,15 @@ def _handle_checkout_session_completed(conn: sqlite3.Connection, event: dict) ->
     conn.execute(
         """
         UPDATE recode_users
-           SET view_key_permitted_at = ?,
-               view_key_source = 'paid'
+           SET reverse_substitution_permitted_at = ?,
+               reverse_substitution_source = 'paid'
          WHERE id = ?
         """,
         (now, user_id),
     )
     print(
         f"[recode-stripe] checkout.session.completed: user_id={user_id!r} → "
-        f"view_key_permitted_at={now} source=paid",
+        f"reverse_substitution_permitted_at={now} source=paid",
         file=sys.stderr,
     )
 
