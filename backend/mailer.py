@@ -24,6 +24,11 @@ ENV_BASE_URL = "RECODE_IT_BASE_URL"
 DEFAULT_BASE_URL = "https://recode.micheleloi.pro"
 EMAIL_FROM = "Recode-IT <recode@micheleloi.pro>"
 
+# Defined locally (not imported from backend.recovery) to avoid a circular
+# import: backend.recovery imports send_password_reset_email from this
+# module. Keep this constant in lock-step with backend.recovery's value.
+RESET_TOKEN_TTL_HOURS = 24
+
 
 def _base_url() -> str:
     return os.environ.get(ENV_BASE_URL, DEFAULT_BASE_URL).rstrip("/")
@@ -110,23 +115,47 @@ def send_invite_approved_email(
     return _send(to_email, "Invito al piano pro approvato — Recode IT", body)
 
 
-def send_password_reset_email(to_email: str, token: str) -> dict[str, Any]:
+def send_password_reset_email(
+    to_email: str, token: str, tier: str = "free",
+) -> dict[str, Any]:
+    """Send the password reset email. Body is tier-aware: Free users get a
+    reassuring note ("account + browser mappings untouched"); Pro users get
+    a focused warning about the cloud-encrypted backup being rotated
+    (kdf_salt changes → existing encrypted blobs become undecryptable).
+
+    Default tier='free' keeps the function safe to call in tests or other
+    callers that don't pass the param.
+    """
     link = f"{_base_url()}/recode/recovery/reset?token={token}"
+
+    if tier == "pro":
+        mapping_note = (
+            "ATTENZIONE: come utente Pro (backup chiave cloud cifrato), il "
+            "reset della password elimina definitivamente i mapping cifrati "
+            "sul cloud (architettura zero-knowledge: la nuova password non "
+            "puo' decifrare blob cifrati con la vecchia). I mapping nel "
+            "browser di questo dispositivo non vengono toccati."
+        )
+    else:
+        mapping_note = (
+            "Il tuo account e i mapping nel browser di questo dispositivo "
+            "non vengono toccati dal reset della password. Il recovery serve "
+            "solo a riassegnare la password e tornare ad accedere."
+        )
+
     body = (
         "Ciao,\n\n"
-        "Hai richiesto il reset della password per Recode-IT. Per procedere "
+        "Hai richiesto il reset della password per Recode IT. Per procedere "
         "ti serviranno: (a) questo link, (b) uno dei tuoi 10 codici di "
         "recupero (stampati al momento dell'iscrizione).\n\n"
         f"  {link}\n\n"
-        "ATTENZIONE: dopo il reset, TUTTI i mapping salvati saranno "
-        "permanentemente inaccessibili (il server non puo' decriptarli senza "
-        "la vecchia password). Questa e' una conseguenza della nostra "
-        "architettura zero-knowledge.\n\n"
-        "Se non hai richiesto il reset, ignora questa email — il tuo account "
-        "resta intatto.\n\n"
+        f"Il link scade fra {RESET_TOKEN_TTL_HOURS} ore.\n\n"
+        f"{mapping_note}\n\n"
+        "Se non hai richiesto il reset, ignora questa email — il tuo "
+        "account resta intatto.\n\n"
         "Michele Loi\nmhcl@micheleloi.pro\n"
     )
-    return _send(to_email, "Reset password — Recode-IT", body)
+    return _send(to_email, "Reset password — Recode IT", body)
 
 
 __all__ = [
@@ -134,6 +163,7 @@ __all__ = [
     "ENV_BASE_URL",
     "DEFAULT_BASE_URL",
     "EMAIL_FROM",
+    "RESET_TOKEN_TTL_HOURS",
     "send_verification_email",
     "send_password_reset_email",
     "send_invite_request_received_email",

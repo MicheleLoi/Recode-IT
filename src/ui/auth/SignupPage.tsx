@@ -8,6 +8,7 @@
 import { useState } from 'react'
 import { ApiError } from '../../api/client'
 import { useAuth } from '../../auth/auth-context'
+import { useLanguage } from '../LanguageContext'
 
 type Props = {
   onSignedUp?: (email: string) => void
@@ -16,6 +17,7 @@ type Props = {
 
 export function SignupPage({ onSignedUp, onSwitchToLogin }: Props): JSX.Element {
   const { signup } = useAuth()
+  const { t } = useLanguage()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -69,14 +71,9 @@ export function SignupPage({ onSignedUp, onSwitchToLogin }: Props): JSX.Element 
   if (codes) {
     return (
       <section className="auth-card">
-        <h2>Account creato</h2>
-        <p>
-          Salva subito questi <strong>10 codici di recupero</strong>. Non
-          saranno mostrati di nuovo. Se perdi la password e non hai i codici,
-          tutti i mapping salvati saranno irrecuperabili (architettura
-          zero-knowledge: il server non puo' decriptarli senza la tua
-          password).
-        </p>
+        <h2>{t('auth.signup.codes.title')}</h2>
+        <p>{t('auth.signup.codes.saveNotice')}</p>
+        <p className="hint">{t('auth.signup.codes.preservesNotice')}</p>
         <ul className="recovery-codes">
           {codes.map((c) => (
             <li key={c}>
@@ -90,7 +87,7 @@ export function SignupPage({ onSignedUp, onSwitchToLogin }: Props): JSX.Element 
             checked={acknowledged}
             onChange={(e) => setAcknowledged(e.target.checked)}
           />
-          Ho copiato i 10 codici in un posto sicuro.
+          {t('auth.signup.codes.acknowledge')}
         </label>
         <div className="actions">
           <button
@@ -102,7 +99,7 @@ export function SignupPage({ onSignedUp, onSwitchToLogin }: Props): JSX.Element 
               if (onSwitchToLogin) onSwitchToLogin()
             }}
           >
-            Vai al login
+            {t('auth.signup.codes.goToLogin')}
           </button>
         </div>
       </section>

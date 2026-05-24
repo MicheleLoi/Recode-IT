@@ -1,46 +1,58 @@
 /**
- * RecoveryPage — three-step destructive password reset (OPEN_RISKS.md R-05).
+ * RecoveryPage — password reset via email link + recovery code.
  *
- * Per the founder's spec (capabilities_index §7 + R-05 mitigation #2), a
- * recovery-code reset is irreversible: all encrypted mappings are server-side
- * deleted because the new Argon2id-derived key cannot decrypt blobs sealed
- * with the old key. The UI surfaces this consequence in THREE explicit
- * checkpoints before letting the user submit the verify call:
+ * Framing (founder MHC-Work SID-20260524-051552 evening): reassurance, not
+ * threat. For Free users the recovery flow leaves the account, the bought
+ * permissions, and the IndexedDB mappings on this device untouched — the
+ * old wording was a tier-blind threat that scared Free users into
+ * abandoning recovery and losing permanent account access. For Pro
+ * users the server-side encrypted blob
+ * backup IS lost on recovery (kdf_salt rotates, new key can't decrypt old
+ * blobs) — that warning lives in the tier-aware email body (see
+ * backend/mailer.py::send_password_reset_email), surfaced where it actually
+ * matters: when the user reads the email tied to their Pro account.
  *
- *   Step 1 — Initiate: enter email, request reset link.
- *   Step 2 — Warning gate: user sees the destructive consequence in plain
- *            Italian, must check an "I understand" box, AND must type
- *            ELIMINA into a confirmation textbox before "Continua" enables.
- *   Step 3 — Verify form: token + recovery code + new password fields,
- *            visible only after the warning gate has been cleared.
- *
- * The gating logic is intentionally not skippable. The data-loss surprise
- * documented in R-05 is the prototypical "negative review trigger" we are
- * mitigating; the three-step pattern is the founder-ratified UX answer.
+ * Flow:
+ *   Stage 1 — initiate: enter email → server sends link.
+ *   Stage 2 — verify: token (auto-filled from link query param when
+ *             present) + recovery code + new password → reset done.
  */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ApiError, requestRecovery, verifyRecovery } from '../../api/client'
+import { useLanguage } from '../LanguageContext'
 
 type Props = {
   onBackToLogin?: () => void
 }
 
-type Stage = 'initiate' | 'warning' | 'verify' | 'done'
+type Stage = 'initiate' | 'verify' | 'done'
 
-const DESTRUCTIVE_CONFIRM_WORD = 'ELIMINA'
+function readTokenFromUrl(): string {
+  if (typeof window === 'undefined') return ''
+  try {
+    const params = new URLSearchParams(window.location.search)
+    return (params.get('token') ?? '').trim()
+  } catch {
+    return ''
+  }
+}
 
 export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
-  const [stage, setStage] = useState<Stage>('initiate')
+  const { t } = useLanguage()
+  const urlToken = readTokenFromUrl()
+  const [stage, setStage] = useState<Stage>(urlToken ? 'verify' : 'initiate')
   const [email, setEmail] = useState('')
-  const [token, setToken] = useState('')
+  const [token, setToken] = useState(urlToken)
   const [code, setCode] = useState('')
   const [newPassword, setNewPassword] = useState('')
-  const [acknowledged, setAcknowledged] = useState(false)
-  const [destructiveConfirm, setDestructiveConfirm] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (urlToken && !token) setToken(urlToken)
+  }, [urlToken, token])
 
   async function onInitiate(ev: React.FormEvent) {
     ev.preventDefault()
@@ -48,43 +60,35 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
     setSubmitting(true)
     try {
       await requestRecovery(email.trim().toLowerCase())
-      setStage('warning')
+      setStage('verify')
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Errore inatteso.')
+      setError(err instanceof ApiError ? err.message : t('auth.recovery.error.generic'))
     } finally {
       setSubmitting(false)
     }
-  }
-
-  function onWarningContinue() {
-    if (!acknowledged) {
-      setError('Spunta la conferma di aver compreso la conseguenza.')
-      return
-    }
-    if (destructiveConfirm.trim().toUpperCase() !== DESTRUCTIVE_CONFIRM_WORD) {
-      setError(`Scrivi ${DESTRUCTIVE_CONFIRM_WORD} per confermare.`)
-      return
-    }
-    setError(null)
-    setStage('verify')
   }
 
   async function onVerify(ev: React.FormEvent) {
     ev.preventDefault()
     setError(null)
     if (newPassword.length < 12) {
-      setError('La nuova password deve avere almeno 12 caratteri.')
+      setError(t('auth.recovery.error.weakPassword'))
       return
     }
     setSubmitting(true)
     try {
       const resp = await verifyRecovery(token.trim(), code.trim(), newPassword)
-      setSuccess(
-        `${resp.message} Mapping eliminati: ${resp.mappings_destroyed}.`,
-      )
+      const destroyedNote =
+        resp.mappings_destroyed > 0
+          ? t('auth.recovery.done.proDestroyed').replace(
+              '{count}',
+              String(resp.mappings_destroyed),
+            )
+          : t('auth.recovery.done.freePreserved')
+      setSuccess(`${resp.message} ${destroyedNote}`)
       setStage('done')
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Errore inatteso.')
+      setError(err instanceof ApiError ? err.message : t('auth.recovery.error.generic'))
     } finally {
       setSubmitting(false)
     }
@@ -93,11 +97,11 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
   if (stage === 'done') {
     return (
       <section className="auth-card">
-        <h2>Password aggiornata</h2>
+        <h2>{t('auth.recovery.done.title')}</h2>
         <p className="hint">{success}</p>
         {onBackToLogin && (
           <button className="btn btn--primary" onClick={onBackToLogin}>
-            Vai al login
+            {t('auth.recovery.done.goToLogin')}
           </button>
         )}
       </section>
@@ -105,27 +109,47 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
   }
 
   if (stage === 'verify') {
+    const tokenFromLink = urlToken.length > 0 && token === urlToken
     return (
       <section className="auth-card">
-        <h2>Reimposta la password</h2>
-        <p className="hint">
-          Hai confermato la consapevolezza della distruzione dei mapping.
-          Compila i campi per completare il reset.
-        </p>
+        <h2>{t('auth.recovery.verify.title')}</h2>
+        <p className="hint">{t('auth.recovery.verify.hint')}</p>
         <form onSubmit={onVerify} className="auth-form" data-testid="recovery-verify-form">
+          {tokenFromLink ? (
+            <div
+              className="field"
+              data-testid="recovery-token-from-link"
+              aria-live="polite"
+            >
+              <span className="field__label">
+                {t('auth.recovery.verify.tokenLabel')}
+              </span>
+              <p className="hint" style={{ margin: 0 }}>
+                {t('auth.recovery.verify.tokenFromLink')}
+              </p>
+            </div>
+          ) : (
+            <label className="field">
+              <span className="field__label">
+                {t('auth.recovery.verify.tokenLabelManual')}
+              </span>
+              <input
+                type="text"
+                required
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                className="auth-input"
+                data-testid="recovery-token-input"
+              />
+              <span className="hint">
+                {t('auth.recovery.verify.tokenHintMissing')}
+              </span>
+            </label>
+          )}
           <label className="field">
-            <span className="field__label">Token (dal link nell'email)</span>
-            <input
-              type="text"
-              required
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              className="auth-input"
-              data-testid="recovery-token-input"
-            />
-          </label>
-          <label className="field">
-            <span className="field__label">Codice di recupero</span>
+            <span className="field__label">
+              {t('auth.recovery.verify.codeLabel')}
+            </span>
             <input
               type="text"
               required
@@ -137,7 +161,9 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
             />
           </label>
           <label className="field">
-            <span className="field__label">Nuova password (min 12 caratteri)</span>
+            <span className="field__label">
+              {t('auth.recovery.verify.newPasswordLabel')}
+            </span>
             <input
               type="password"
               required
@@ -152,11 +178,13 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
           <div className="actions">
             <button
               type="submit"
-              className="btn btn--danger"
+              className="btn btn--primary"
               disabled={submitting}
               data-testid="recovery-verify-submit"
             >
-              {submitting ? 'Reimposto...' : 'Reimposta password e distruggi mapping'}
+              {submitting
+                ? t('auth.recovery.verify.submitting')
+                : t('auth.recovery.verify.submit')}
             </button>
             {onBackToLogin && (
               <button
@@ -164,7 +192,7 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
                 className="btn btn--secondary"
                 onClick={onBackToLogin}
               >
-                Annulla
+                {t('auth.recovery.verify.cancel')}
               </button>
             )}
           </div>
@@ -173,109 +201,14 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
     )
   }
 
-  if (stage === 'warning') {
-    return (
-      <section className="auth-card" data-testid="recovery-warning-stage">
-        <h2>Stai per usare un codice di recupero</h2>
-        <div className="recovery-warning">
-          <p>
-            <strong>ATTENZIONE.</strong> Procedere con un codice di recupero
-            comporta conseguenze <em>permanenti e irreversibili</em>:
-          </p>
-          <ul>
-            <li>
-              <strong>Tutti i mapping salvati saranno eliminati definitivamente.</strong>
-              {' '}Recode IT non puo' decifrarli con la nuova password
-              (architettura zero-knowledge: senza la chiave originale, i blob
-              cifrati sono inutilizzabili).
-            </li>
-            <li>
-              Le preferenze di falso-positivo memorizzate verranno conservate
-              ma diventeranno orfane (i mapping a cui si riferivano non
-              esistono piu').
-            </li>
-            <li>
-              L'operazione non puo' essere annullata dopo la conferma.
-            </li>
-          </ul>
-          <p>
-            Se non sei certo, <strong>annulla ora</strong> e prova prima a
-            ricordare la password.
-          </p>
-
-          <label className="auth-acknowledge">
-            <input
-              type="checkbox"
-              checked={acknowledged}
-              onChange={(e) => setAcknowledged(e.target.checked)}
-              data-testid="recovery-acknowledge-checkbox"
-            />
-            Ho compreso che <strong>tutti i mapping salvati saranno
-            distrutti</strong> e che questa operazione e' irreversibile.
-          </label>
-
-          <label className="field">
-            <span className="field__label">
-              Scrivi <code>{DESTRUCTIVE_CONFIRM_WORD}</code> per confermare
-            </span>
-            <input
-              type="text"
-              value={destructiveConfirm}
-              onChange={(e) => setDestructiveConfirm(e.target.value)}
-              className="auth-input"
-              autoComplete="off"
-              data-testid="recovery-destructive-input"
-            />
-          </label>
-
-          {error && <p className="error" data-testid="recovery-warning-error">{error}</p>}
-
-          <div className="actions">
-            <button
-              type="button"
-              className="btn btn--danger"
-              onClick={onWarningContinue}
-              disabled={
-                !acknowledged ||
-                destructiveConfirm.trim().toUpperCase() !==
-                  DESTRUCTIVE_CONFIRM_WORD
-              }
-              data-testid="recovery-warning-continue"
-            >
-              Continua (distruttivo)
-            </button>
-            {onBackToLogin && (
-              <button
-                type="button"
-                className="btn btn--secondary"
-                onClick={onBackToLogin}
-                data-testid="recovery-warning-cancel"
-              >
-                Annulla
-              </button>
-            )}
-          </div>
-        </div>
-      </section>
-    )
-  }
-
   return (
     <section className="auth-card">
-      <h2>Recupera l'accesso</h2>
-      <p className="hint">
-        Riceverai un link via email. Per completare il reset ti serviranno
-        anche uno dei <strong>10 codici di recupero</strong> stampati al
-        momento dell'iscrizione.
-      </p>
-      <p className="hint">
-        <strong>Conseguenza importante:</strong> usare un codice di recupero
-        elimina <em>tutti i mapping salvati</em>. Vedremo l'avviso completo
-        nel passaggio successivo.
-      </p>
+      <h2>{t('auth.recovery.initiate.title')}</h2>
+      <p className="hint">{t('auth.recovery.initiate.hint1')}</p>
+      <p className="hint">{t('auth.recovery.initiate.hint2')}</p>
       <form onSubmit={onInitiate} className="auth-form">
         <label className="field">
-          <span className="field__label">Email</span>
+          <span className="field__label">{t('auth.recovery.initiate.emailLabel')}</span>
           <input
             type="email"
             required
@@ -293,7 +226,9 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
             disabled={submitting}
             data-testid="recovery-initiate-submit"
           >
-            {submitting ? 'Invio...' : 'Invia link'}
+            {submitting
+              ? t('auth.recovery.initiate.submitting')
+              : t('auth.recovery.initiate.submit')}
           </button>
           {onBackToLogin && (
             <button
@@ -301,7 +236,7 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
               className="btn btn--secondary"
               onClick={onBackToLogin}
             >
-              Torna al login
+              {t('auth.recovery.initiate.cancel')}
             </button>
           )}
         </div>

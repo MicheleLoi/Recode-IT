@@ -76,13 +76,14 @@ async def initiate_recovery(request: Request):
 
     with connection() as conn:
         row = conn.execute(
-            "SELECT id FROM recode_users WHERE email = ? AND status = 'active'",
+            "SELECT id, tier FROM recode_users WHERE email = ? AND status = 'active'",
             (email,),
         ).fetchone()
         if row is None:
             # No-op response — same shape as success.
             return json_response({"ok": True}, status=200, request=request)
         user_id = row["id"]
+        user_tier = row["tier"]
         token = generate_email_token()
         token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
         exp = (_now() + timedelta(hours=RESET_TOKEN_TTL_HOURS)).isoformat()
@@ -96,7 +97,7 @@ async def initiate_recovery(request: Request):
         )
 
     try:
-        send_password_reset_email(email, token)
+        send_password_reset_email(to_email=email, token=token, tier=user_tier)
     except Exception as exc:  # noqa: BLE001
         print(f"[recovery] email send failed for {email}: {exc!r}",
               file=sys.stderr, flush=True)

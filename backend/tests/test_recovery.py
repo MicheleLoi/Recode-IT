@@ -53,7 +53,7 @@ def test_recovery_full_flow(client, signup_payload, monkeypatch):
     sent: list[str] = []
     import backend.recovery as recovery_mod
 
-    def fake_send(to_email, token):
+    def fake_send(to_email, token, tier="free"):
         sent.append(token)
         return {"id": "test"}
     monkeypatch.setattr(recovery_mod, "send_password_reset_email", fake_send)
@@ -119,8 +119,10 @@ def test_recovery_weak_new_password_rejected(client, signup_payload, monkeypatch
     client.post("/recode/signup", json=signup_payload)
     sent: list[str] = []
     import backend.recovery as recovery_mod
-    monkeypatch.setattr(recovery_mod, "send_password_reset_email",
-                        lambda to, tok: sent.append(tok) or {"id": "t"})
+    monkeypatch.setattr(
+        recovery_mod, "send_password_reset_email",
+        lambda to_email, token, tier="free": sent.append(token) or {"id": "t"},
+    )
     client.post("/recode/recovery/initiate",
                 json={"email": signup_payload["email"]})
     r = client.post("/recode/recovery/verify",
@@ -128,3 +130,36 @@ def test_recovery_weak_new_password_rejected(client, signup_payload, monkeypatch
                           "new_password": "short"})
     assert r.status_code == 400
     assert r.json()["error"] == "weak_password"
+
+
+# ─────────────────────────── tier-aware email body ───────────────────────────
+# When RESEND_API_KEY is unset, mailer._send prints the body to stderr (dev
+# noop). We capture stderr to assert the Free vs Pro body diverges:
+#   - Free → reassuring note ("non vengono toccati"), NO threat string.
+#   - Pro  → focused warning ("backup chiave cloud cifrato"), with the
+#            scope (cloud blobs only, browser mappings untouched).
+# Both bodies must mention the link expiry (RESET_TOKEN_TTL_HOURS).
+
+def _capture_reset_body(capsys, tier: str) -> str:
+    from backend.mailer import send_password_reset_email
+    send_password_reset_email(to_email="user@example.it", token="t-xyz", tier=tier)
+    return capsys.readouterr().err
+
+
+def test_password_reset_email_free_is_reassuring(capsys, monkeypatch):
+    monkeypatch.delenv("RESEND_API_KEY", raising=False)
+    body = _capture_reset_body(capsys, tier="free")
+    assert "non vengono toccati dal reset" in body
+    assert "TUTTI i mapping" not in body
+    assert "permanentemente inaccessibili" not in body
+    assert "Il link scade fra 24 ore" in body
+
+
+def test_password_reset_email_pro_warns_about_cloud_blobs(capsys, monkeypatch):
+    monkeypatch.delenv("RESEND_API_KEY", raising=False)
+    body = _capture_reset_body(capsys, tier="pro")
+    assert "Pro (backup chiave cloud cifrato)" in body
+    assert "mapping cifrati sul cloud" in body
+    # The Pro body still reassures about the local browser mappings.
+    assert "browser di questo dispositivo non vengono toccati" in body
+    assert "Il link scade fra 24 ore" in body

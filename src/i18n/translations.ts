@@ -302,6 +302,39 @@ const it: Catalog = {
   'decodifica.output.replacedCount': 'sostituzioni applicate',
   'decodifica.output.replacedZero': 'Nessuna sostituzione applicata: il testo non conteneva pseudonimi della tua mappa.',
   'decodifica.output.clear': 'Nuovo testo',
+
+  // ────────────────────────── Auth — recovery (password reset) ──────────────────────────
+  'auth.recovery.initiate.title': 'Recupera l’accesso',
+  'auth.recovery.initiate.hint1': 'Riceverai un link via email. Per completare il reset ti servono il link e uno dei tuoi 10 codici di recupero (stampati al momento dell’iscrizione).',
+  'auth.recovery.initiate.hint2': 'Il tuo account e i mapping nel browser non vengono toccati dal recovery.',
+  'auth.recovery.initiate.emailLabel': 'Email',
+  'auth.recovery.initiate.submit': 'Invia link',
+  'auth.recovery.initiate.submitting': 'Invio…',
+  'auth.recovery.initiate.cancel': 'Torna al login',
+  'auth.recovery.verify.title': 'Reimposta la password',
+  'auth.recovery.verify.hint': 'Compila i campi qui sotto per completare il reset.',
+  'auth.recovery.verify.tokenLabel': 'Codice di sicurezza',
+  'auth.recovery.verify.tokenLabelManual': 'Codice di sicurezza (dal link nell’email)',
+  'auth.recovery.verify.tokenFromLink': '✓ Codice di sicurezza ricevuto dal link',
+  'auth.recovery.verify.tokenHintMissing': 'Compilato automaticamente quando clicchi il link nell’email. Se non vedi nulla qui, riapri l’email e clicca il link.',
+  'auth.recovery.verify.codeLabel': 'Codice di recupero',
+  'auth.recovery.verify.newPasswordLabel': 'Nuova password (min 12 caratteri)',
+  'auth.recovery.verify.submit': 'Reimposta password',
+  'auth.recovery.verify.submitting': 'Reimposto…',
+  'auth.recovery.verify.cancel': 'Annulla',
+  'auth.recovery.done.title': 'Password aggiornata',
+  'auth.recovery.done.goToLogin': 'Vai al login',
+  'auth.recovery.done.proDestroyed': 'Mapping cifrati sul cloud eliminati: {count}.',
+  'auth.recovery.done.freePreserved': 'I mapping nel browser non sono stati toccati e sono ancora disponibili.',
+  'auth.recovery.error.generic': 'Errore inatteso.',
+  'auth.recovery.error.weakPassword': 'La nuova password deve avere almeno 12 caratteri.',
+
+  // ────────────────────────── Auth — signup (recovery codes screen) ──────────────────────────
+  'auth.signup.codes.title': 'Account creato',
+  'auth.signup.codes.saveNotice': 'Salva subito questi 10 codici di recupero. Non saranno mostrati di nuovo. Ti servono per riavere accesso all’account se dimentichi la password.',
+  'auth.signup.codes.preservesNotice': 'Cosa preserva il recovery: l’account (email + permessi acquistati come la Decodifica) e i mapping nel browser di questo dispositivo. Se cambi dispositivo o cancelli i dati del browser, i mapping locali sono persi (l’account non li contiene). Per backup automatico tra dispositivi serve il piano Pro (backup chiave cloud cifrato).',
+  'auth.signup.codes.acknowledge': 'Ho copiato i 10 codici in un posto sicuro.',
+  'auth.signup.codes.goToLogin': 'Vai al login',
 }
 
 const en: Catalog = {
@@ -582,6 +615,39 @@ const en: Catalog = {
   'decodifica.output.replacedCount': 'replacements applied',
   'decodifica.output.replacedZero': 'No replacements applied: the text did not contain any pseudonyms from your map.',
   'decodifica.output.clear': 'New text',
+
+  // ────────────────────────── Auth — recovery (password reset) ──────────────────────────
+  'auth.recovery.initiate.title': 'Recover your account',
+  'auth.recovery.initiate.hint1': 'You will receive a link by email. To complete the reset you need the link and one of your 10 recovery codes (printed when you signed up).',
+  'auth.recovery.initiate.hint2': 'Your account and the mappings stored in this browser are not touched by recovery.',
+  'auth.recovery.initiate.emailLabel': 'Email',
+  'auth.recovery.initiate.submit': 'Send link',
+  'auth.recovery.initiate.submitting': 'Sending…',
+  'auth.recovery.initiate.cancel': 'Back to sign in',
+  'auth.recovery.verify.title': 'Reset your password',
+  'auth.recovery.verify.hint': 'Fill in the fields below to complete the reset.',
+  'auth.recovery.verify.tokenLabel': 'Security code',
+  'auth.recovery.verify.tokenLabelManual': 'Security code (from the link in the email)',
+  'auth.recovery.verify.tokenFromLink': '✓ Security code received from the link',
+  'auth.recovery.verify.tokenHintMissing': 'Filled in automatically when you click the link in the email. If you see nothing here, reopen the email and click the link.',
+  'auth.recovery.verify.codeLabel': 'Recovery code',
+  'auth.recovery.verify.newPasswordLabel': 'New password (min 12 characters)',
+  'auth.recovery.verify.submit': 'Reset password',
+  'auth.recovery.verify.submitting': 'Resetting…',
+  'auth.recovery.verify.cancel': 'Cancel',
+  'auth.recovery.done.title': 'Password updated',
+  'auth.recovery.done.goToLogin': 'Go to sign in',
+  'auth.recovery.done.proDestroyed': 'Cloud-encrypted mappings deleted: {count}.',
+  'auth.recovery.done.freePreserved': 'The mappings in your browser were not touched and are still available.',
+  'auth.recovery.error.generic': 'Unexpected error.',
+  'auth.recovery.error.weakPassword': 'The new password must be at least 12 characters.',
+
+  // ────────────────────────── Auth — signup (recovery codes screen) ──────────────────────────
+  'auth.signup.codes.title': 'Account created',
+  'auth.signup.codes.saveNotice': 'Save these 10 recovery codes now. They will not be shown again. You need them to regain access to your account if you forget your password.',
+  'auth.signup.codes.preservesNotice': 'What recovery preserves: the account (email + purchased permissions like Decoding) and the mappings stored in this browser. If you switch device or clear browser data, the local mappings are lost (the account does not contain them). For automatic backup across devices you need the Pro (cloud-encrypted key backup) plan.',
+  'auth.signup.codes.acknowledge': 'I have copied the 10 codes somewhere safe.',
+  'auth.signup.codes.goToLogin': 'Go to sign in',
 }
 
 const de: Catalog = {
@@ -860,6 +926,10 @@ const de: Catalog = {
   'decodifica.output.replacedCount': 'Ersetzungen angewendet',
   'decodifica.output.replacedZero': 'Keine Ersetzungen angewendet: Der Text enthielt keine Pseudonyme aus Ihrer Zuordnung.',
   'decodifica.output.clear': 'Neuer Text',
+
+  // TODO(i18n DE): auth.recovery.* + auth.signup.codes.* not yet translated.
+  // Keys fall through to IT (canonical source) via translate() in this file.
+  // Pro tier wording in EN: "Pro (cloud-encrypted key backup)".
 }
 
 const fr: Catalog = {
@@ -1138,6 +1208,10 @@ const fr: Catalog = {
   'decodifica.output.replacedCount': 'remplacements appliqués',
   'decodifica.output.replacedZero': 'Aucun remplacement appliqué : le texte ne contenait aucun pseudonyme de votre carte.',
   'decodifica.output.clear': 'Nouveau texte',
+
+  // TODO(i18n FR): auth.recovery.* + auth.signup.codes.* not yet translated.
+  // Keys fall through to IT (canonical source) via translate() in this file.
+  // Pro tier wording in EN: "Pro (cloud-encrypted key backup)".
 }
 
 export const TRANSLATIONS: Record<Language, Catalog> = { it, en, de, fr }
