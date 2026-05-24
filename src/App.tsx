@@ -29,7 +29,6 @@ import {
   useLanguage,
   type Language,
 } from './ui/LanguageContext'
-import { ClipboardWidget } from './ui/ClipboardWidget'
 import { VerifiedBanner } from './ui/VerifiedBanner'
 import { LoginPage } from './ui/auth/LoginPage'
 import { SignupPage } from './ui/auth/SignupPage'
@@ -37,7 +36,8 @@ import { RecoveryPage } from './ui/auth/RecoveryPage'
 import { AccountDashboard } from './ui/auth/AccountDashboard'
 import { UpgradePage } from './ui/upgrade/UpgradePage'
 import { PrivacyPage } from './ui/PrivacyPage'
-import { ViewKeyDemoPage } from './ui/ViewKeyDemoPage'
+import { DecodificaWorkspace } from './ui/DecodificaWorkspace'
+import { DecodificaDemoPage } from './ui/DecodificaDemoPage'
 
 type View = 'work' | 'login' | 'signup' | 'recovery' | 'dashboard' | 'privacy'
 
@@ -233,7 +233,7 @@ function AppShell({
 
   return (
     <main className="app__main">
-      {view === 'work' && <ClipboardWidget />}
+      {view === 'work' && <DecodificaWorkspace />}
       {view === 'login' && (
         <LoginPage
           onSwitchToSignup={() => onNavigate('signup')}
@@ -359,16 +359,16 @@ function AppInner(): JSX.Element {
 }
 
 export function App(): JSX.Element {
-  // DEV-ONLY: standalone smoke surface for ViewKeyModal, mounted before the
-  // real provider stack so it works offline against a non-running backend.
+  // DEV-ONLY: standalone smoke surface for the 3-tab Decodifica workspace,
+  // mounted before the real provider stack so it works offline.
   // Vite tree-shakes the branch in production (import.meta.env.DEV = false).
-  // Remove together with src/ui/ViewKeyDemoPage.tsx when the smoke is done.
+  // Remove together with src/ui/DecodificaDemoPage.tsx when smoke is done.
   if (
     import.meta.env.DEV &&
     typeof window !== 'undefined' &&
-    window.location.pathname === '/view-key-demo'
+    window.location.pathname === '/decodifica-demo'
   ) {
-    return <ViewKeyDemoPage />
+    return <DecodificaDemoPage />
   }
 
   return (

@@ -42,8 +42,6 @@ import type { ModelLoadPhase } from './ModelLoadingState'
 import type { ReviewEntity, SwitchableCategory } from './types'
 import { DocumentView } from './DocumentView'
 import type { DisplayMode } from './EntityHighlight'
-import { ViewKeyButton } from './ViewKeyButton'
-
 /** localStorage key per la prima entrata in modalità Confronta (micro-toast). */
 
 /**
@@ -638,16 +636,8 @@ export function PseudonymizePanel({
                 ? t('pseudo.save.update')
                 : t('pseudo.button.save')}
         </button>
-        {/*
-          View-key add-on CTA (capabilities_index §9.9). Disabled until a
-          mapping exists; opens a modal with locked/unlocked sub-views. The
-          button is mounted regardless of loggedIn state so anonymous users
-          can discover the feature, and the modal handles the sign-in nudge.
-        */}
-        <ViewKeyButton
-          className="btn btn--secondary"
-          disabled={entities.length === 0}
-        />
+        {/* Mappa + Decodifica tabs live in DecodificaWorkspace (parent) — no
+            separate CTA button needed here post-pivot (§9.10). */}
       </div>
 
       {activeLabel && (
