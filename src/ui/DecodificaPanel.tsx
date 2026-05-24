@@ -226,7 +226,6 @@ export function DecodificaPanel(): JSX.Element {
           <h3 className="decodifica-panel__locked-title">
             {t('decodifica.locked.title')}
           </h3>
-          <p>{t('decodifica.locked.description')}</p>
 
           {!user ? (
             <p
@@ -237,7 +236,7 @@ export function DecodificaPanel(): JSX.Element {
             </p>
           ) : (
             <>
-              {/* Primary CTA: pay €20 */}
+              {/* Primary CTA first — visible before description (Krug: scan-first) */}
               <div className="decodifica-panel__pay">
                 <button
                   type="button"
@@ -254,6 +253,10 @@ export function DecodificaPanel(): JSX.Element {
                   {t('decodifica.locked.payHint')}
                 </p>
               </div>
+              {/* Description below the button — reads as elaboration, not prerequisite */}
+              <p className="decodifica-panel__description">
+                {t('decodifica.locked.description')}
+              </p>
 
               <div className="decodifica-panel__separator" aria-hidden="true" />
 

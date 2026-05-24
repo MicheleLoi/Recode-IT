@@ -235,6 +235,11 @@ export function MappaPanel(): JSX.Element {
       </h2>
       <p className="mappa-panel__subheading">{t('mappa.subheading')}</p>
 
+      {/* Edit-affordance hint — avvocato discovers inline edit before touching the table */}
+      <p className="mappa-panel__edit-hint" data-testid="mappa-edit-hint">
+        ✎ {t('mappa.table.editHint')}
+      </p>
+
       <div className="mappa-panel__table-wrap">
         <table className="mappa-panel__table" data-testid="mappa-table">
           <thead>
