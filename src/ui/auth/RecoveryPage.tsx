@@ -26,7 +26,7 @@ type Props = {
   onBackToLogin?: () => void
 }
 
-type Stage = 'initiate' | 'verify' | 'done'
+type Stage = 'initiate' | 'sent' | 'verify' | 'done'
 
 function readTokenFromUrl(): string {
   if (typeof window === 'undefined') return ''
@@ -60,7 +60,13 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
     setSubmitting(true)
     try {
       await requestRecovery(email.trim().toLowerCase())
-      setStage('verify')
+      // Do NOT auto-transition to 'verify'. The user must click the link
+      // in the email to arrive on the reset form with the security token
+      // pre-filled via URL query param. Founder direttiva SID-20260524-
+      // 051552 evening V: auto-transition was UX bug — Stage 3 form had
+      // no usable input path without the URL token, since the email does
+      // not contain the token as plaintext (security + UX consistency).
+      setStage('sent')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('auth.recovery.error.generic'))
     } finally {
@@ -102,6 +108,20 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
         {onBackToLogin && (
           <button className="btn btn--primary" onClick={onBackToLogin}>
             {t('auth.recovery.done.goToLogin')}
+          </button>
+        )}
+      </section>
+    )
+  }
+
+  if (stage === 'sent') {
+    return (
+      <section className="auth-card">
+        <h2>{t('auth.recovery.sent.title')}</h2>
+        <p className="hint">{t('auth.recovery.sent.hint')}</p>
+        {onBackToLogin && (
+          <button className="btn btn--primary" onClick={onBackToLogin}>
+            {t('auth.recovery.sent.backToLogin')}
           </button>
         )}
       </section>
@@ -153,7 +173,7 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
             <input
               type="text"
               required
-              placeholder="A7K3-9P2M-X4N8"
+              placeholder="XXXX-XXXX-XXXX"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               className="auth-input"
