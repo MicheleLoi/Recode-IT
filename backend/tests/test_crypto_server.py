@@ -59,7 +59,7 @@ def test_recovery_codes_are_unique_and_well_formed():
         assert c.count("-") == 2
         for grp in c.split("-"):
             assert len(grp) == 4
-            assert grp.isalnum() and grp.isupper()
+            assert grp.isalnum() and grp == grp.upper()
 
 
 def test_recovery_code_hash_verify_tolerates_dashes_and_case():
