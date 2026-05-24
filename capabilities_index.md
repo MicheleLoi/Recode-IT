@@ -3,7 +3,7 @@ artifact_type: capabilities_index
 scope: Recode IT product capabilities (meta-index, not content)
 authoritative_for: menu of capabilities + scope boundaries + delivery status snapshot + deltas from ratified PDL
 NOT_authoritative_for: architecture details (see DESIGN.md), implementation tasks (see IMPLEMENTATION_PLAN.md), risk register (see OPEN_RISKS.md), test inventory (see TEST_PLAN.md)
-last_synced: 2026-05-18
+last_synced: 2026-05-24
 authored_by: MHC-Work portfolio governance
 originated_in_session: SID-20260518-143605
 related_pdl: ../MHC-Work/notes/pdl/pdl_recode_it_web_architecture_buildplan_20260517.md
@@ -337,7 +337,9 @@ Razionale: prezzo una tantum di €25 non sostiene storage illimitato perpetuo a
 
 Authority: dialogo founder ↔ chief_of_staff SID-20260518-143605 + strategist round 1 (raccomandazione c locale) + strategist round 2 (validazione struttura 3 tier) + ratifiche founder verbatim "test: niente memoria di sessione; solo nome (acquisto a zero euro) memoria di sessione interno; 25 euro chiave sul server e diversi computer" + "email anche per newsletter, chiedendo il consenso; limite storage cloud; test permanente ma senza garanzie".
 
-### 9.9 View-key add-on €20 una tantum (ratificato 2026-05-23)
+### 9.9 [ARCHIVED 2026-05-24 — superseded by §9.10] View-key add-on €20 una tantum (ratificato 2026-05-23, pivotata 2026-05-24)
+
+> **Status: archived per audit trail.** Questa sezione descrive il pricing model view-key del 2026-05-23, **superseded dal pivot 2026-05-24** che ha spostato il paywall da view-key a Decodifica. Vedi §9.10 per il modello canonical post-pivot. Conservata in-place come traccia del ragionamento storico (doctrine append-only audit trail). Il rename mechanical backend `view_key_*` → `reverse_substitution_*` (commit `e3ffa11`) è già propagato nei path/URL/env vars sotto.
 
 **Ratifica:** founder SID-20260523-162500 (MHC-Work `_org/decision_log.md` §"RegIA pricing model finalizzato: MHC-H free €0 + Recode view-key €20 una tantum + Pro €25 una tantum parallelo").
 
@@ -385,4 +387,56 @@ Authority: dialogo founder ↔ chief_of_staff SID-20260518-143605 + strategist r
 
 ---
 
-*Recode IT capabilities_index — last synced SID-20260518-143605 (post-deploy 2026-05-18) + aggiornamento `feat/zero-euro-tier-indexeddb` (schema IDB canonico §9.1 + `marketing_consent_verified_at` §9.6 + stato §3 zero-euro tier implementato). Authored by MHC-Work portfolio governance. Coerenza con PDL ratificato 2026-05-17 + decision_log 2026-05-17 §"Pivot architetturale" + ratifica founder in-session 2026-05-18 §9 (persistenza locale design + struttura 3 tier strategist round 2) + deploy ratifica §3 stato + §5 deltas D7 D8 D9 + lessons learned in `OPEN_RISKS.md` R-09 resolution + R-11. Le ex-sezioni §9.1–§9.6 v1 (pre-strategist round 2) sono state rimosse perché duplicate da §9.0–§9.8 v2 sopra.*
+### 9.10 Decodifica €20 una tantum (post-pivot 2026-05-24, canonical)
+
+**Ratifica:** founder SID-20260524-051552. Decision log:
+- `../MHC-Work/_org/decision_log.md` 2026-05-24 §"Pivot pricing Recode IT: paywall si sposta da view-key a riconciliazione inversa (supersedes 2026-05-23 PM late §RegIA pricing model finalizzato Decisione 2)"
+- `../MHC-Work/_org/decision_log.md` 2026-05-24 PM §"Naming clarification: Decodifica naming customer-facing UNICO"
+
+Supersedes §9.9 (View-key add-on, archived in-place per audit trail).
+
+**Naming model a due livelli (intenzionalmente divergente):**
+
+- **"Decodifica"** — naming customer-facing UNICO. Compare in: UI Recode IT (CTA, headings tier, copy sito), Stripe Dashboard (Product name, Payment Link, statement descriptor), fattura FattureInCloud, ogni touchpoint customer + business.
+- **`reverse_substitution`** — naming tecnico interno. Compare in: codice (`backend/reverse_substitution.py`), DB columns (`reverse_substitution_permitted_at`, `reverse_substitution_source`), env vars (`RECODE_IT_REVERSE_SUBSTITUTION_STRIPE_PAYMENT_LINK_URL`), endpoint backend (`/recode/reverse-substitution/*`). Mai customer-visible.
+
+Divergenza naming backend↔customer è intenzionale e accettata: backend nomina l'operazione tecnica (accuracy semantica preservata), customer-facing nomina il claim di valore. Zero refactor backend pianificato.
+
+**Comportamento user-facing.** L'utente incolla un documento, Recode IT lo riscrive con pseudonimi e tiene la mappa nel suo browser. Lavora con l'AI sul testo pseudonimizzato. Quando l'AI risponde — con quegli pseudonimi — l'utente incolla la risposta in Recode IT e riceve il testo finale con i nomi reali. Quest'ultimo passo è la **Decodifica**: un click, browser-side, eseguito dal frontend usando la mappa già locale.
+
+**Cosa è gratis (con login).** Codifica + mappa pseudonimi visibile + editing manuale della mappa (incluso dal day 1, no phased rollout). Mappa persistente IndexedDB tra sessioni dello stesso browser. La versione anonima senza login funziona identicamente ma la mappa è effimera (RAM session).
+
+**Cosa costa €20 una tantum.** L'autorizzazione a eseguire la Decodifica. Il backend registra che l'utente ha pagato; il replace pseudonimo→nome reale resta tutto frontend, niente documento o mappa lascia il browser. Una tantum, non subscription, attiva su tutti i browser dove l'utente è autenticato.
+
+**Dove sta il dolore reale.** Pseudonimizzare (codifica) è il momento di disciplina — l'avvocato sa che deve farlo e accetta lo sforzo. Ri-identificare (decodifica) è il momento di noia: la risposta AI di 800 parole con quaranta occorrenze di pseudonimi da rimettere a posto a mano. Il €20 compra automazione di una tediosità ripetitiva, non fiducia in una security claim. Felt, not said.
+
+**Tre vie per ottenere la permission** (preservate post-pivot, semantica invariata):
+
+1. **Stripe Payment Link €20** mode=payment → webhook `checkout.session.completed` → permission set `source='paid'`.
+2. **MHC Bearer paste** — utente con Bearer MHC-H/MHC-L incolla nel claim form → backend valida cross-DB read-only `/root/.mhc-l-keystore.db` → `source='mhc_bearer'` + `linked_mhc_user_email`. Bundle synergy MHC ecosystem.
+3. **Pro tier implies** — `tier='pro'` riceve granted computed at read time, `source='pro_tier'`. Pro €25 cloud zero-knowledge è **parcheggiato** post-pivot (non più repositioned attivamente; resta nel codice).
+
+**Workflow canonico end-to-end:**
+
+1. **Codifica (gratis).** Utente incolla documento con nomi reali → NER browser-side estrae entità → app sostituisce con pseudonimi → utente copia testo pseudonimizzato.
+2. **Lavoro esterno (fuori Recode).** Utente porta il testo pseudonimizzato in Claude / ChatGPT / qualsiasi AI a sua scelta. Recode non chiama nessun provider AI (architettura DESIGN §3, riconfermata).
+3. **Decodifica (€20 una tantum).** Utente incolla la risposta AI (con pseudonimi) → app applica la mappa inversa → output con nomi reali. Backend ha già grantato la permission al checkout Stripe; la sostituzione vive nel frontend.
+
+**Implementazione tecnica.** Backend rinominato commit `e3ffa11`: file `backend/reverse_substitution.py` (era `view_key.py`); endpoints `/recode/reverse-substitution/{permission,claim-mhc-bearer,claim-checkout}`; colonne DB `reverse_substitution_permitted_at`, `reverse_substitution_source`, `linked_mhc_user_email` (unchanged); migrations 004 + pre-hook db.py per auto-rename colonne legacy `view_key_*` su DB pre-pivot. Env var `RECODE_IT_REVERSE_SUBSTITUTION_STRIPE_PAYMENT_LINK_URL` (era `RECODE_IT_VIEW_KEY_STRIPE_PAYMENT_LINK_URL`). 70/70 test backend passano.
+
+**Pricing model finalizzato post-pivot 2026-05-24:**
+
+| Tier | Mapping storage | View/edit mappa | Decodifica | Prezzo |
+|---|---|---|---|---|
+| Test (anonymous) | RAM session only | visibile | bloccata | €0 |
+| Free (con login) | IndexedDB browser plaintext | visibile + editabile | bloccata | €0 |
+| **+ Decodifica** | IndexedDB browser plaintext | visibile + editabile | **attiva** | **€20 una tantum** o free Bearer MHC |
+| Pro (parcheggiato) | Server-encrypted Argon2id+AES-256-GCM | visibile (implicit) | attiva (implicit) | €25 una tantum (deferred, fuori landing principale) |
+
+**Frontend pending:** replace engine pseudonimo→reale frontend-side, gate sul permission flag dal backend. Branch `feat/view-key-frontend` esistente da valutare (scarta vs re-impronta — decisione tecnica deferred post backend deploy VPS).
+
+**Coerenza con doctrine.** Felt-not-said: il claim della landing post-pivot (`../MHC-Work/communication/recode-it/site_copy_draft_20260524.md` §Hero) è *"Pseudonimizza ora. Decodifica quando serve."* — descrive un comportamento (paste → ricevi testo finito) anziché una proprietà tecnica. Vocabolario customer: "Decodifica". Vocabolario tecnico riservato a sub-section technical-internal ("sostituzione inversa" come descrizione meccanica della funzione, non come naming alternativo). Audience no-terminale rispettata (zero CLI/dev-language in surface customer; tutto UI/browser-side).
+
+---
+
+*Recode IT capabilities_index — last synced 2026-05-24 (pivot pricing Decodifica: §9.9 archived (view-key add-on superseded by pivot 2026-05-24), §9.10 added (Decodifica canonical post-pivot)). Prior sync SID-20260518-143605 (post-deploy 2026-05-18) + aggiornamento `feat/zero-euro-tier-indexeddb` (schema IDB canonico §9.1 + `marketing_consent_verified_at` §9.6 + stato §3 zero-euro tier implementato). Authored by MHC-Work portfolio governance. Coerenza con PDL ratificato 2026-05-17 + decision_log 2026-05-17 §"Pivot architetturale" + ratifica founder in-session 2026-05-18 §9 (persistenza locale design + struttura 3 tier strategist round 2) + deploy ratifica §3 stato + §5 deltas D7 D8 D9 + lessons learned in `OPEN_RISKS.md` R-09 resolution + R-11. Le ex-sezioni §9.1–§9.6 v1 (pre-strategist round 2) sono state rimosse perché duplicate da §9.0–§9.8 v2 sopra.*
