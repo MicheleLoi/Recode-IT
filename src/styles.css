@@ -1871,3 +1871,301 @@ code {
     max-height: 40vh;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   DecodificaWorkspace — tab bar + panel scaffolding (§9.10)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Tab bar ──────────────────────────────────────────────────────── */
+
+.decodifica-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.workspace-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--rule);
+  background: var(--surface);
+}
+
+.workspace-tabs__tab {
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 120ms ease, border-color 120ms ease;
+  white-space: nowrap;
+}
+
+.workspace-tabs__tab:hover {
+  color: var(--ink);
+}
+
+.workspace-tabs__tab.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Shared panel heading ─────────────────────────────────────────── */
+
+.panel__heading {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+/* ── Button large modifier ────────────────────────────────────────── */
+
+.btn--large {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   MappaPanel (§9.10 — tab 2)
+   ══════════════════════════════════════════════════════════════════ */
+
+.mappa-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px 28px;
+}
+
+.mappa-panel__subheading {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.mappa-panel__edit-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.mappa-panel__table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+
+.mappa-panel__table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 420px;
+}
+
+.mappa-panel__table thead {
+  background: var(--surface-alt);
+}
+
+.mappa-panel__table th {
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+.mappa-panel__table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: middle;
+}
+
+.mappa-panel__table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Inline-editable table cell inputs — transparent until hovered/focused */
+.mappa-panel__cell-input {
+  font: inherit;
+  font-size: 0.88rem;
+  width: 100%;
+  min-width: 140px;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.mappa-panel__cell-input:hover {
+  border-color: var(--rule);
+  background: var(--surface-alt);
+}
+
+.mappa-panel__cell-input:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+  outline: none;
+}
+
+.mappa-panel__cell-action {
+  width: 36px;
+  text-align: center;
+  padding: 4px 2px;
+}
+
+.mappa-panel__actions {
+  margin-top: 0;
+}
+
+.mappa-panel__add {
+  padding-top: 8px;
+  border-top: 1px solid var(--rule-soft);
+}
+
+.mappa-panel__add-heading {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.mappa-panel__add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.mappa-panel__add-row .auth-input {
+  flex: 1 1 160px;
+}
+
+.mappa-panel__empty {
+  padding: 20px;
+  background: var(--surface-alt);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.mappa-panel__empty-title {
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   DecodificaPanel (§9.10 — tab 3)
+   ══════════════════════════════════════════════════════════════════ */
+
+.decodifica-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px 28px;
+}
+
+.decodifica-panel__subheading {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Source badge — shown when unlocked (paid / bearer / pro) */
+.decodifica-panel__source-pill {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 2px 10px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* Locked state card */
+.decodifica-panel__locked-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  background: var(--surface-alt);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  max-width: 560px;
+}
+
+.decodifica-panel__locked-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.decodifica-panel__pay {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.decodifica-panel__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.decodifica-panel__description {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.decodifica-panel__separator {
+  height: 1px;
+  background: var(--rule);
+  margin: 4px 0;
+}
+
+.decodifica-panel__bearer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.decodifica-panel__notice {
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+/* Unlocked state — output section */
+.decodifica-panel__output {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule-soft);
+}
+
+.decodifica-panel__count {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ok);
+}
