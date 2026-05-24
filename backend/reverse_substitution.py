@@ -147,7 +147,7 @@ async def reverse_substitution_permission_endpoint(request: Request) -> JSONResp
     """Return current user's reverse-substitution permission state."""
     user = getattr(request.state, "user", None)
     if user is None:
-        return error_response(401, "auth_required")
+        return error_response("auth_required", "Authentication required.", status=401)
 
     user_id = user["id"]
     with connection() as conn:
@@ -161,7 +161,7 @@ async def reverse_substitution_permission_endpoint(request: Request) -> JSONResp
         ).fetchone()
 
     if row is None:
-        return error_response(404, "user_not_found")
+        return error_response("user_not_found", "User not found.", status=404)
 
     # Pro tier implies reverse-substitution (mapping is already
     # server-encrypted, the master_key lives in browser RAM, and Pro users
@@ -185,20 +185,20 @@ async def reverse_substitution_claim_mhc_bearer_endpoint(request: Request) -> JS
     """Validate a pasted MHC Bearer and grant reverse-substitution permission if valid."""
     user = getattr(request.state, "user", None)
     if user is None:
-        return error_response(401, "auth_required")
+        return error_response("auth_required", "Authentication required.", status=401)
 
     try:
         body = await request.json()
     except json.JSONDecodeError:
-        return error_response(400, "invalid_json")
+        return error_response("invalid_json", "Request body must be valid JSON.", status=400)
 
     bearer = body.get("bearer") if isinstance(body, dict) else None
     if not bearer or not isinstance(bearer, str):
-        return error_response(400, "bearer_required")
+        return error_response("bearer_required", "Bearer key required.", status=400)
 
     bearer = bearer.strip()
     if not bearer.startswith("mhc_live_") or len(bearer) < 16:
-        return error_response(400, "bearer_format_invalid")
+        return error_response("bearer_format_invalid", "Bearer key format invalid.", status=400)
 
     try:
         mhc_user = _lookup_mhc_bearer(bearer)
@@ -207,20 +207,22 @@ async def reverse_substitution_claim_mhc_bearer_endpoint(request: Request) -> JS
             f"[recode-reverse-substitution] cross-DB lookup failed (config): {exc!r}",
             file=sys.stderr,
         )
-        return error_response(500, "keystore_unavailable")
+        return error_response("keystore_unavailable", "Keystore unavailable.", status=500)
     except sqlite3.Error as exc:
         print(
             f"[recode-reverse-substitution] cross-DB SQLite error: {exc!r}",
             file=sys.stderr,
         )
-        return error_response(500, "keystore_error")
+        return error_response("keystore_error", "Keystore error.", status=500)
 
     if mhc_user is None:
-        return error_response(401, "bearer_invalid")
+        return error_response("bearer_invalid", "Bearer key invalid.", status=401)
 
     if mhc_user["status"] != "active":
         return error_response(
-            401, "bearer_inactive",
+            "bearer_inactive",
+            "Bearer key inactive.",
+            status=401,
             extra={"detail": f"key status: {mhc_user['status']}"},
         )
 
@@ -260,7 +262,7 @@ async def reverse_substitution_claim_checkout_endpoint(request: Request) -> JSON
     """
     user = getattr(request.state, "user", None)
     if user is None:
-        return error_response(401, "auth_required")
+        return error_response("auth_required", "Authentication required.", status=401)
 
     base_url = os.environ.get(ENV_REVERSE_SUBSTITUTION_STRIPE_URL, "").strip()
     if not base_url:
@@ -268,7 +270,7 @@ async def reverse_substitution_claim_checkout_endpoint(request: Request) -> JSON
             f"[recode-reverse-substitution] {ENV_REVERSE_SUBSTITUTION_STRIPE_URL} not set",
             file=sys.stderr,
         )
-        return error_response(500, "reverse_substitution_stripe_url_not_configured")
+        return error_response("reverse_substitution_stripe_url_not_configured", "Reverse substitution Stripe URL not configured.", status=500)
 
     # If already granted, no need to send to Stripe — return current state.
     user_id = user["id"]
@@ -283,7 +285,7 @@ async def reverse_substitution_claim_checkout_endpoint(request: Request) -> JSON
         ).fetchone()
 
     if row is None:
-        return error_response(404, "user_not_found")
+        return error_response("user_not_found", "User not found.", status=404)
 
     if row["tier"] == "pro" or row["reverse_substitution_permitted_at"] is not None:
         return json_response(
