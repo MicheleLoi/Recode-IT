@@ -80,9 +80,9 @@ function buildAuthValue(mode: DemoMode): AuthContextValue {
     unlock: noopVoidAsync,
     lockKey: noopSync,
     refresh: noopVoidAsync,
-    viewKeyGranted: mode === 'unlocked',
-    viewKeySource: mode === 'unlocked' ? 'paid' : null,
-    refreshViewKey: noopVoidAsync,
+    reverseSubstitutionGranted: mode === 'unlocked',
+    reverseSubstitutionSource: mode === 'unlocked' ? 'paid' : null,
+    refreshReverseSubstitution: noopVoidAsync,
   }
 }
 

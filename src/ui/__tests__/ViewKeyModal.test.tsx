@@ -33,8 +33,8 @@ vi.mock('../../api/client', () => ({
       this.body = body
     }
   },
-  claimViewKeyByBearer: vi.fn(),
-  claimViewKeyCheckout: vi.fn(),
+  claimReverseSubstitutionByBearer: vi.fn(),
+  claimReverseSubstitutionCheckout: vi.fn(),
 }))
 
 // Mock the auth + active-mapping contexts so we can pin specific values
@@ -75,9 +75,9 @@ function buildAuthValue(overrides: Partial<AuthContextValue>): AuthContextValue 
     unlock: vi.fn(),
     lockKey: vi.fn(),
     refresh: vi.fn(),
-    viewKeyGranted: false,
-    viewKeySource: null,
-    refreshViewKey: vi.fn(),
+    reverseSubstitutionGranted: false,
+    reverseSubstitutionSource: null,
+    refreshReverseSubstitution: vi.fn(),
     ...overrides,
   } as AuthContextValue
 }
@@ -143,8 +143,8 @@ describe('ViewKeyModal', () => {
     expect(screen.getByTestId('view-key-bearer-validate-btn')).toBeInTheDocument()
   })
 
-  it('pay CTA calls claimViewKeyCheckout and redirects to URL', async () => {
-    vi.mocked(api.claimViewKeyCheckout).mockResolvedValue({
+  it('pay CTA calls claimReverseSubstitutionCheckout and redirects to URL', async () => {
+    vi.mocked(api.claimReverseSubstitutionCheckout).mockResolvedValue({
       already_granted: false,
       checkout_url: 'https://buy.stripe.com/test',
     })
@@ -173,7 +173,7 @@ describe('ViewKeyModal', () => {
     render(<ViewKeyModal isOpen={true} onClose={() => {}} />)
     fireEvent.click(screen.getByTestId('view-key-pay-btn'))
     await waitFor(() =>
-      expect(api.claimViewKeyCheckout).toHaveBeenCalledTimes(1),
+      expect(api.claimReverseSubstitutionCheckout).toHaveBeenCalledTimes(1),
     )
     await waitFor(() =>
       expect(hrefSetter).toHaveBeenCalledWith('https://buy.stripe.com/test'),
@@ -197,15 +197,15 @@ describe('ViewKeyModal', () => {
     fireEvent.change(input, { target: { value: 'wrong-prefix-key' } })
     fireEvent.click(screen.getByTestId('view-key-bearer-validate-btn'))
     expect(screen.getByTestId('view-key-bearer-error')).toBeInTheDocument()
-    expect(api.claimViewKeyByBearer).not.toHaveBeenCalled()
+    expect(api.claimReverseSubstitutionByBearer).not.toHaveBeenCalled()
   })
 
-  it('bearer validate calls API and triggers refreshViewKey on success', async () => {
-    vi.mocked(api.claimViewKeyByBearer).mockResolvedValue({
+  it('bearer validate calls API and triggers refreshReverseSubstitution on success', async () => {
+    vi.mocked(api.claimReverseSubstitutionByBearer).mockResolvedValue({
       granted: true,
       source: 'mhc_bearer',
     })
-    const refreshViewKey = vi.fn(async () => {})
+    const refreshReverseSubstitution = vi.fn(async () => {})
     authRef.current = buildAuthValue({
         user: {
           user_id: 'u1',
@@ -216,24 +216,24 @@ describe('ViewKeyModal', () => {
           name: 'Test',
           marketing_consent: false,
         },
-        refreshViewKey,
+        refreshReverseSubstitution,
       })
     render(<ViewKeyModal isOpen={true} onClose={() => {}} />)
     const input = screen.getByTestId('view-key-bearer-input') as HTMLInputElement
     fireEvent.change(input, { target: { value: 'mhc_live_abcdef12345' } })
     fireEvent.click(screen.getByTestId('view-key-bearer-validate-btn'))
     await waitFor(() =>
-      expect(api.claimViewKeyByBearer).toHaveBeenCalledWith(
+      expect(api.claimReverseSubstitutionByBearer).toHaveBeenCalledWith(
         'mhc_live_abcdef12345',
       ),
     )
-    await waitFor(() => expect(refreshViewKey).toHaveBeenCalled())
+    await waitFor(() => expect(refreshReverseSubstitution).toHaveBeenCalled())
   })
 
   it('unlocked state shows source pill + mapping table', () => {
     authRef.current = buildAuthValue({
-        viewKeyGranted: true,
-        viewKeySource: 'paid',
+        reverseSubstitutionGranted: true,
+        reverseSubstitutionSource: 'paid',
         user: {
           user_id: 'u1',
           email: 'a@b.it',
@@ -267,8 +267,8 @@ describe('ViewKeyModal', () => {
 
   it('unlocked state with no mapping shows noMapping notice', () => {
     authRef.current = buildAuthValue({
-        viewKeyGranted: true,
-        viewKeySource: 'pro_tier',
+        reverseSubstitutionGranted: true,
+        reverseSubstitutionSource: 'pro_tier',
       })
     activeRef.current = buildActiveValue({ active: null })
     render(<ViewKeyModal isOpen={true} onClose={() => {}} />)

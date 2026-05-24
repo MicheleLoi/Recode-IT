@@ -299,35 +299,44 @@ export function claimProInvite(token: string): Promise<ClaimInviteResponse> {
   return request('POST', '/recode/pro/claim-invite', { token })
 }
 
-// ----- View-key add-on (capabilities_index §9.9, €20 una tantum / Bearer free / Pro implicit) -----
+// ----- Decodifica add-on (capabilities_index §9.10, €20 una tantum / Bearer free / Pro implicit) -----
+// Customer-facing: "Decodifica". Backend internal: reverse_substitution.
 
-export type ViewKeyPermissionResponse = {
+export type ReverseSubstitutionPermissionResponse = {
   granted: boolean
   source: 'paid' | 'mhc_bearer' | 'pro_tier' | null
 }
 
-export function getViewKeyPermission(): Promise<ViewKeyPermissionResponse> {
-  return request<ViewKeyPermissionResponse>('GET', '/recode/view-key/permission')
+export function getReverseSubstitutionPermission(): Promise<ReverseSubstitutionPermissionResponse> {
+  return request<ReverseSubstitutionPermissionResponse>(
+    'GET',
+    '/recode/reverse-substitution/permission',
+  )
 }
 
-export type ViewKeyCheckoutResponse = {
+export type ReverseSubstitutionCheckoutResponse = {
   already_granted: boolean
   checkout_url: string | null
 }
 
-export function claimViewKeyCheckout(): Promise<ViewKeyCheckoutResponse> {
-  return request<ViewKeyCheckoutResponse>('POST', '/recode/view-key/claim-checkout')
+export function claimReverseSubstitutionCheckout(): Promise<ReverseSubstitutionCheckoutResponse> {
+  return request<ReverseSubstitutionCheckoutResponse>(
+    'POST',
+    '/recode/reverse-substitution/claim-checkout',
+  )
 }
 
-export type ViewKeyClaimBearerResponse = {
+export type ReverseSubstitutionClaimBearerResponse = {
   granted: boolean
   source: 'mhc_bearer'
 }
 
-export function claimViewKeyByBearer(bearer: string): Promise<ViewKeyClaimBearerResponse> {
-  return request<ViewKeyClaimBearerResponse>(
+export function claimReverseSubstitutionByBearer(
+  bearer: string,
+): Promise<ReverseSubstitutionClaimBearerResponse> {
+  return request<ReverseSubstitutionClaimBearerResponse>(
     'POST',
-    '/recode/view-key/claim-mhc-bearer',
+    '/recode/reverse-substitution/claim-mhc-bearer',
     { bearer },
   )
 }

@@ -40,12 +40,13 @@ export type AuthUser = {
 }
 
 /**
- * View-key permission state — drives the "Vedi la chiave" CTA modal
- * (capabilities_index §9.9, view-key add-on €20 una tantum / MHC Bearer free /
- * Pro tier implicit). Field names align with backend response shape from
- * GET /recode/view-key/permission (`granted` + `source`).
+ * Reverse-substitution permission state — drives the "Decodifica" tab
+ * (capabilities_index §9.10, €20 una tantum / MHC Bearer free / Pro tier implicit).
+ * Customer-facing name: "Decodifica". Backend internal: reverse_substitution.
+ * Field names align with backend response shape from
+ * GET /recode/reverse-substitution/permission (`granted` + `source`).
  */
-export type ViewKeySource = 'paid' | 'mhc_bearer' | 'pro_tier' | null
+export type ReverseSubstitutionSource = 'paid' | 'mhc_bearer' | 'pro_tier' | null
 
 export type AuthContextValue = {
   user: AuthUser | null
@@ -60,33 +61,34 @@ export type AuthContextValue = {
   lockKey: () => void
   refresh: () => Promise<void>
   /**
-   * Whether the current user has unlocked the view-key feature (paid €20 add-on,
+   * Whether the current user has unlocked the Decodifica feature (paid €20 add-on,
    * validated an MHC Bearer, or holds a Pro tier subscription).
-   * `null` while permission hasn't been resolved (initial mount, no session).
+   * `false` while permission hasn't been resolved (initial mount, no session).
    */
-  viewKeyGranted: boolean
-  /** Which authority path granted the view-key permission. */
-  viewKeySource: ViewKeySource
+  reverseSubstitutionGranted: boolean
+  /** Which authority path granted the reverse-substitution permission. */
+  reverseSubstitutionSource: ReverseSubstitutionSource
   /**
-   * Re-fetch /recode/view-key/permission and update local state. Called
+   * Re-fetch /recode/reverse-substitution/permission and update local state. Called
    * automatically post-login and on mount when a user is present; can also
    * be triggered manually after a bearer validation or post-checkout return.
    */
-  refreshViewKey: () => Promise<void>
+  refreshReverseSubstitution: () => Promise<void>
 }
 
-// Exported so dev-only demo surfaces (e.g. ViewKeyDemoPage at /view-key-demo)
-// can inject mocked context values without going through AuthProvider's
-// network-coupled init path. Regular app code keeps using `useAuth()` /
-// `useAuthOptional()` and `<AuthProvider>` — never imports the raw context.
+// Exported so dev-only demo surfaces (e.g. /decodifica-demo) can inject
+// mocked context values without going through AuthProvider's network-coupled
+// init path. Regular app code keeps using `useAuth()` / `useAuthOptional()`
+// and `<AuthProvider>` — never imports the raw context.
 export const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }): JSX.Element {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [masterKey, setMasterKey] = useState<CryptoKey | null>(null)
   const [loading, setLoading] = useState(true)
-  const [viewKeyGranted, setViewKeyGranted] = useState(false)
-  const [viewKeySource, setViewKeySource] = useState<ViewKeySource>(null)
+  const [reverseSubstitutionGranted, setReverseSubstitutionGranted] = useState(false)
+  const [reverseSubstitutionSource, setReverseSubstitutionSource] =
+    useState<ReverseSubstitutionSource>(null)
 
   const refresh = useCallback(async () => {
     try {
@@ -104,26 +106,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
     } catch {
       setUser(null)
       setMasterKey(null)
-      setViewKeyGranted(false)
-      setViewKeySource(null)
+      setReverseSubstitutionGranted(false)
+      setReverseSubstitutionSource(null)
     } finally {
       setLoading(false)
     }
   }, [])
 
   /**
-   * Fetch the current view-key permission from the backend and update local
-   * state. Silent on failure (anonymous users get 401, which is expected):
-   * we clear the local flags rather than surfacing an error to the user.
+   * Fetch the current reverse-substitution permission from the backend and
+   * update local state. Silent on failure (anonymous users get 401, which is
+   * expected): we clear the local flags rather than surfacing an error.
    */
-  const refreshViewKey = useCallback(async () => {
+  const refreshReverseSubstitution = useCallback(async () => {
     try {
-      const resp = await api.getViewKeyPermission()
-      setViewKeyGranted(resp.granted === true)
-      setViewKeySource(resp.source)
+      const resp = await api.getReverseSubstitutionPermission()
+      setReverseSubstitutionGranted(resp.granted === true)
+      setReverseSubstitutionSource(resp.source)
     } catch {
-      setViewKeyGranted(false)
-      setViewKeySource(null)
+      setReverseSubstitutionGranted(false)
+      setReverseSubstitutionSource(null)
     }
   }, [])
 
@@ -131,19 +133,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
     void refresh()
   }, [refresh])
 
-  // Auto-fetch view-key permission whenever the user identity changes (login,
-  // refresh, logout). Anonymous users see the 401 swallowed by refreshViewKey
-  // and the flags stay false — which is the correct UX (Vedi la chiave button
-  // shows the locked modal with paywall + bearer paste options).
+  // Auto-fetch reverse-substitution permission whenever the user identity
+  // changes (login, refresh, logout). Anonymous users see the 401 swallowed
+  // and the flags stay false — which is the correct UX (Decodifica tab shows
+  // the locked state with paywall + bearer paste options).
   const userId = user?.user_id ?? null
   useEffect(() => {
     if (userId === null) {
-      setViewKeyGranted(false)
-      setViewKeySource(null)
+      setReverseSubstitutionGranted(false)
+      setReverseSubstitutionSource(null)
       return
     }
-    void refreshViewKey()
-  }, [userId, refreshViewKey])
+    void refreshReverseSubstitution()
+  }, [userId, refreshReverseSubstitution])
 
   const signupFn = useCallback(
     async (input: api.SignupInput) => {
@@ -178,8 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
     } finally {
       setUser(null)
       setMasterKey(null)
-      setViewKeyGranted(false)
-      setViewKeySource(null)
+      setReverseSubstitutionGranted(false)
+      setReverseSubstitutionSource(null)
     }
   }, [])
 
@@ -207,9 +209,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
       unlock: unlockFn,
       lockKey: lockKeyFn,
       refresh,
-      viewKeyGranted,
-      viewKeySource,
-      refreshViewKey,
+      reverseSubstitutionGranted,
+      reverseSubstitutionSource,
+      refreshReverseSubstitution,
     }),
     [
       user,
@@ -221,9 +223,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
       unlockFn,
       lockKeyFn,
       refresh,
-      viewKeyGranted,
-      viewKeySource,
-      refreshViewKey,
+      reverseSubstitutionGranted,
+      reverseSubstitutionSource,
+      refreshReverseSubstitution,
     ],
   )
 
@@ -240,7 +242,7 @@ export function useAuth(): AuthContextValue {
 
 /**
  * Tolerant variant of `useAuth()` — returns `null` when no AuthProvider is
- * mounted. Used by ancillary surfaces (view-key add-on UI) that can be
+ * mounted. Used by ancillary surfaces (Decodifica tab) that can be
  * rendered in test contexts without the full provider stack.
  */
 export function useAuthOptional(): AuthContextValue | null {

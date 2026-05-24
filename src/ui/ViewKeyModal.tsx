@@ -20,7 +20,11 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ApiError, claimViewKeyByBearer, claimViewKeyCheckout } from '../api/client'
+import {
+  ApiError,
+  claimReverseSubstitutionByBearer,
+  claimReverseSubstitutionCheckout,
+} from '../api/client'
 import { useAuthOptional } from '../auth/auth-context'
 import { useActiveMappingOptional } from '../auth/active-mapping-context'
 import { getCurrentMappingReadOnly, mappingToCsv } from '../storage/mapping-store'
@@ -61,9 +65,9 @@ export function ViewKeyModal({ isOpen, onClose }: Props): JSX.Element | null {
   const { t } = useLanguage()
   const authCtx = useAuthOptional()
   const user = authCtx?.user ?? null
-  const viewKeyGranted = authCtx?.viewKeyGranted ?? false
-  const viewKeySource = authCtx?.viewKeySource ?? null
-  const refreshViewKey = authCtx?.refreshViewKey ?? (async () => {})
+  const viewKeyGranted = authCtx?.reverseSubstitutionGranted ?? false
+  const viewKeySource = authCtx?.reverseSubstitutionSource ?? null
+  const refreshViewKey = authCtx?.refreshReverseSubstitution ?? (async () => {})
   const activeCtx = useActiveMappingOptional()
   const active = activeCtx?.active ?? null
 
@@ -119,7 +123,7 @@ export function ViewKeyModal({ isOpen, onClose }: Props): JSX.Element | null {
     }
     setLocalStatus('bearer-validating')
     try {
-      await claimViewKeyByBearer(trimmed)
+      await claimReverseSubstitutionByBearer(trimmed)
       await refreshViewKey()
       setBearerInput('')
     } catch (err) {
@@ -144,7 +148,7 @@ export function ViewKeyModal({ isOpen, onClose }: Props): JSX.Element | null {
     setBearerError(null)
     setLocalStatus('checkout-opening')
     try {
-      const resp = await claimViewKeyCheckout()
+      const resp = await claimReverseSubstitutionCheckout()
       if (resp.already_granted) {
         // Race: backend says granted already (paid in another tab). Refresh
         // local state instead of redirecting.
