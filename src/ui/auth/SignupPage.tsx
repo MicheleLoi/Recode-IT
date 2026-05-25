@@ -179,7 +179,7 @@ export function SignupPage({ onSignedUp, onSwitchToLogin }: Props): JSX.Element 
               className="btn btn--secondary"
               onClick={onSwitchToLogin}
             >
-              Ho gia' un account
+              Ho già un account
             </button>
           )}
         </div>
