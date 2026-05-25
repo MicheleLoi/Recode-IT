@@ -278,21 +278,57 @@ function useInviteTokenFromUrl(): string | null {
   return token
 }
 
+/**
+ * Read the `?token=<value>` query param on first mount. Used by the password
+ * recovery flow: when the user clicks the link in the reset email, the SPA
+ * lands on `/` (the recovery email link is `/?token=<...>`), App auto-routes
+ * to the RecoveryPage, and RecoveryPage.readTokenFromUrl picks up the same
+ * query param to auto-fill Stage 2 (verify form). We do NOT strip the token
+ * from window.location.search — RecoveryPage reads it on its own mount.
+ *
+ * Distinct from useInviteTokenFromUrl (which reads `?t=`, the upgrade flow).
+ */
+function useRecoveryTokenFromUrl(): string | null {
+  const [token] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const t = params.get('token')
+      return t && t.length > 0 ? t : null
+    } catch {
+      return null
+    }
+  })
+  return token
+}
+
 function AppInner(): JSX.Element {
   const { user, loading } = useAuth()
   const { uiLanguage, t } = useLanguage()
-  const [view, setView] = useState<View>('work')
+  const recoveryToken = useRecoveryTokenFromUrl()
+  // Lazy initializer: if `?token=<...>` was on the URL when the SPA mounted
+  // (user arrived from a password-reset email link), land directly on the
+  // recovery view. RecoveryPage::readTokenFromUrl will then auto-fill Stage 2
+  // verify. Otherwise default to 'work' so anonymous local pseudonymization
+  // keeps working without a forced login.
+  const [view, setView] = useState<View>(() =>
+    recoveryToken !== null ? 'recovery' : 'work',
+  )
   const inviteToken = useInviteTokenFromUrl()
   const [upgradeDismissed, setUpgradeDismissed] = useState(false)
 
   // Once the auth state resolves, route the user to the right initial view:
   // logged-in users land on the work surface; anonymous users on login.
+  // Exception: if a recovery token brought us here, stay on 'recovery' even
+  // if the user happens to be already logged in (the reset flow is the
+  // user's explicit intent — overriding it would silently swallow the click).
   useEffect(() => {
     if (loading) return
+    if (recoveryToken !== null && view === 'recovery') return
     if (user && view === 'login') setView('work')
     // We intentionally do NOT auto-redirect anonymous users away from 'work'
     // — they can pseudonymize locally without an account.
-  }, [loading, user, view])
+  }, [loading, user, view, recoveryToken])
 
   // Deep-link support: if the URL path is /privacy on first mount, land
   // on the privacy view. Footer links use full hrefs so external pages
