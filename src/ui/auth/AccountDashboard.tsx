@@ -31,10 +31,13 @@ import {
 import { useAuth } from '../../auth/auth-context'
 import { useActiveMapping } from '../../auth/active-mapping-context'
 
-// Phase 1 funnel pro: Stripe + invite endpoints (backend + api/client) restano
-// committed dietro a env vars; UI espone solo un contatto email finché il
-// founder non attiva il flow completo. Reattivazione: revert di questo commit
-// e reintroduzione di getMyProRequest/requestProInvite + state + form.
+// Post-pivot 2026-05-24/25: Pro €25 cloud zero-knowledge è parcheggiato fuori
+// landing principale (paywall Decodifica €20 è il canale primario). La sezione
+// "Richiedi accesso al piano pro" mostrata pre-pivot in questa dashboard è
+// stata rimossa: il componente UpgradePage.tsx resta valido per quando Pro si
+// riattiva, e backend + api/client (getMyProRequest/requestProInvite) restano
+// committed dietro env vars. Reattivazione: reintrodurre qui un blocco
+// dedicato — non riproporre il vecchio in quanto il pricing canon è cambiato.
 
 type Props = {
   onBack?: () => void
@@ -310,29 +313,11 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
         >
           <h3 className="muted">Mapping salvati</h3>
           <p className="hint" data-testid="free-mappings-info">
-            I tuoi mapping sono salvati localmente in questo browser. Recode IT
-            li riconosce automaticamente quando riapri un documento. La gestione
-            e la lista dei mapping è disponibile con il piano €25 una tantum.
-          </p>
-        </section>
-      )}
-
-      {!isPro && (
-        <section className="panel" data-testid="pro-request-section">
-          <h3>Richiedi accesso al piano pro</h3>
-          <p>
-            Il piano pro sblocca: gestione mapping multipli con etichette,
-            cloud cifrato zero-knowledge cross-device, recovery codes. Costo
-            previsto: <strong>€25 una tantum</strong>. In Phase 1 l'accesso è
-            su invito gratuito.
-          </p>
-          <p data-testid="pro-request-email">
-            Se sei interessato, scrivi a{' '}
-            <a href="mailto:mhcl@micheleloi.pro?subject=Recode%20IT%20%E2%80%94%20richiesta%20accesso%20al%20piano%20pro">
-              <code>mhcl@micheleloi.pro</code>
-            </a>
-            {' '}— spiega brevemente come pensi di usare Recode IT e ti
-            contattiamo per l'invito.
+            I tuoi mapping sono salvati localmente nel tuo browser (IndexedDB),
+            non sui nostri server. Recode IT li riconosce automaticamente quando
+            riapri un documento. Per vedere e modificare la mappa dei
+            pseudonimi del caso attivo, usa la tab «Mappa» nello strumento:
+            gratis con account.
           </p>
         </section>
       )}
@@ -362,8 +347,8 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
           <h3 className="muted">Falsi positivi memorizzati</h3>
           <p className="hint" data-testid="free-fps-info">
             I falsi positivi che marchi durante la pseudonimizzazione restano
-            attivi nella sessione corrente. La memorizzazione persistente lato
-            account è disponibile con il piano €25 una tantum.
+            attivi nella sessione corrente del browser. Non vengono salvati
+            sui nostri server.
           </p>
         </section>
       )}

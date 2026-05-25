@@ -6,8 +6,14 @@
  *     form 'Elimina mapping in blocco' visibile, copy elimina account
  *     menziona 'mapping cifrati'.
  *   - tier='free' → niente fetch cloud, sezioni cloud-only mostrate in
- *     stato disabled-grey con paragrafo info; copy elimina account adattata
- *     (NO 'mapping cifrati'); paragrafo helper 'cancella dati browser'.
+ *     stato disabled-grey con paragrafo info (framing neutro, no upsell);
+ *     copy elimina account adattata (NO 'mapping cifrati'); paragrafo helper
+ *     'cancella dati browser'.
+ *
+ * Post-pivot 2026-05-24/25: Pro €25 cloud zero-knowledge è parcheggiato fuori
+ * landing principale (paywall Decodifica €20 è il canale primario). La
+ * sezione "Richiedi accesso al piano pro" è stata rimossa dalla dashboard;
+ * i test rilevanti ora asseriscono la sua assenza per il tier free.
  *
  * I test mockano `api/client` per ottenere lo user con il tier desiderato
  * e per spiare la fetch dei mapping/falsi positivi (devono NON essere
@@ -107,10 +113,14 @@ describe('AccountDashboard — tier=free', () => {
     expect(heading).not.toBeNull()
     expect(heading!.textContent).toMatch(/Mapping salvati/i)
     expect(heading!.className).toMatch(/muted/)
-    // Paragrafo info con la frase ratificata dal founder.
+    // Paragrafo info post-pivot 2026-05-24/25: framing neutro (gestione mappa
+    // gratis con account via tab «Mappa»), niente upsell.
     const info = screen.getByTestId('free-mappings-info')
-    expect(info.textContent).toMatch(/salvati localmente in questo browser/i)
-    expect(info.textContent).toMatch(/€25 una tantum/)
+    expect(info.textContent).toMatch(/salvati localmente nel tuo browser/i)
+    expect(info.textContent).toMatch(/gratis con account/i)
+    // Hard rule post-pivot: nessuna menzione "€25 una tantum" qui (Pro
+    // parcheggiato fuori landing principale).
+    expect(info.textContent).not.toMatch(/€25/)
   })
 
   it('NON renderizza il form "Elimina mapping creati prima di"', async () => {
@@ -146,39 +156,21 @@ describe('AccountDashboard — tier=free', () => {
     expect(helper.textContent).toMatch(/recode\.micheleloi\.pro/)
   })
 
-  // --- Pro request: Phase 1 minimal email-only funnel (no Stripe wiring yet) ---
-  // Founder decision 2026-05-19: full request-then-invite Stripe flow is built
-  // in backend + api/client (10 commit) but UI exposes only an email contact.
-  // When the founder activates Stripe + env vars, revert this override and the
-  // form returns. Tests below check only the email-only minimal version.
+  // --- Post-pivot 2026-05-24/25: Pro €25 cloud zero-knowledge è parcheggiato
+  // fuori landing principale (paywall Decodifica €20 è il canale primario).
+  // La sezione "Richiedi accesso al piano pro" è stata rimossa dalla dashboard.
+  // Backend + api/client (getMyProRequest/requestProInvite) restano dietro env
+  // vars per riattivazione futura ma non sono più esposti qui.
 
-  it('mostra la sezione "Richiedi accesso al piano pro" con email contact', async () => {
+  it('NON mostra la sezione "Richiedi accesso al piano pro" (Pro parcheggiato post-pivot)', async () => {
     renderDashboard()
     await waitFor(() => {
-      expect(screen.getByTestId('pro-request-section')).toBeInTheDocument()
+      expect(screen.getByText(/Account: free@studio\.it/)).toBeInTheDocument()
     })
-    const emailBlock = screen.getByTestId('pro-request-email')
-    expect(emailBlock).toBeInTheDocument()
-    expect(emailBlock.textContent).toMatch(/mhcl@micheleloi\.pro/)
-    // Niente form (Phase 1 minimal). I 10 commit funnel completo restano nel
-    // codice ma non sono esposti finché Stripe non è configurato.
+    expect(screen.queryByTestId('pro-request-section')).toBeNull()
+    expect(screen.queryByTestId('pro-request-email')).toBeNull()
     expect(screen.queryByTestId('pro-request-form')).toBeNull()
-    expect(screen.queryByTestId('pro-request-reason')).toBeNull()
-    expect(screen.queryByTestId('pro-request-submit')).toBeNull()
     expect(apiMocks.requestProInviteMock).not.toHaveBeenCalled()
-  })
-
-  it('il link mailto include un subject pre-compilato', async () => {
-    renderDashboard()
-    await waitFor(() => {
-      expect(screen.getByTestId('pro-request-email')).toBeInTheDocument()
-    })
-    const link = screen
-      .getByTestId('pro-request-email')
-      .querySelector('a') as HTMLAnchorElement
-    expect(link).not.toBeNull()
-    expect(link.href).toMatch(/^mailto:mhcl@micheleloi\.pro/)
-    expect(decodeURIComponent(link.href)).toMatch(/subject=Recode IT/i)
   })
 })
 
