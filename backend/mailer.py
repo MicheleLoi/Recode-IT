@@ -126,7 +126,16 @@ def send_password_reset_email(
     Default tier='free' keeps the function safe to call in tests or other
     callers that don't pass the param.
     """
-    link = f"{_base_url()}/recode/recovery/reset?token={token}"
+    # The SPA front-end is mounted at the site root. When the user clicks the
+    # link, App.tsx detects ?token=<...> on first mount and routes to the
+    # RecoveryPage, which then auto-fills the verify stage with the token (see
+    # RecoveryPage::readTokenFromUrl). Originally the link pointed at
+    # /recode/recovery/reset — a backend API path that does not exist as a
+    # GET, hence 404. Founder MHC-Work SID-20260525-105757 fixed the surface
+    # the day after the auto-transition bug fix exposed it (recovery flow now
+    # requires the link click; previously the UI auto-progressed to Stage 3
+    # so users never hit the broken link).
+    link = f"{_base_url()}/?token={token}"
 
     if tier == "pro":
         mapping_note = (
