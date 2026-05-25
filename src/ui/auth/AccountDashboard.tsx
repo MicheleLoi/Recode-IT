@@ -169,8 +169,8 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
   }
 
   async function onNuke() {
-    if (deleteConfirmation !== 'DELETE MY ACCOUNT') {
-      setError('Per confermare scrivi DELETE MY ACCOUNT.')
+    if (deleteConfirmation !== 'ELIMINA IL MIO ACCOUNT') {
+      setError('Per confermare scrivi ELIMINA IL MIO ACCOUNT.')
       return
     }
     if (!deletePassword) {
@@ -379,7 +379,7 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
         </label>
         <label className="field">
           <span className="field__label">
-            Scrivi <code>DELETE MY ACCOUNT</code> per confermare
+            Scrivi <code>ELIMINA IL MIO ACCOUNT</code> per confermare
           </span>
           <input
             type="text"
@@ -392,7 +392,7 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
           className="btn btn--danger"
           onClick={onNuke}
           disabled={
-            deleteConfirmation !== 'DELETE MY ACCOUNT' || !deletePassword
+            deleteConfirmation !== 'ELIMINA IL MIO ACCOUNT' || !deletePassword
           }
         >
           Elimina account
