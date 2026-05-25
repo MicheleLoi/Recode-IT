@@ -256,9 +256,11 @@ Cap di storage per account paid, da definire in implementazione:
 
 **Comportamento user-facing.** L'utente incolla un documento, Recode IT lo riscrive con pseudonimi e tiene la mappa nel suo browser. Lavora con l'AI sul testo pseudonimizzato. Quando l'AI risponde — con quegli pseudonimi — l'utente incolla la risposta in Recode IT e riceve il testo finale con i nomi reali. Quest'ultimo passo è la **Decodifica**: un click, browser-side, eseguito dal frontend usando la mappa già locale.
 
-**Cosa è gratis (con login).** Codifica + mappa pseudonimi visibile + editing manuale della mappa (incluso dal day 1, no phased rollout). Mappa persistente IndexedDB tra sessioni dello stesso browser. La versione anonima senza login funziona identicamente ma la mappa è effimera (RAM session).
+**Cosa è gratis (con login Recode IT).** Codifica + mappa pseudonimi visibile + editing manuale della mappa (incluso dal day 1, no phased rollout). Mappa persistente IndexedDB tra sessioni dello stesso browser. Decodifica bloccata (servono €20 una tantum, oppure Bearer MHC, oppure Pro tier). La versione anonima senza login funziona identicamente ma la mappa è effimera (RAM session) e Decodifica resta bloccata.
 
-**Cosa costa €20 una tantum.** L'autorizzazione a eseguire la Decodifica. Il backend registra che l'utente ha pagato; il replace pseudonimo→nome reale resta tutto frontend, niente documento o mappa lascia il browser. Una tantum, non subscription, attiva su tutti i browser dove l'utente è autenticato.
+**Cosa è gratis per i membri MHC.** Codifica + mappa + editing + **Decodifica sbloccata**. La membership MHC (signup ecosystem €0) emette un Bearer key che, incollato nel claim form di Recode IT, registra la permission Decodifica sul backend. Bundle synergy: chi adotta MHC ecosystem riceve Recode IT Decodifica incluso, senza ulteriore pagamento. Acquisition funnel naturale verso MHC per chi vuole sperimentare il felt moment Decodifica gratis.
+
+**Cosa costa €20 una tantum.** L'autorizzazione a eseguire la Decodifica per chi non è membro MHC. Il backend registra che l'utente ha pagato; il replace pseudonimo→nome reale resta tutto frontend, niente documento o mappa lascia il browser. Una tantum, non subscription, attiva su tutti i browser dove l'utente è autenticato.
 
 **Dove sta il dolore reale.** Pseudonimizzare (codifica) è il momento di disciplina — l'avvocato sa che deve farlo e accetta lo sforzo. Ri-identificare (decodifica) è il momento di noia: la risposta AI di 800 parole con quaranta occorrenze di pseudonimi da rimettere a posto a mano. Il €20 compra automazione di una tediosità ripetitiva, non fiducia in una security claim.
 
