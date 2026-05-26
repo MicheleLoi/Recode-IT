@@ -163,3 +163,105 @@ def test_password_reset_email_pro_warns_about_cloud_blobs(capsys, monkeypatch):
     # The Pro body still reassures about the local browser mappings.
     assert "browser di questo dispositivo non vengono toccati" in body
     assert "Il link scade fra 24 ore" in body
+
+
+# ─────────────────────── tier-aware verify response message ───────────────────────
+# After recovery completes (POST /recode/recovery/verify), the JSON response
+# carries a `message` field consumed by the frontend RecoveryPage. Pre-fix it
+# was unconditional and claimed "tutti i mapping eliminati" even for tier free
+# users (who never had server-side encrypted_mappings to begin with), producing
+# contradictory text once concatenated with the frontend `destroyedNote`. The
+# message must now branch on mappings_deleted count.
+#   - 0  → "L'account non aveva mapping cifrati sul cloud da eliminare. I
+#          mapping nel browser di questo dispositivo non vengono toccati dal
+#          recovery."
+#   - >0 → "i mapping cifrati sul cloud sono stati eliminati ({count})" + the
+#          zero-knowledge clarification + browser-untouched reassurance.
+# Authority: MHC-Work decision_log 2026-05-26 SID-20260526-011753.
+
+def _initiate_and_capture_token(client, monkeypatch, email: str) -> str:
+    """Trigger recovery initiate and capture the plaintext token via mailer
+    monkeypatch. Helper to keep verify-response tests focused on message
+    content rather than the full flow."""
+    sent: list[str] = []
+    import backend.recovery as recovery_mod
+    monkeypatch.setattr(
+        recovery_mod, "send_password_reset_email",
+        lambda to_email, token, tier="free": sent.append(token) or {"id": "t"},
+    )
+    r = client.post("/recode/recovery/initiate", json={"email": email})
+    assert r.status_code == 200
+    assert len(sent) == 1
+    return sent[0]
+
+
+def test_recovery_verify_message_no_mappings_is_tier_aware(
+    client, signup_payload, monkeypatch,
+):
+    """Free tier path: signup + recover WITHOUT saving any mapping. The
+    verify response message must NOT claim mappings were destroyed (none
+    existed); must reassure about browser-stored mappings."""
+    s = client.post("/recode/signup", json=signup_payload)
+    assert s.status_code == 201
+    body = s.json()
+    recovery_code = body["recovery_codes"][0]
+
+    token = _initiate_and_capture_token(
+        client, monkeypatch, signup_payload["email"],
+    )
+
+    new_pw = "Freshly chosen LONG password 99!"
+    verify = client.post(
+        "/recode/recovery/verify",
+        json={"token": token, "recovery_code": recovery_code,
+              "new_password": new_pw},
+    )
+    assert verify.status_code == 200, verify.text
+    vbody = verify.json()
+    assert vbody["mappings_destroyed"] == 0
+    msg = vbody["message"]
+    # Non-destructive branch wording.
+    assert "non aveva mapping cifrati sul cloud" in msg
+    assert "non vengono toccati dal recovery" in msg
+    # Must NOT carry the legacy unconditional claim.
+    assert "tutti i mapping salvati sono stati eliminati" not in msg
+
+
+def test_recovery_verify_message_with_mappings_declares_count(
+    client, signup_payload, monkeypatch,
+):
+    """Pro-equivalent path: signup + save 1 mapping + recover. The verify
+    response message must declare the cloud mappings destroyed and quote
+    the count; must also reassure about the local browser mappings."""
+    s = client.post("/recode/signup", json=signup_payload)
+    assert s.status_code == 201
+    body = s.json()
+    recovery_code = body["recovery_codes"][0]
+
+    client.post("/recode/login", json=signup_payload)
+    mid = str(uuid.uuid4())
+    client.post("/recode/mappings/",
+                json={"mapping_id": mid, "blob": _b64(os.urandom(32))})
+    client.post("/recode/logout")
+
+    token = _initiate_and_capture_token(
+        client, monkeypatch, signup_payload["email"],
+    )
+
+    new_pw = "Another LONG fresh password 42!"
+    verify = client.post(
+        "/recode/recovery/verify",
+        json={"token": token, "recovery_code": recovery_code,
+              "new_password": new_pw},
+    )
+    assert verify.status_code == 200, verify.text
+    vbody = verify.json()
+    assert vbody["mappings_destroyed"] == 1
+    msg = vbody["message"]
+    # Destructive branch wording, with count.
+    assert "i mapping cifrati sul cloud sono stati eliminati" in msg
+    assert "(1)" in msg
+    # Zero-knowledge clarification preserved.
+    assert "la nuova chiave non puo' decriptare" in msg
+    # Browser-untouched reassurance preserved.
+    assert "browser di questo dispositivo non vengono toccati" in msg

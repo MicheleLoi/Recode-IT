@@ -192,16 +192,26 @@ async def verify_recovery(request: Request):
         )
         mappings_deleted = del_cur.rowcount
 
+    if mappings_deleted > 0:
+        message = (
+            "Password reimpostata. Per design zero-knowledge i mapping cifrati "
+            f"sul cloud sono stati eliminati ({mappings_deleted}): la nuova "
+            "chiave non puo' decriptare i blob cifrati con la vecchia password. "
+            "I mapping nel browser di questo dispositivo non vengono toccati."
+        )
+    else:
+        message = (
+            "Password reimpostata. L'account non aveva mapping cifrati sul cloud "
+            "da eliminare. I mapping nel browser di questo dispositivo non "
+            "vengono toccati dal recovery."
+        )
+
     return json_response(
         {
             "ok": True,
             "mappings_destroyed": mappings_deleted,
             "kdf_salt": new_salt,
-            "message": (
-                "Password reimpostata. Per design zero-knowledge tutti i "
-                "mapping salvati sono stati eliminati: la nuova chiave non "
-                "puo' decriptare i blob cifrati con la vecchia password."
-            ),
+            "message": message,
         },
         status=200, request=request,
     )
