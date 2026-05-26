@@ -336,6 +336,18 @@ export function DecodificaPanel(): JSX.Element {
         {t('decodifica.subheading')}
       </p>
 
+      {/* Output-verification warning (always visible in Decodifica tab — boundary
+          disclosure: decoding precision is empirically ~92-95%, AI-generated
+          pseudonym variants can survive substitution and require human review). */}
+      <div
+        className="banner banner--warning"
+        role="status"
+        data-testid="decodifica-output-warning"
+      >
+        <strong>{t('decodifica.outputWarning.title')}</strong>{' '}
+        {t('decodifica.outputWarning.body')}
+      </div>
+
       {/* No-mapping warning */}
       {!hasMapping && (
         <div

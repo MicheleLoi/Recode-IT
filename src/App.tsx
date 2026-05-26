@@ -170,6 +170,22 @@ function AppHeader({
             <span className="active-mapping-banner__label">
               {t('banner.active.label')}{' '}
               <strong>{active.label}</strong>
+              {/* Pseudonym count — Problema 2 sync con tab "Mappa" empty state
+                  (canon 2026-05-26). Manual {n} interpolation: il sistema
+                  i18n usa lookup-only (LanguageContext.t() non interpola). */}
+              {active.entries.length === 0 ? (
+                <span data-testid="banner-active-count">
+                  {' · '}{t('banner.active.empty')}
+                </span>
+              ) : active.entries.length === 1 ? (
+                <span data-testid="banner-active-count">
+                  {' · '}{t('banner.active.countOne')}
+                </span>
+              ) : (
+                <span data-testid="banner-active-count">
+                  {' · '}{t('banner.active.countMany').replace('{n}', String(active.entries.length))}
+                </span>
+              )}
               {active.dirty && (
                 <span className="active-mapping-banner__dirty">
                   {' '}{t('banner.active.dirty')}

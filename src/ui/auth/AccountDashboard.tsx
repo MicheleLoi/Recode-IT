@@ -30,6 +30,7 @@ import {
 } from '../../api/client'
 import { useAuth } from '../../auth/auth-context'
 import { useActiveMapping } from '../../auth/active-mapping-context'
+import { useLanguage } from '../LanguageContext'
 
 // Post-pivot 2026-05-24/25: Pro €25 cloud zero-knowledge è parcheggiato fuori
 // landing principale (paywall Decodifica €20 è il canale primario). La sezione
@@ -51,8 +52,14 @@ type Props = {
 
 export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
   const { user, logout, masterKey, unlock } = useAuth()
-  const { openMapping } = useActiveMapping()
+  // active + deleteActive needed for free-tier "I miei mapping" card
+  // (canon 2026-05-26: C1 visibility — voce locale visibile solo dopo
+  // prima codifica, empty state finché entries=0).
+  const { active, openMapping, deleteActive } = useActiveMapping()
+  const { t } = useLanguage()
   const isPro = user?.tier === 'pro'
+  // Inline confirm before deleting the local mapping (free tier).
+  const [confirmDeleteLocal, setConfirmDeleteLocal] = useState(false)
   const [mappings, setMappings] = useState<MappingMetadata[]>([])
   const [fps, setFps] = useState<Array<FalsePositiveEntry & { marked_at: string }>>(
     [],
@@ -306,20 +313,108 @@ export function AccountDashboard({ onBack, onOpened }: Props): JSX.Element {
           </div>
         </section>
       ) : (
-        <section
-          className="panel panel--disabled"
-          aria-disabled="true"
-          data-testid="free-mappings-panel"
-        >
-          <h3 className="muted">Mapping salvati</h3>
-          <p className="hint" data-testid="free-mappings-info">
-            I tuoi mapping sono salvati localmente nel tuo browser (IndexedDB),
-            non sui nostri server. Recode IT li riconosce automaticamente quando
-            riapri un documento. Per vedere e modificare la mappa dei
-            pseudonimi del caso attivo, usa la tab «Mappa» nello strumento:
-            gratis con account.
-          </p>
-        </section>
+        <>
+          {/*
+            Free-tier "I miei mapping" — ATTIVA con visibility C1 (canon
+            2026-05-26 _org/decision_log.md): empty state card-level finché
+            entries=0; voce mapping locale con metadata + actions quando
+            entries>0. Bottone "Elimina mapping" nascosto in empty state
+            (coerente con C1 — voce assente, niente da eliminare).
+          */}
+          <section className="panel" data-testid="free-mappings-panel">
+            <h3>{t('dashboard.localMapping.empty.title')}</h3>
+            {!active || active.entries.length === 0 ? (
+              <p className="hint" data-testid="free-mappings-empty">
+                {t('dashboard.localMapping.empty.body')}
+              </p>
+            ) : (
+              <ul className="account-mappings">
+                <li
+                  className="account-mappings__row"
+                  data-testid="local-mapping-row"
+                >
+                  <div>
+                    <strong>{t('dashboard.localMapping.label')}</strong>
+                    <span className="muted">
+                      {' · '}
+                      {t('dashboard.localMapping.metadata.pseudonyms').replace(
+                        '{n}',
+                        String(active.entries.length),
+                      )}
+                    </span>
+                    {confirmDeleteLocal && (
+                      <p className="hint" data-testid="local-mapping-delete-confirm">
+                        {t('banner.active.deleteConfirm')}
+                      </p>
+                    )}
+                  </div>
+                  <div className="account-mappings__row-actions">
+                    <button
+                      className="btn btn--primary"
+                      onClick={() => {
+                        if (onOpened) onOpened()
+                      }}
+                      data-testid="local-mapping-goto-tool"
+                    >
+                      {t('dashboard.localMapping.actions.goToTool')}
+                    </button>
+                    {!confirmDeleteLocal ? (
+                      <button
+                        className="btn btn--danger"
+                        onClick={() => setConfirmDeleteLocal(true)}
+                        data-testid="local-mapping-delete"
+                      >
+                        {t('dashboard.localMapping.actions.delete')}
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          className="btn btn--danger"
+                          onClick={() => {
+                            void deleteActive().finally(() =>
+                              setConfirmDeleteLocal(false),
+                            )
+                          }}
+                          data-testid="local-mapping-delete-confirm-btn"
+                        >
+                          {t('dashboard.localMapping.actions.delete')}
+                        </button>
+                        <button
+                          className="btn btn--secondary"
+                          onClick={() => setConfirmDeleteLocal(false)}
+                          data-testid="local-mapping-delete-cancel-btn"
+                        >
+                          Annulla
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </li>
+              </ul>
+            )}
+          </section>
+          {/*
+            Pro upsell card — SOTTO la voce attiva (NON sopra), coerente con
+            audience Tipo 1 sovranità dati: l'invito Pro non precede mai la
+            voce primary (no effetto pubblicitario invasivo). Email
+            destinazione: mhcl@micheleloi.pro (stessa di PrivacyPage.tsx:113
+            e UpgradePage.tsx:81 — nessuna const dedicata trovata in src/).
+          */}
+          <section
+            className="panel panel--upsell"
+            data-testid="pro-upsell-panel"
+          >
+            <h3>{t('dashboard.proUpsell.title')}</h3>
+            <p>{t('dashboard.proUpsell.body')}</p>
+            <a
+              href="mailto:mhcl@micheleloi.pro"
+              className="btn btn--secondary"
+              data-testid="pro-upsell-cta"
+            >
+              {t('dashboard.proUpsell.cta')}
+            </a>
+          </section>
+        </>
       )}
 
       {isPro ? (

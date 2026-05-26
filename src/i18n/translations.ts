@@ -48,6 +48,29 @@ const it: Catalog = {
   'banner.active.deleteTitle': 'Elimina il mapping attivo e ricomincia da zero',
   'banner.active.deleteAria': 'Elimina mapping attivo',
   'banner.active.deleteConfirm': 'Eliminare il mapping attivo? Le sostituzioni di questo caso verranno dimenticate e i prossimi documenti ripartiranno da zero. Le modifiche non salvate andranno perse.',
+  // Pseudonym count appended to the active-mapping banner (Problema 2 sync,
+  // canon 2026-05-26). countMany uses {n} placeholder; chiamante .replace().
+  'banner.active.empty': 'ancora vuoto',
+  'banner.active.countOne': '1 pseudonimo',
+  'banner.active.countMany': '{n} pseudonimi',
+
+  // ────────────────────────── Dashboard "I miei mapping" (free tier) ──────────────────────────
+  // Voce mapping locale (C1 visibility — visibile solo dopo prima codifica).
+  // Canon: _org/decision_log.md 2026-05-26 §"Recode-IT 'I miei mapping': C1
+  // stato-vuoto + 7 refinements UX ratificati". Placeholder {n} / {date}
+  // sostituiti lato chiamante via .replace().
+  'dashboard.localMapping.label': 'Mapping locale',
+  'dashboard.localMapping.empty.title': 'I miei mapping',
+  'dashboard.localMapping.empty.body': 'Non hai ancora pseudonimizzato nessun documento. Vai a Codifica per cominciare — comparirà qui il tuo mapping locale.',
+  'dashboard.localMapping.metadata.pseudonyms': '{n} pseudonimi',
+  'dashboard.localMapping.metadata.created': 'creato il {date}',
+  'dashboard.localMapping.metadata.lastAccessed': 'ultimo accesso {date}',
+  'dashboard.localMapping.actions.goToTool': 'Vai allo strumento',
+  'dashboard.localMapping.actions.delete': 'Elimina mapping',
+  // Pro upsell panel — sotto la voce attiva (non sopra), bordo accent.
+  'dashboard.proUpsell.title': 'Mapping multipli (Pro, in arrivo)',
+  'dashboard.proUpsell.body': 'Se segui più casi diversi, Pro ti permette di salvare un mapping discreto per ogni caso (cifrati zero-knowledge sul nostro server) e ritrovarli da qualsiasi browser. Vuoi accesso anticipato? Scrivici.',
+  'dashboard.proUpsell.cta': 'Scrivici',
 
   // ────────────────────────── App shell / footer ──────────────────────────
   'app.loadingSession': 'Caricamento sessione…',
@@ -252,8 +275,8 @@ const it: Catalog = {
   // ────────────────────────── Mappa panel ──────────────────────────
   'mappa.heading': 'Mappa pseudonimi',
   'mappa.subheading': 'Ogni nome reale del tuo documento e il pseudonimo che lo sostituisce. Puoi correggere, aggiungere o togliere coppie.',
-  'mappa.empty.title': 'Nessuna mappa ancora.',
-  'mappa.empty.hint': 'Vai alla tab «Codifica», carica un documento e premi «Pseudonimizza». La mappa apparirà qui.',
+  'mappa.empty.title': 'Mapping locale — ancora vuoto',
+  'mappa.empty.hint': 'Vai alla tab «Codifica», carica un documento e premi «Pseudonimizza». Le coppie nome reale → pseudonimo appariranno qui.',
   'mappa.table.colReal': 'Nome reale',
   'mappa.table.colPseudo': 'Pseudonimo',
   'mappa.table.colActions': 'Azioni',
@@ -273,6 +296,8 @@ const it: Catalog = {
   // ────────────────────────── Decodifica panel ──────────────────────────
   'decodifica.heading': 'Decodifica',
   'decodifica.subheading': 'Incolla qui la risposta che hai ricevuto dall’AI (con i pseudonimi). Recode IT la riscrive con i nomi reali del tuo caso. Tutto avviene nel tuo browser.',
+  'decodifica.outputWarning.title': 'Verifica l’output prima di condividere.',
+  'decodifica.outputWarning.body': 'Recode IT ricostruisce i nomi reali dal testo che l’AI ha generato. In alcuni casi l’AI può produrre varianti dei pseudonimi (es. forme tronche, parentesi, riformulazioni grammaticali) che la decodifica non riconosce. Rileggi il testo e cerca eventuali pseudonimi residui (es. John Doe_NN, Acme Corp._NN, frammenti come Doe_NN) prima di inviarlo a destinatari finali.',
   'decodifica.locked.title': 'Decodifica bloccata',
   'decodifica.locked.description': 'Paghi €20 una sola volta. La Decodifica resta sbloccata per sempre, su tutti i browser dove sei autenticato.',
   'decodifica.locked.notLoggedIn': 'Accedi o crea un account: serve un’identità per sbloccare la Decodifica.',
@@ -366,6 +391,24 @@ const en: Catalog = {
   'banner.active.deleteTitle': 'Delete the active mapping and start fresh',
   'banner.active.deleteAria': 'Delete active mapping',
   'banner.active.deleteConfirm': 'Delete the active mapping? The substitutions for this case will be forgotten and the next documents will start over. Unsaved changes will be lost.',
+  // PENDING @comm review (2026-05-26): brief proposals — see decision_log.
+  'banner.active.empty': 'still empty',
+  'banner.active.countOne': '1 pseudonym',
+  'banner.active.countMany': '{n} pseudonyms',
+
+  // ────────────────────────── Dashboard "My mappings" (free tier) ──────────────────────────
+  // PENDING @comm review (2026-05-26): EN strings = brief proposals.
+  'dashboard.localMapping.label': 'Local mapping',
+  'dashboard.localMapping.empty.title': 'My mappings',
+  'dashboard.localMapping.empty.body': 'You haven\'t pseudonymized any document yet. Go to Encode to start — your local mapping will appear here.',
+  'dashboard.localMapping.metadata.pseudonyms': '{n} pseudonyms',
+  'dashboard.localMapping.metadata.created': 'created on {date}',
+  'dashboard.localMapping.metadata.lastAccessed': 'last access {date}',
+  'dashboard.localMapping.actions.goToTool': 'Open in the tool',
+  'dashboard.localMapping.actions.delete': 'Delete mapping',
+  'dashboard.proUpsell.title': 'Multiple mappings (Pro, coming soon)',
+  'dashboard.proUpsell.body': 'If you follow several different cases, Pro lets you save a separate mapping for each case (zero-knowledge encrypted on our server) and access them from any browser. Want early access? Write to us.',
+  'dashboard.proUpsell.cta': 'Write to us',
 
   // ────────────────────────── App shell / footer ──────────────────────────
   'app.loadingSession': 'Loading session…',
@@ -569,8 +612,8 @@ const en: Catalog = {
   // ────────────────────────── Mappa panel ──────────────────────────
   'mappa.heading': 'Pseudonym map',
   'mappa.subheading': 'Every real name from your document and the pseudonym that replaced it. You can correct, add or remove pairs.',
-  'mappa.empty.title': 'No map yet.',
-  'mappa.empty.hint': 'Go to the «Encode» tab, load a document and press «Pseudonymize». The map will appear here.',
+  'mappa.empty.title': 'Local mapping — still empty',
+  'mappa.empty.hint': 'Go to the «Encode» tab, load a document and press «Pseudonymize». The real-name → pseudonym pairs will appear here.',
   'mappa.table.colReal': 'Real name',
   'mappa.table.colPseudo': 'Pseudonym',
   'mappa.table.colActions': 'Actions',
@@ -590,6 +633,8 @@ const en: Catalog = {
   // ────────────────────────── Decodifica panel ──────────────────────────
   'decodifica.heading': 'Decode',
   'decodifica.subheading': 'Paste the AI response here (with pseudonyms). Recode IT rewrites it with the real names from your case. Everything happens in your browser.',
+  'decodifica.outputWarning.title': 'Verify the output before sharing.',
+  'decodifica.outputWarning.body': 'Recode IT reconstructs real names from the text the AI generated. In some cases the AI can produce variants of pseudonyms (e.g. truncated forms, brackets, grammatical reformulations) that decoding does not recognize. Re-read the text and look for any remaining pseudonyms (e.g. John Doe_NN, Acme Corp._NN, fragments like Doe_NN) before sending it to final recipients.',
   'decodifica.locked.title': 'Decoding locked',
   'decodifica.locked.description': 'Pay €20 once. Decoding stays unlocked forever, on every browser where you are signed in.',
   'decodifica.locked.notLoggedIn': 'Sign in or create an account — an identity is required to unlock Decoding.',
@@ -683,6 +728,24 @@ const de: Catalog = {
   'banner.active.deleteTitle': 'Aktives Mapping löschen und neu starten',
   'banner.active.deleteAria': 'Aktives Mapping löschen',
   'banner.active.deleteConfirm': 'Aktives Mapping löschen? Die Ersetzungen dieses Falls werden vergessen und die nächsten Dokumente beginnen von vorne. Nicht gespeicherte Änderungen gehen verloren.',
+  // PENDING @comm review (2026-05-26): DE strings = brief proposals.
+  'banner.active.empty': 'noch leer',
+  'banner.active.countOne': '1 Pseudonym',
+  'banner.active.countMany': '{n} Pseudonyme',
+
+  // ────────────────────────── Dashboard "Meine Mappings" (free tier) ──────────────────────────
+  // PENDING @comm review (2026-05-26): DE strings = brief proposals.
+  'dashboard.localMapping.label': 'Lokales Mapping',
+  'dashboard.localMapping.empty.title': 'Meine Mappings',
+  'dashboard.localMapping.empty.body': 'Sie haben noch kein Dokument pseudonymisiert. Gehen Sie zu Kodieren, um zu beginnen — Ihr lokales Mapping erscheint hier.',
+  'dashboard.localMapping.metadata.pseudonyms': '{n} Pseudonyme',
+  'dashboard.localMapping.metadata.created': 'erstellt am {date}',
+  'dashboard.localMapping.metadata.lastAccessed': 'letzter Zugriff {date}',
+  'dashboard.localMapping.actions.goToTool': 'Im Tool öffnen',
+  'dashboard.localMapping.actions.delete': 'Mapping löschen',
+  'dashboard.proUpsell.title': 'Mehrere Mappings (Pro, bald verfügbar)',
+  'dashboard.proUpsell.body': 'Wenn Sie mehrere verschiedene Fälle bearbeiten, ermöglicht Pro Ihnen, ein separates Mapping für jeden Fall zu speichern (zero-knowledge verschlüsselt auf unserem Server) und sie von jedem Browser aus abzurufen. Möchten Sie frühen Zugang? Schreiben Sie uns.',
+  'dashboard.proUpsell.cta': 'Schreiben Sie uns',
 
   // ────────────────────────── App shell / footer ──────────────────────────
   'app.loadingSession': 'Sitzung wird geladen…',
@@ -885,8 +948,8 @@ const de: Catalog = {
 
   'mappa.heading': 'Pseudonym-Zuordnung',
   'mappa.subheading': 'Jeder echte Name aus Ihrem Dokument und das ihn ersetzende Pseudonym. Sie können Paare korrigieren, hinzufügen oder löschen.',
-  'mappa.empty.title': 'Noch keine Zuordnung.',
-  'mappa.empty.hint': 'Gehen Sie zum Tab «Kodieren», laden Sie ein Dokument und drücken Sie «Pseudonymisieren». Die Zuordnung erscheint dann hier.',
+  'mappa.empty.title': 'Lokales Mapping — noch leer',
+  'mappa.empty.hint': 'Gehen Sie zum Tab «Kodieren», laden Sie ein Dokument und drücken Sie «Pseudonymisieren». Die Paare echter Name → Pseudonym erscheinen hier.',
   'mappa.table.colReal': 'Echter Name',
   'mappa.table.colPseudo': 'Pseudonym',
   'mappa.table.colActions': 'Aktionen',
@@ -905,6 +968,8 @@ const de: Catalog = {
 
   'decodifica.heading': 'Dekodieren',
   'decodifica.subheading': 'Fügen Sie hier die KI-Antwort ein (mit Pseudonymen). Recode IT schreibt sie mit den echten Namen aus Ihrem Fall um. Alles passiert in Ihrem Browser.',
+  'decodifica.outputWarning.title': 'Überprüfen Sie die Ausgabe vor dem Teilen.',
+  'decodifica.outputWarning.body': 'Recode IT rekonstruiert die echten Namen aus dem von der KI generierten Text. In einigen Fällen kann die KI Varianten der Pseudonyme erzeugen (z.B. verkürzte Formen, Klammern, grammatikalische Umformulierungen), die die Dekodierung nicht erkennt. Lesen Sie den Text erneut und suchen Sie nach verbleibenden Pseudonymen (z.B. John Doe_NN, Acme Corp._NN, Fragmente wie Doe_NN), bevor Sie ihn an Endempfänger senden.',
   'decodifica.locked.title': 'Dekodierung gesperrt',
   'decodifica.locked.description': 'Sie zahlen einmalig 20 €. Die Dekodierung bleibt dauerhaft freigeschaltet, auf allen Browsern, auf denen Sie angemeldet sind.',
   'decodifica.locked.notLoggedIn': 'Melden Sie sich an oder erstellen Sie ein Konto — eine Identität ist erforderlich, um die Dekodierung freizuschalten.',
@@ -966,6 +1031,24 @@ const fr: Catalog = {
   'banner.active.deleteTitle': 'Supprimer le mapping actif et repartir de zéro',
   'banner.active.deleteAria': 'Supprimer le mapping actif',
   'banner.active.deleteConfirm': 'Supprimer le mapping actif ? Les substitutions de ce dossier seront oubliées et les prochains documents repartiront de zéro. Les modifications non enregistrées seront perdues.',
+  // PENDING @comm review (2026-05-26): FR strings = brief proposals.
+  'banner.active.empty': 'encore vide',
+  'banner.active.countOne': '1 pseudonyme',
+  'banner.active.countMany': '{n} pseudonymes',
+
+  // ────────────────────────── Dashboard "Mes mappings" (free tier) ──────────────────────────
+  // PENDING @comm review (2026-05-26): FR strings = brief proposals.
+  'dashboard.localMapping.label': 'Mapping local',
+  'dashboard.localMapping.empty.title': 'Mes mappings',
+  'dashboard.localMapping.empty.body': 'Vous n\'avez encore pseudonymisé aucun document. Allez à Coder pour commencer — votre mapping local apparaîtra ici.',
+  'dashboard.localMapping.metadata.pseudonyms': '{n} pseudonymes',
+  'dashboard.localMapping.metadata.created': 'créé le {date}',
+  'dashboard.localMapping.metadata.lastAccessed': 'dernier accès {date}',
+  'dashboard.localMapping.actions.goToTool': 'Ouvrir dans l\'outil',
+  'dashboard.localMapping.actions.delete': 'Supprimer le mapping',
+  'dashboard.proUpsell.title': 'Mappings multiples (Pro, à venir)',
+  'dashboard.proUpsell.body': 'Si vous suivez plusieurs dossiers différents, Pro vous permet d\'enregistrer un mapping distinct pour chaque dossier (chiffrés zero-knowledge sur notre serveur) et de les retrouver depuis n\'importe quel navigateur. Vous voulez un accès anticipé ? Écrivez-nous.',
+  'dashboard.proUpsell.cta': 'Écrivez-nous',
 
   // ────────────────────────── App shell / footer ──────────────────────────
   'app.loadingSession': 'Chargement de la session…',
@@ -1168,8 +1251,8 @@ const fr: Catalog = {
 
   'mappa.heading': 'Carte des pseudonymes',
   'mappa.subheading': 'Chaque vrai nom de votre document et le pseudonyme qui le remplace. Vous pouvez corriger, ajouter ou supprimer des paires.',
-  'mappa.empty.title': 'Aucune carte pour l\'instant.',
-  'mappa.empty.hint': 'Allez dans l\'onglet «Coder», chargez un document et cliquez sur «Pseudonymiser». La carte apparaîtra ici.',
+  'mappa.empty.title': 'Mapping local — encore vide',
+  'mappa.empty.hint': 'Allez dans l\'onglet «Coder», chargez un document et cliquez sur «Pseudonymiser». Les paires nom réel → pseudonyme apparaîtront ici.',
   'mappa.table.colReal': 'Vrai nom',
   'mappa.table.colPseudo': 'Pseudonyme',
   'mappa.table.colActions': 'Actions',
@@ -1188,6 +1271,8 @@ const fr: Catalog = {
 
   'decodifica.heading': 'Décoder',
   'decodifica.subheading': 'Collez ici la réponse de l\'IA (avec les pseudonymes). Recode IT la réécrit avec les vrais noms de votre dossier. Tout se passe dans votre navigateur.',
+  'decodifica.outputWarning.title': 'Vérifiez la sortie avant de partager.',
+  'decodifica.outputWarning.body': 'Recode IT reconstruit les vrais noms à partir du texte généré par l\'IA. Dans certains cas, l\'IA peut produire des variantes des pseudonymes (par exemple formes tronquées, parenthèses, reformulations grammaticales) que le décodage ne reconnaît pas. Relisez le texte et recherchez les pseudonymes résiduels (par exemple John Doe_NN, Acme Corp._NN, fragments comme Doe_NN) avant de l\'envoyer à des destinataires finaux.',
   'decodifica.locked.title': 'Décodage verrouillé',
   'decodifica.locked.description': 'Vous payez 20 € une seule fois. Le décodage reste débloqué à vie, sur tous les navigateurs où vous vous connectez.',
   'decodifica.locked.notLoggedIn': 'Connectez-vous ou créez un compte — une identité est nécessaire pour débloquer le décodage.',

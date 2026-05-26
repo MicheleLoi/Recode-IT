@@ -3,7 +3,7 @@ artifact_type: capabilities_index
 scope: Recode IT product capabilities (meta-index, not content)
 authoritative_for: menu of capabilities + scope boundaries + delivery status snapshot
 NOT_authoritative_for: architecture details (see DESIGN.md), implementation tasks (see IMPLEMENTATION_PLAN.md), risk register (see OPEN_RISKS.md), test inventory (see TEST_PLAN.md)
-last_synced: 2026-05-25
+last_synced: 2026-05-26
 maintenance: per phase status → consult git log + IMPLEMENTATION_PLAN.md; canonical answer to "cosa fa Recode IT oggi?" + "cosa esplicitamente non fa?"
 ---
 
@@ -98,6 +98,7 @@ I golden file di test (Python reference outputs + fixture canonici) sono inclusi
 ### 5.2 Boundaries di scope feature
 
 - **NER ha recall ~70-80%.** L'utente DEVE rivedere il preview prima di copiare. La revisione è obbligo contrattuale del Titolare dei dati. Il pannello entity review è la materializzazione dell'obbligo, non cosmetica.
+- **Decodifica ha precisione empirica ~92-95%** (case band setlist 2026-05-26). Varianti AI-generated dei pseudonimi (truncation, bracketing come `[Doe_NN]`, declensione grammaticale, org/location names) possono sopravvivere alla decodifica e devono essere rilevate via revisione manuale dell'output. La revisione del testo decodificato pre-condivisione con terze parti è raccomandata.
 - **Continuità degli pseudonimi cross-document = capacità attivata.** L'architettura zero-knowledge persistente + il gesto UX "apri mapping esistente prima del drag-drop" producono coerenza fra atti della stessa causa (Mario Rossi resta Tizio in tutti gli atti). Test `extend_mode.test.ts` green (Tier-1 hit verificato sul mapper).
 - **Apprendimento falso-positivi cross-document = funziona dentro lo stesso mapping di causa, NON tra cause diverse.** La memoria del flag "non è una persona" viaggia con il mapping cifrato del documento (campo `isFalsePositive: bool` per entry — DESIGN §8.7), NON con tabella server-side. Conseguenza: la marca persiste dentro un mapping; se l'utente passa a una causa diversa (mapping diverso), riparte da zero.
 - **Niente OCR per PDF scannerizzati.** PDF text-extractable supportati via pdf.js. Scannerizzati: messaggio "carica come testo o usa PDF con testo incorporato — OCR in Phase 2".
@@ -291,6 +292,31 @@ Divergenza naming backend↔customer è intenzionale e accettata: backend nomina
 
 **Coerenza con felt-not-said discipline**: il claim della landing post-pivot è *"Pseudonimizza ora. Decodifica quando serve."* — descrive un comportamento (paste → ricevi testo finito) anziché una proprietà tecnica. Vocabolario customer: "Decodifica". Vocabolario tecnico riservato a sub-section technical-internal ("sostituzione inversa" come descrizione meccanica della funzione, non come naming alternativo).
 
+### 7.10 Pagina "I miei mapping" (per tier)
+
+Authority: `MHC-Work/_org/decision_log.md` 2026-05-26 §"Recode-IT 'I miei mapping': C1 stato-vuoto + 7 refinements UX ratificati" + 2026-05-25 late evening II §"Recode-IT 'I miei mapping' role: indice cross-tier".
+
+**Nota**: il decision_log riferisce questa sezione come "§9.10" per eredità pre-cleanup 2026-05-25; la posizione canonical post-cleanup è §7.10.
+
+**Per free tier:**
+- Card "I miei mapping" ATTIVA con visibility C1 (voce mapping locale visibile solo dopo prima codifica; empty state card-level finché `useActiveMapping().active.entries.length === 0`).
+- NEW Card "Mapping multipli (Pro, in arrivo)" UPSELL SOTTO la voce attiva (non sopra — coerente con audience Tipo 1 sovranità dati, no effetto pubblicitario invasivo) con CTA mailto a `mhcl@micheleloi.pro`.
+- Falsi positivi disabled informativa (invariata).
+- Elimina account + helper browser data (invariati).
+- Bottone "Elimina mapping" nascosto quando entries=0 (coerente con C1 — voce assente, niente da eliminare); confirm inline quando entries>0.
+
+**Per Pro tier:**
+- Card "Mapping salvati" ATTIVA con lista N voci (mapping cifrati server-side, comportamento storico invariato).
+- Falsi positivi memorizzati ATTIVA (invariata).
+- Elimina account (invariata).
+- Pro upsell panel NON renderizzato (è già Pro).
+
+**Banner attivo nello strumento (work view, App.tsx:168-216):**
+- Sempre visibile quando `active != null` e view='work'.
+- Conteggio dinamico pseudonimi: "Mapping attivo: Mapping locale · N pseudonimi" / "· 1 pseudonimo" / "· ancora vuoto" se N=0.
+- Identità lessicale con body tab "2. Mappa" empty state (entrambi "Mapping locale — ancora vuoto").
+- Interpolazione `{n}` gestita lato chiamante via `.replace('{n}', String(n))` — il sistema i18n `LanguageContext.t()` è lookup-only senza interpolation built-in.
+
 ---
 
-*Recode IT capabilities_index — last synced 2026-05-25 (post architectural cleanup: removed governance/strategic content migrated to governance counterpart; renumbered sections; kept tier description tecnica + Decodifica canonical post-pivot). Coerenza con DESIGN.md + IMPLEMENTATION_PLAN.md + commit history del repo.*
+*Recode IT capabilities_index — last synced 2026-05-26 (post architectural cleanup: removed governance/strategic content migrated to governance counterpart; renumbered sections; kept tier description tecnica + Decodifica canonical post-pivot + §7.10 "I miei mapping" per tier). Coerenza con DESIGN.md + IMPLEMENTATION_PLAN.md + commit history del repo.*

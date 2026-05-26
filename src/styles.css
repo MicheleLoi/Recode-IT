@@ -788,6 +788,18 @@ code {
   background: #fbeaea;
 }
 
+/* Pro upsell panel — appears below the active local-mapping voice in the
+   free-tier "I miei mapping" dashboard (canon 2026-05-26). Soft accent
+   border + tinted background so it reads as an opt-in invitation, not a
+   warning. Visual review pre-commit (confidence MEDIA su colori). */
+.panel--upsell {
+  border: 1px solid var(--accent);
+  background: var(--rule-soft);
+}
+.panel--upsell h3 {
+  color: var(--accent);
+}
+
 .muted {
   color: var(--muted);
   font-size: 0.85rem;

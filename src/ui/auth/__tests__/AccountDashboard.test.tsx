@@ -5,9 +5,11 @@
  *   - tier='pro' → fetch /recode/mappings + /recode/false-positives,
  *     form 'Elimina mapping in blocco' visibile, copy elimina account
  *     menziona 'mapping cifrati'.
- *   - tier='free' → niente fetch cloud, sezioni cloud-only mostrate in
- *     stato disabled-grey con paragrafo info (framing neutro, no upsell);
- *     copy elimina account adattata (NO 'mapping cifrati'); paragrafo helper
+ *   - tier='free' → niente fetch cloud, panel "I miei mapping" ATTIVA con
+ *     C1 visibility (canon 2026-05-26 _org/decision_log.md): empty state
+ *     card-level finché entries=0; voce mapping locale con metadata quando
+ *     entries>0. NEW Pro upsell panel SOTTO la voce attiva (non sopra).
+ *     Copy elimina account adattata (NO 'mapping cifrati'); paragrafo helper
  *     'cancella dati browser'.
  *
  * Post-pivot 2026-05-24/25: Pro €25 cloud zero-knowledge è parcheggiato fuori
@@ -100,27 +102,62 @@ describe('AccountDashboard — tier=free', () => {
     expect(apiMocks.getFalsePositivesMock).not.toHaveBeenCalled()
   })
 
-  it('mostra heading "Mapping salvati" greyed-out + paragrafo info', async () => {
+  // Canon 2026-05-26 (_org/decision_log.md): panel "I miei mapping" ATTIVA
+  // (NON più disabled). Empty state card-level finché entries=0.
+  // Wrappato in ActiveMappingProvider senza login esplicito → active=null
+  // → empty state visibile.
+  it('mostra panel "I miei mapping" ATTIVA (non disabled) con empty state card-level', async () => {
     renderDashboard()
     await waitFor(() => {
       expect(screen.getByText(/Account: free@studio\.it/)).toBeInTheDocument()
     })
     const panel = screen.getByTestId('free-mappings-panel')
     expect(panel).toBeInTheDocument()
-    expect(panel.getAttribute('aria-disabled')).toBe('true')
-    // Heading testuale presente (in stile muted).
+    // C1: panel è ATTIVA, non più aria-disabled / muted heading.
+    expect(panel.getAttribute('aria-disabled')).toBeNull()
     const heading = panel.querySelector('h3')
     expect(heading).not.toBeNull()
-    expect(heading!.textContent).toMatch(/Mapping salvati/i)
-    expect(heading!.className).toMatch(/muted/)
-    // Paragrafo info post-pivot 2026-05-24/25: framing neutro (gestione mappa
-    // gratis con account via tab «Mappa»), niente upsell.
-    const info = screen.getByTestId('free-mappings-info')
-    expect(info.textContent).toMatch(/salvati localmente nel tuo browser/i)
-    expect(info.textContent).toMatch(/gratis con account/i)
-    // Hard rule post-pivot: nessuna menzione "€25 una tantum" qui (Pro
-    // parcheggiato fuori landing principale).
-    expect(info.textContent).not.toMatch(/€25/)
+    expect(heading!.textContent).toMatch(/I miei mapping/i)
+    expect(heading!.className).not.toMatch(/muted/)
+    // Empty state body visibile (active=null nel provider di test).
+    const emptyBody = screen.getByTestId('free-mappings-empty')
+    expect(emptyBody.textContent).toMatch(
+      /Non hai ancora pseudonimizzato nessun documento/i,
+    )
+    expect(emptyBody.textContent).toMatch(/Vai a Codifica/i)
+    // Hard rule post-pivot: nessuna menzione "€25" qui (Pro upsell separato
+    // ha la sua copy, ma niente prezzo).
+    expect(panel.textContent).not.toMatch(/€25/)
+    // C1: empty state → bottone "Elimina mapping" NASCOSTO (voce assente,
+    // niente da eliminare).
+    expect(screen.queryByTestId('local-mapping-delete')).toBeNull()
+    expect(screen.queryByTestId('local-mapping-row')).toBeNull()
+  })
+
+  it('rende il pannello Pro upsell SOTTO la voce "I miei mapping" con CTA mailto', async () => {
+    renderDashboard()
+    await waitFor(() => {
+      expect(screen.getByText(/Account: free@studio\.it/)).toBeInTheDocument()
+    })
+    const upsell = screen.getByTestId('pro-upsell-panel')
+    expect(upsell).toBeInTheDocument()
+    expect(upsell.className).toMatch(/panel--upsell/)
+    // Pro upsell DEVE apparire DOPO la voce "I miei mapping" nel DOM
+    // (canon 2026-05-26 §"refinement #1": no effetto pubblicitario invasivo).
+    const miei = screen.getByTestId('free-mappings-panel')
+    expect(
+      miei.compareDocumentPosition(upsell) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    // Heading + body content sanity.
+    const heading = upsell.querySelector('h3')
+    expect(heading!.textContent).toMatch(/Mapping multipli/i)
+    expect(heading!.textContent).toMatch(/Pro, in arrivo/i)
+    expect(upsell.textContent).toMatch(/zero-knowledge/i)
+    // CTA mailto a mhcl@micheleloi.pro (coerente con PrivacyPage.tsx +
+    // UpgradePage.tsx — nessuna const dedicata in src/).
+    const cta = screen.getByTestId('pro-upsell-cta')
+    expect(cta.getAttribute('href')).toBe('mailto:mhcl@micheleloi.pro')
+    expect(cta.textContent).toMatch(/Scrivici/i)
   })
 
   it('NON renderizza il form "Elimina mapping creati prima di"', async () => {
@@ -198,10 +235,14 @@ describe('AccountDashboard — tier=pro (sanity, comportamento storico invariato
     expect(screen.getByText(/Elimina in blocco/i)).toBeInTheDocument()
     // Copy storica.
     expect(screen.getByText(/mapping cifrati/i)).toBeInTheDocument()
-    // Pannelli "free" disabled NON presenti.
+    // Pannelli "free" NON presenti per tier=pro.
     expect(screen.queryByTestId('free-mappings-panel')).toBeNull()
     expect(screen.queryByTestId('free-fps-panel')).toBeNull()
     expect(screen.queryByTestId('browser-data-helper')).toBeNull()
+    // Canon 2026-05-26: Pro upsell + voce locale appartengono SOLO al
+    // ramo free; NON devono apparire in tier=pro.
+    expect(screen.queryByTestId('pro-upsell-panel')).toBeNull()
+    expect(screen.queryByTestId('local-mapping-row')).toBeNull()
     // La sezione "Richiedi accesso pro" non appare per gli utenti già pro.
     expect(screen.queryByTestId('pro-request-section')).toBeNull()
   })
