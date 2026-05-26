@@ -75,6 +75,95 @@ code {
   font-size: 0.95rem;
 }
 
+/* ============================ Hero (wireframe-first SID-20260526-172143) ============================
+   Painting background + brand overlay + lingua interfaccia chip top-right.
+   Tagline esterna sotto hero (page background, leggibile). Doc lang +
+   nav restano in secondary row sotto (saranno integrati in Phase 2 work
+   area refactor + lang doc full-width slot). */
+
+.app__hero {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 4 / 1;
+  background: #1a1a1a;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.app__hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* "Reso chiaro" per leggibilità testo brand overlaid + gradient (founder
+     direttiva SID-20260526-172143). */
+  filter: brightness(1.25) saturate(0.85) contrast(0.92);
+}
+
+.app__hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.30) 45%,
+    rgba(255, 255, 255, 0.10) 100%
+  );
+}
+
+.app__hero-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 36px;
+}
+
+.app__hero-brand {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.app__hero-lang-chip {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  appearance: auto;
+  min-width: 64px;
+}
+
+.app__hero-lang-chip:hover {
+  background: white;
+}
+
+.app__hero-lang-chip:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.app__tagline {
+  margin: 6px 4px 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
 .app__main {
   flex: 1;
   max-width: 1400px;

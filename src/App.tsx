@@ -19,6 +19,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { GIT_SHA } from './buildInfo'
+import heroUrl from './assets/hero.png'
 import { AuthProvider, useAuth } from './auth/auth-context'
 import { ActiveMappingProvider, useActiveMapping } from './auth/active-mapping-context'
 import {
@@ -60,30 +61,39 @@ function AppHeader({
   return (
     <header className="app__header">
       <div className="app__header-inner">
-        <div className="app__header-row">
-          <div>
-            <h1>{BRAND_BY_LANG[uiLanguage]}</h1>
-            <p className="tagline">{TAGLINE_BY_LANG[uiLanguage]}</p>
+        {/* Hero: painting + brand + lingua interfaccia chip top-right.
+            Wireframe-first canonical (SID-20260526-172143). Tagline esterna
+            sotto hero, doc lang nella secondary row sotto (sarà spostata
+            full-width sopra le card mappa in Phase 2 work area refactor). */}
+        <div className="app__hero">
+          <img
+            className="app__hero-img"
+            src={heroUrl}
+            alt={`${BRAND_BY_LANG[uiLanguage]} — sfondo decorativo`}
+          />
+          <div className="app__hero-overlay" />
+          <div className="app__hero-text">
+            <h1 className="app__hero-brand">{BRAND_BY_LANG[uiLanguage]}</h1>
           </div>
+          <select
+            id="app-ui-lang-select"
+            data-testid="app-ui-lang-select"
+            className="app__hero-lang-chip"
+            value={uiLanguage}
+            onChange={(e) => setUiLanguage(e.target.value as Language)}
+            aria-label={t('lang.ui.label')}
+          >
+            {SUPPORTED_LANGUAGES.map((lng) => (
+              <option key={lng} value={lng}>
+                {lng.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="app__tagline tagline">{TAGLINE_BY_LANG[uiLanguage]}</p>
+
+        <div className="app__header-row">
           <div className="app__lang-pickers">
-            <div className="app__lang-picker">
-              <label htmlFor="app-ui-lang-select" className="app__lang-label">
-                {t('lang.ui.label')}
-              </label>
-              <select
-                id="app-ui-lang-select"
-                data-testid="app-ui-lang-select"
-                className="app__lang-select"
-                value={uiLanguage}
-                onChange={(e) => setUiLanguage(e.target.value as Language)}
-              >
-                {SUPPORTED_LANGUAGES.map((lng) => (
-                  <option key={lng} value={lng}>
-                    {BRAND_BY_LANG[lng]} ({lng.toUpperCase()})
-                  </option>
-                ))}
-              </select>
-            </div>
             <div className="app__lang-picker">
               <label htmlFor="app-doc-lang-select" className="app__lang-label">
                 {t('lang.doc.label')}
@@ -95,11 +105,15 @@ function AppHeader({
                 value={docLanguage}
                 onChange={(e) => setDocLanguage(e.target.value as Language)}
               >
-                {SUPPORTED_LANGUAGES.map((lng) => (
-                  <option key={lng} value={lng}>
-                    {lng.toUpperCase()} — {t(`lang.doc.option.${lng}`)}
-                  </option>
-                ))}
+                {SUPPORTED_LANGUAGES.map((lng) => {
+                  const isUnavailable = lng === 'fr' || lng === 'de'
+                  const baseLabel = `${lng.toUpperCase()} — ${t(`lang.doc.option.${lng}`)}`
+                  return (
+                    <option key={lng} value={lng} disabled={isUnavailable}>
+                      {isUnavailable ? `${baseLabel} (in arrivo)` : baseLabel}
+                    </option>
+                  )
+                })}
               </select>
             </div>
           </div>
