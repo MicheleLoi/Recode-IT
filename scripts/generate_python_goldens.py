@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -34,13 +35,18 @@ from pathlib import Path
 from typing import Any
 
 # ---------------------------------------------------------------------------
-# Paths (absolute, Windows-friendly). Adjust MHC_L_ROOT if the sibling repo
-# moves; everything else is computed from it.
+# Paths — MHC_L_ROOT è un sibling repo privato che ospita la reference
+# pipeline `anonymize.py`. Lo script lo legge da ENV var `MHC_L_ROOT` per
+# evitare hardcoding di path personali nel codice pubblico (AGPL release
+# 2026-05-26). Default fallback a current directory placeholder; lo script
+# fallirà fast se ANONYMIZE_PY non esiste, segnalando la config mancante.
+# Set localmente prima dell'invocazione: es. su Windows
+#   set MHC_L_ROOT=C:\path\to\MHC-L
+# oppure su Unix
+#   export MHC_L_ROOT=/path/to/MHC-L
 # ---------------------------------------------------------------------------
 
-MHC_L_ROOT = Path(
-    r"C:\Users\loimi\switchdrive\CURRENTLY WORKING ON\AI - assisted papers\MHC-L"
-)
+MHC_L_ROOT = Path(os.environ.get("MHC_L_ROOT", "."))
 ANONYMIZE_PY = MHC_L_ROOT / "gate-local" / "tools" / "anonymize.py"
 GATE_LOCAL = MHC_L_ROOT / "gate-local"
 
