@@ -1,13 +1,20 @@
 /**
- * regex.ts — TypeScript port of `MHC-L/gate-local/tools/regex_rules.py`.
+ * regex.ts — TypeScript port of `MHC-L/gate-local/tools/regex_rules.py`
+ * + Item 7 C extensions SID-20260526-011753 (telefono IT + booking ref).
  *
- * 9 patterns for Italian legal structured-identifier detection. The port is
- * literal: Python `re.compile(..., re.I)` → `new RegExp(..., 'gi')`, lambda
- * replacements → arrow functions. Boundary semantics (`\b`) are equivalent
- * between Python's `re` and ECMAScript regex for ASCII inputs, which is what
- * these patterns target.
+ * 12 patterns for Italian legal/booking structured-identifier detection. The
+ * port is literal: Python `re.compile(..., re.I)` → `new RegExp(..., 'gi')`,
+ * lambda replacements → arrow functions. Boundary semantics (`\b`) are
+ * equivalent between Python's `re` and ECMAScript regex for ASCII inputs,
+ * which is what these patterns target.
  *
- * High-precision over high-recall — extending this set is a deliberate decision.
+ * High-precision over high-recall — extending this set is a deliberate
+ * decision. Item 7 C additions (`PHONE_IT_*`, `NUM_PRENOT_RE`) require
+ * explicit context prefix (telefono +39/0039 o struttura mobile formatted;
+ * booking number con keyword "Numero Prenotazione"/"Conferma"/etc.) per
+ * mantenere low-FP. Date/importi/CAP esplicitamente NON inclusi: sono
+ * contenuto semantico del documento legale, non metadati personali (canon
+ * `_org/decision_log.md` MHC-Work 2026-05-26 SID-20260526-011753 §Item 7 C).
  */
 
 import type { RegexDetection } from '../types/engine'
@@ -57,10 +64,37 @@ export const PROT_RE =
 /** Email / PEC. */
 export const EMAIL_RE = /\b[\w.+-]+@[\w.-]+\.\w{2,}\b/g
 
+/**
+ * Telefono italiano con prefisso internazionale esplicito (+39 o 0039).
+ * High precision: il prefisso è il segnale univoco. Accetta separatori
+ * comuni (spazio, punto, dash) fra i gruppi di cifre. 9-15 cifre totali
+ * post-prefisso (copre mobile + fisso italiano).
+ */
+export const PHONE_IT_PREFIX_RE =
+  /(?:\+39|0039)\s?\d[\d\s.-]{7,13}\d\b/g
+
+/**
+ * Telefono mobile italiano formattato (3xx prefisso + separatore). Il
+ * separatore obbligatorio (spazio/punto/dash) controlla i falsi positivi:
+ * "3001234567" come stringa nuda non matcha; "300 123 4567" sì.
+ */
+export const PHONE_IT_MOBILE_RE =
+  /\b3\d{2}[\s.-]\d{3}[\s.-]\d{3,4}\b/g
+
+/**
+ * Numero prenotazione/conferma con prefisso esplicito. Il prefisso (parola
+ * "Numero"/"Codice"/"N." + "Prenotazione"/"Conferma"/"Booking"/"Reservation")
+ * è il segnale che ancora il match — il numero nudo non matcha mai. Output:
+ * preserva il prefisso, sostituisce solo l'identificatore.
+ */
+export const NUM_PRENOT_RE =
+  /((?:Numero|Num\.?|Cod(?:ice)?\.?|N\.?)\s+(?:[Pp]renotazione|[Cc]onferma|[Bb]ooking|[Rr]eservation)\s*:?\s*)([A-Z0-9-]{6,20})/g
+
 // ---------------------------------------------------------------------------
 // Rule list — mirrors the order of `REGEX_RULES` in the Python source so that
 // substitution side-effects (e.g. CF eating digits before CF_NUM scans) match
-// the reference pipeline.
+// the reference pipeline. Item 7 C additions appended after EMAIL (no
+// interference with prior rules).
 // ---------------------------------------------------------------------------
 
 export const REGEX_RULES: RegexRule[] = [
@@ -93,6 +127,13 @@ export const REGEX_RULES: RegexRule[] = [
     replacement: (m) => `${m[1] ?? ''}<PROT>`,
   },
   { category: 'EMAIL', pattern: EMAIL_RE, replacement: '<EMAIL>' },
+  { category: 'PHONE', pattern: PHONE_IT_PREFIX_RE, replacement: '<PHONE>' },
+  { category: 'PHONE', pattern: PHONE_IT_MOBILE_RE, replacement: '<PHONE>' },
+  {
+    category: 'NUM_PRENOT',
+    pattern: NUM_PRENOT_RE,
+    replacement: (m) => `${m[1] ?? ''}<RES_NUM>`,
+  },
 ]
 
 /**

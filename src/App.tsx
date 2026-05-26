@@ -167,31 +167,41 @@ function AppHeader({
         </div>
         {active && view === 'work' && (
           <div className="active-mapping-banner" data-testid="active-mapping-banner">
-            <span className="active-mapping-banner__label">
+            {/* Row 1 — identity (primary weight): "Mapping attivo: <label>"
+                Brief Item 3 (ux-loop SID-20260526): visual hierarchy separates
+                meta-info by valenza informazionale (identity / count / alert)
+                instead of bullet-separating same-weight inline. */}
+            <div className="active-mapping-banner__identity">
               {t('banner.active.label')}{' '}
               <strong>{active.label}</strong>
-              {/* Pseudonym count — Problema 2 sync con tab "Mappa" empty state
-                  (canon 2026-05-26). Manual {n} interpolation: il sistema
-                  i18n usa lookup-only (LanguageContext.t() non interpola). */}
-              {active.entries.length === 0 ? (
-                <span data-testid="banner-active-count">
-                  {' · '}{t('banner.active.empty')}
-                </span>
-              ) : active.entries.length === 1 ? (
-                <span data-testid="banner-active-count">
-                  {' · '}{t('banner.active.countOne')}
-                </span>
-              ) : (
-                <span data-testid="banner-active-count">
-                  {' · '}{t('banner.active.countMany').replace('{n}', String(active.entries.length))}
-                </span>
-              )}
-              {active.dirty && (
-                <span className="active-mapping-banner__dirty">
-                  {' '}{t('banner.active.dirty')}
-                </span>
-              )}
-            </span>
+            </div>
+            {/* Row 2 — count (secondary muted): "N pseudonimi" / "ancora vuoto"
+                Manual {n} interpolation: il sistema i18n usa lookup-only
+                (LanguageContext.t() non interpola). */}
+            <div
+              className="active-mapping-banner__count"
+              data-testid="banner-active-count"
+            >
+              {active.entries.length === 0
+                ? t('banner.active.empty')
+                : active.entries.length === 1
+                  ? t('banner.active.countOne')
+                  : t('banner.active.countMany').replace(
+                      '{n}',
+                      String(active.entries.length),
+                    )}
+            </div>
+            {/* Row 3 — dirty alert (conditional, distinct badge): rendered as
+                a pill-style cue with color/icon so it reads as state-alert,
+                not as another count fact. */}
+            {active.dirty && (
+              <div
+                className="active-mapping-banner__dirty-badge"
+                data-testid="banner-active-dirty"
+              >
+                {t('banner.active.dirty')}
+              </div>
+            )}
             <span className="active-mapping-banner__hint">
               {t('banner.active.hint')}
             </span>

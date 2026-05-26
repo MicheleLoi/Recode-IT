@@ -40,6 +40,33 @@ function buildReviewEntities(mapping: MappingEntry[]): ReviewEntity[] {
 }
 
 /**
+ * Rebuild the pseudonymized text by applying ALL non-FP, non-preserved
+ * substitutions to `original`. Mirrors the algorithm in
+ * `manual_annotate.ts::manualAnnotate` (longest-first, split/join all
+ * occurrences) so the output is identical to what an event-handler rewrite
+ * would produce. Pure function; safe to call from useEffect.
+ */
+function applyAllSubstitutions(
+  original: string,
+  entries: ReadonlyArray<MappingEntry>,
+): string {
+  if (!original) return original
+  const ordered = [...entries]
+    .filter(
+      (e) =>
+        e.isPreserved !== true &&
+        e.isFalsePositive !== true &&
+        e.pseudonym !== e.realValue,
+    )
+    .sort((a, b) => b.realValue.length - a.realValue.length)
+  let out = original
+  for (const e of ordered) {
+    out = out.split(e.realValue).join(e.pseudonym)
+  }
+  return out
+}
+
+/**
  * Merge fresh per-run entries with the cumulative entry list carried by the
  * active mapping. Entries are keyed by `category::realValue` so a new
  * document's repeated detection of Mario Rossi doesn't create a duplicate.
@@ -130,6 +157,48 @@ export function ClipboardWidget(): JSX.Element {
     prevActiveIdRef.current = activeMappingId
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMappingId])
+
+  // Reactive sync to MappaPanel edits (capabilities_index §7.10 + Mappa tab
+  // CRUD): when the user adds / edits / deletes a pair in tab "2. Mappa",
+  // active.entries gets a fresh reference via updateEntries. This effect
+  // re-derives the local entities state AND the pseudonymized text so the
+  // "1. Codifica" tab reflects the change without a re-pseudonymize.
+  //
+  // Status preservation: buildReviewEntities reads only isFalsePositive,
+  // which would lose accepted clicks the user has made in the entity review
+  // list. We carry prev status forward via statusByKey (same pattern as
+  // handleManualAnnotate above).
+  //
+  // No cycle risk: pushEntriesToActive is only called from explicit event
+  // handlers, never from this effect. setPseudonymizedText with the same
+  // value is a React no-op.
+  useEffect(() => {
+    if (!active) return
+    if (!originalText) return
+    setEntities((prev) => {
+      const statusByKey = new Map<string, ReviewEntity['status']>()
+      for (const e of prev) {
+        statusByKey.set(`${e.category}::${e.realValue.toLowerCase()}`, e.status)
+      }
+      return active.entries.map((entry, idx) => {
+        const key = `${entry.category}::${entry.realValue.toLowerCase()}`
+        const prevStatus = statusByKey.get(key)
+        return {
+          pseudonym: entry.pseudonym,
+          realValue: entry.realValue,
+          category: entry.category,
+          isFalsePositive: entry.isFalsePositive,
+          isPreserved: entry.isPreserved,
+          pass: entry.pass,
+          id: `${entry.category}::${entry.realValue}::${idx}`,
+          status: entry.isFalsePositive
+            ? ('falsePositive' as const)
+            : prevStatus ?? ('pending' as const),
+        }
+      })
+    })
+    setPseudonymizedText(applyAllSubstitutions(originalText, active.entries))
+  }, [active, originalText])
 
   // Effective mapping for the recode panel: excludes entities the user has
   // marked as false positives (their realValue stays unchanged in the output,
@@ -464,7 +533,17 @@ export function ClipboardWidget(): JSX.Element {
     return out
   }, [active, entities])
 
-  const canSave = user !== null && masterKey !== null && entities.length > 0
+  // Tier-aware Save gate: free tier persists to IndexedDB plaintext (no
+  // masterKey needed); Pro tier persists encrypted to server (masterKey
+  // required). The active-mapping-context already dispatches to the right
+  // backend by tier (active-mapping-context.tsx:281-294); the UI gate must
+  // mirror that, otherwise free-tier users see a permanently-disabled Save
+  // button with a misleading Pro tooltip (vestigio pre-pivot bug intake
+  // SID-20260526-011753 Item 2).
+  const canSave =
+    user !== null &&
+    entities.length > 0 &&
+    (user.tier === 'free' || masterKey !== null)
 
   // Design C: slide-in recode panel state. Open/close handled here; the
   // PseudonymizePanel surfaces the "Recode risposta Claude →" toolbar button.
@@ -554,6 +633,7 @@ export function ClipboardWidget(): JSX.Element {
         canSave={canSave}
         loggedIn={user !== null}
         masterKeyAvailable={masterKey !== null}
+        tier={user?.tier ?? null}
         saveStatus={saveStatus}
         saveError={saveError}
         labelInputOpen={labelInputOpen}
