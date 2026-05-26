@@ -175,22 +175,38 @@ function AppHeader({
               {t('banner.active.label')}{' '}
               <strong>{active.label}</strong>
             </div>
-            {/* Row 2 — count (secondary muted): "N pseudonimi" / "ancora vuoto"
+            {/* Row 2 — count (asymmetric treatment):
+                - count === 0 ("ancora vuoto") → pill-style class
+                  `active-mapping-banner__count-empty`. Founder direttiva
+                  SID-20260526-011753: "ancora vuoto" non è dato meta, è
+                  **explanatory anchor** — spiega all'utente perché in
+                  altre tab (es. 2.Mappa "Nessuna mappa ancora") non trova
+                  nulla. Va prominente, non muted.
+                - count > 0 ("N pseudonimi") → testo medium weight class
+                  `active-mapping-banner__count` (info positiva di stato,
+                  non explanatory anchor).
                 Manual {n} interpolation: il sistema i18n usa lookup-only
                 (LanguageContext.t() non interpola). */}
-            <div
-              className="active-mapping-banner__count"
-              data-testid="banner-active-count"
-            >
-              {active.entries.length === 0
-                ? t('banner.active.empty')
-                : active.entries.length === 1
+            {active.entries.length === 0 ? (
+              <div
+                className="active-mapping-banner__count-empty"
+                data-testid="banner-active-count"
+              >
+                {t('banner.active.empty')}
+              </div>
+            ) : (
+              <div
+                className="active-mapping-banner__count"
+                data-testid="banner-active-count"
+              >
+                {active.entries.length === 1
                   ? t('banner.active.countOne')
                   : t('banner.active.countMany').replace(
                       '{n}',
                       String(active.entries.length),
                     )}
-            </div>
+              </div>
+            )}
             {/* Row 3 — dirty alert (conditional, distinct badge): rendered as
                 a pill-style cue with color/icon so it reads as state-alert,
                 not as another count fact. */}

@@ -549,6 +549,32 @@ code {
   color: var(--muted);
 }
 
+/* Empty-state pill (asymmetric treatment count === 0). Founder direttiva
+   SID-20260526-011753: "ancora vuoto" è explanatory anchor — spiega
+   all'utente perché in altre tab non trova nulla — non dato meta. Deve
+   essere visibile senza essere allarmante. Color scheme neutro gray (no
+   warning orange), pill style coerente con `__dirty-badge` per continuity. */
+.active-mapping-banner__count-empty {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--rule-soft, #f3f4f6);
+  border: 1px solid var(--rule, #d1d5db);
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-top: 2px;
+}
+
+.active-mapping-banner__count-empty::before {
+  content: '○';
+  font-size: 0.7rem;
+  margin-right: 6px;
+  color: var(--muted);
+}
+
 /* Pill-style state alert — color-coded distinct from inline-text, so the
    "unsaved changes" cue reads as actionable, not as another count fact. */
 .active-mapping-banner__dirty-badge {
