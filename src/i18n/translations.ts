@@ -174,6 +174,7 @@ const it: Catalog = {
   'privacy.server.note': 'Anche dopo la registrazione, il contenuto del documento che pseudonimizzi NON viene mai inviato al nostro server.',
 
   'privacy.store.title': 'Dove e per quanto tempo conserviamo i dati',
+  'privacy.store.body': 'Cosa cambia in base al tier:',
   'privacy.store.anonymous.title': 'Senza account (anonimo):',
   'privacy.store.anonymous.body': 'niente persistenza, né locale né server. Chiudendo la pagina perdi la tabella di sostituzione. Nulla viene salvato da nessuna parte.',
   'privacy.store.free.title': 'Account gratuito (zero-euro, con nome):',
@@ -491,6 +492,7 @@ const en: Catalog = {
   'privacy.server.note': 'Even after registering, the content of the document you pseudonymize is NEVER sent to our server.',
 
   'privacy.store.title': 'Where and how long we keep data',
+  'privacy.store.body': 'What changes by tier:',
   'privacy.store.anonymous.title': 'Without an account (anonymous):',
   'privacy.store.anonymous.body': 'no persistence, neither local nor server-side. Closing the page wipes the substitution table. Nothing is saved anywhere.',
   'privacy.store.free.title': 'Free account (zero-euro, with name):',
@@ -807,6 +809,7 @@ const de: Catalog = {
   'privacy.server.note': 'Auch nach der Registrierung wird der Inhalt des Dokuments, das Sie pseudonymisieren, NIEMALS an unseren Server gesendet.',
 
   'privacy.store.title': 'Wo und wie lange wir Daten speichern',
+  'privacy.store.body': 'Was sich je Tier ändert:',
   'privacy.store.anonymous.title': 'Ohne Konto (anonym):',
   'privacy.store.anonymous.body': 'keine Persistenz, weder lokal noch serverseitig. Beim Schließen der Seite ist die Ersetzungstabelle weg. Nichts wird irgendwo gespeichert.',
   'privacy.store.free.title': 'Kostenloses Konto (Null-Euro, mit Namen):',
@@ -1089,6 +1092,7 @@ const fr: Catalog = {
   'privacy.server.note': 'Même après l’inscription, le contenu du document que vous pseudonymisez n’est JAMAIS envoyé à notre serveur.',
 
   'privacy.store.title': 'Où et combien de temps nous conservons les données',
+  'privacy.store.body': 'Ce qui change selon le tier :',
   'privacy.store.anonymous.title': 'Sans compte (anonyme) :',
   'privacy.store.anonymous.body': 'aucune persistance, ni locale ni côté serveur. Fermer la page efface la table de substitution. Rien n’est sauvegardé nulle part.',
   'privacy.store.free.title': 'Compte gratuit (zéro euro, avec nom) :',
