@@ -37,6 +37,7 @@ PROTECTED_PREFIXES_DEFAULT: tuple[str, ...] = (
     "/recode/mappings",
     "/recode/account",
     "/recode/me",
+    "/recode/reverse-substitution",
     "/recode/false-positives",
     "/recode/pro/request-invite",
     "/recode/pro/my-request",

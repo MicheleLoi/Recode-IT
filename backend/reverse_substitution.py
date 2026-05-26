@@ -145,11 +145,10 @@ def _lookup_mhc_bearer(bearer_plain: str) -> dict[str, Any] | None:
 
 async def reverse_substitution_permission_endpoint(request: Request) -> JSONResponse:
     """Return current user's reverse-substitution permission state."""
-    user = getattr(request.state, "user", None)
-    if user is None:
+    user_id = getattr(request.state, "user_id", None)
+    if user_id is None:
         return error_response("auth_required", "Authentication required.", status=401)
 
-    user_id = user["id"]
     with connection() as conn:
         row = conn.execute(
             """
@@ -183,8 +182,8 @@ async def reverse_substitution_permission_endpoint(request: Request) -> JSONResp
 
 async def reverse_substitution_claim_mhc_bearer_endpoint(request: Request) -> JSONResponse:
     """Validate a pasted MHC Bearer and grant reverse-substitution permission if valid."""
-    user = getattr(request.state, "user", None)
-    if user is None:
+    user_id = getattr(request.state, "user_id", None)
+    if user_id is None:
         return error_response("auth_required", "Authentication required.", status=401)
 
     try:
@@ -227,7 +226,6 @@ async def reverse_substitution_claim_mhc_bearer_endpoint(request: Request) -> JS
         )
 
     # Grant permission on current Recode user.
-    user_id = user["id"]
     now = _now_iso()
     with connection() as conn:
         conn.execute(
@@ -260,8 +258,8 @@ async def reverse_substitution_claim_checkout_endpoint(request: Request) -> JSON
     Appends ?client_reference_id=<recode_user_id> so the webhook
     (checkout.session.completed) can link the payment to the user.
     """
-    user = getattr(request.state, "user", None)
-    if user is None:
+    user_id = getattr(request.state, "user_id", None)
+    if user_id is None:
         return error_response("auth_required", "Authentication required.", status=401)
 
     base_url = os.environ.get(ENV_REVERSE_SUBSTITUTION_STRIPE_URL, "").strip()
@@ -273,7 +271,6 @@ async def reverse_substitution_claim_checkout_endpoint(request: Request) -> JSON
         return error_response("reverse_substitution_stripe_url_not_configured", "Reverse substitution Stripe URL not configured.", status=500)
 
     # If already granted, no need to send to Stripe — return current state.
-    user_id = user["id"]
     with connection() as conn:
         row = conn.execute(
             """
