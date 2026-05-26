@@ -219,7 +219,7 @@ describe('Regression: substitution offset alignment (founder fixture 2026-05-18)
     }
   })
 
-  it('telephone numbers stay intact (no pseudonym wedged between digits)', () => {
+  it('telephone numbers are pseudonymized to <PHONE> mask (Item 7 C, doctrine SID-20260526-011753)', () => {
     const text = loadFixture()
     const detections = buildDetections(text)
     const result = anonymize(text, {
@@ -228,15 +228,29 @@ describe('Regression: substitution offset alignment (founder fixture 2026-05-18)
     })
     const out = result.pseudonymizedText
 
-    // All four phone numbers (regex doesn't cover phones in Recode-IT today,
-    // so they pass through verbatim) must appear unmodified.
+    // Item 7 C (decision_log MHC-Work 2026-05-26 SID-20260526-011753): telefoni
+    // con prefisso +39/0039 sono coperti da `PHONE_IT_PREFIX_RE` e sostituiti
+    // con `<PHONE>`. Doctrine: telefono = privacy reale, prefisso esplicito =
+    // basso FP. Date/importi/CAP esplicitamente NON inclusi (contenuto
+    // semantico del documento, non metadati personali).
+    //
+    // Pre-Item 7 C il test asseriva `.toContain(phone)` perché i telefoni
+    // passavano intatti (`regex doesn't cover phones in Recode-IT today` —
+    // commento storico ora obsoleto). Post-Item 7 C i telefoni devono NON
+    // apparire nel testo finale, sostituiti dalla maschera `<PHONE>`.
     for (const phone of [
       '+39 340 123 4567',
       '+39 347 551 2093',
       '+39 333 998 7766',
       '+39 348 222 1100',
     ]) {
-      expect(out, `phone "${phone}" was modified`).toContain(phone)
+      expect(
+        out,
+        `phone "${phone}" should have been masked but appeared verbatim`,
+      ).not.toContain(phone)
     }
+    // All four phones → 4 <PHONE> masks via regex pass.
+    const phoneCount = (out.match(/<PHONE>/g) ?? []).length
+    expect(phoneCount).toBe(4)
   })
 })

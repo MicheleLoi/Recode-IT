@@ -42,7 +42,7 @@ const it: Catalog = {
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Mapping attivo:',
-  'banner.active.dirty': '· modifiche non salvate',
+  'banner.active.dirty': 'modifiche non salvate',
   'banner.active.hint': 'I prossimi documenti che trascini saranno pseudonimizzati con gli stessi pseudonimi (continuità di causa).',
   'banner.active.delete': '✕ Elimina mapping',
   'banner.active.deleteTitle': 'Elimina il mapping attivo e ricomincia da zero',
@@ -385,7 +385,7 @@ const en: Catalog = {
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Active mapping:',
-  'banner.active.dirty': '· unsaved changes',
+  'banner.active.dirty': 'unsaved changes',
   'banner.active.hint': 'The next documents you drop will be pseudonymized using the same pseudonyms (case continuity).',
   'banner.active.delete': '✕ Delete mapping',
   'banner.active.deleteTitle': 'Delete the active mapping and start fresh',
@@ -722,7 +722,7 @@ const de: Catalog = {
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Aktives Mapping:',
-  'banner.active.dirty': '· nicht gespeicherte Änderungen',
+  'banner.active.dirty': 'nicht gespeicherte Änderungen',
   'banner.active.hint': 'Die nächsten Dokumente, die Sie ablegen, werden mit denselben Pseudonymen pseudonymisiert (Fall-Kontinuität).',
   'banner.active.delete': '✕ Mapping löschen',
   'banner.active.deleteTitle': 'Aktives Mapping löschen und neu starten',
@@ -1025,7 +1025,7 @@ const fr: Catalog = {
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Mapping actif :',
-  'banner.active.dirty': '· modifications non enregistrées',
+  'banner.active.dirty': 'modifications non enregistrées',
   'banner.active.hint': 'Les prochains documents que vous déposerez seront pseudonymisés avec les mêmes pseudonymes (continuité du dossier).',
   'banner.active.delete': '✕ Supprimer le mapping',
   'banner.active.deleteTitle': 'Supprimer le mapping actif et repartir de zéro',

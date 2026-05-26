@@ -139,6 +139,83 @@ describe('PseudonymizePanel — Save mapping button', () => {
     fireEvent.click(screen.getByTestId('save-mapping-btn'))
     expect(onSaveClick).toHaveBeenCalledTimes(1)
   })
+
+  // Regression — Item 2 of brief recode_it_ux_loop_chrome_session_20260526.md
+  // ("bug Save button tier-aware"). Pre-fix the tooltip claimed "Master key
+  // non in memoria" even for free-tier users where masterKey is structurally
+  // not required (IndexedDB plaintext storage per capabilities_index §7.1).
+  it('tier=free: tooltip describes local browser save (no master-key reference)', () => {
+    render(
+      <PseudonymizePanel
+        {...baseProps}
+        canSave
+        loggedIn
+        masterKeyAvailable={false}
+        tier="free"
+        entities={[
+          {
+            id: 'x',
+            pseudonym: 'Tizio',
+            realValue: 'Mario',
+            category: 'persona',
+            status: 'pending',
+          },
+        ]}
+      />,
+    )
+    const btn = screen.getByTestId('save-mapping-btn') as HTMLButtonElement
+    expect(btn.disabled).toBe(false)
+    expect(btn.title).toMatch(/browser di questo computer/i)
+    expect(btn.title).not.toMatch(/master key/i)
+  })
+
+  it('tier=pro + no masterKey: tooltip surfaces the master-key gate', () => {
+    render(
+      <PseudonymizePanel
+        {...baseProps}
+        canSave={false}
+        loggedIn
+        masterKeyAvailable={false}
+        tier="pro"
+        entities={[
+          {
+            id: 'x',
+            pseudonym: 'Tizio',
+            realValue: 'Mario',
+            category: 'persona',
+            status: 'pending',
+          },
+        ]}
+      />,
+    )
+    const btn = screen.getByTestId('save-mapping-btn') as HTMLButtonElement
+    expect(btn.disabled).toBe(true)
+    expect(btn.title).toMatch(/master key non in memoria/i)
+  })
+
+  it('tier=pro + masterKey: tooltip describes encrypted server save', () => {
+    render(
+      <PseudonymizePanel
+        {...baseProps}
+        canSave
+        loggedIn
+        masterKeyAvailable
+        tier="pro"
+        entities={[
+          {
+            id: 'x',
+            pseudonym: 'Tizio',
+            realValue: 'Mario',
+            category: 'persona',
+            status: 'pending',
+          },
+        ]}
+      />,
+    )
+    const btn = screen.getByTestId('save-mapping-btn') as HTMLButtonElement
+    expect(btn.disabled).toBe(false)
+    expect(btn.title).toMatch(/cifrato sul server/i)
+  })
 })
 
 describe('PseudonymizePanel — Active mapping UX', () => {

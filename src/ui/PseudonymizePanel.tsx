@@ -90,6 +90,13 @@ type Props = {
   canSave: boolean
   loggedIn: boolean
   masterKeyAvailable: boolean
+  /**
+   * User tier for tier-aware Save gate. Free tier persists to IndexedDB
+   * plaintext (no master key required); Pro tier persists encrypted to the
+   * server and DOES require master key in memory. `null` = not logged in
+   * (tooltip falls back to the loggedIn branch).
+   */
+  tier?: 'free' | 'pro' | null
   saveStatus: 'idle' | 'saving' | 'saved' | 'error'
   saveError: string | null
   labelInputOpen: boolean
@@ -124,6 +131,7 @@ export function PseudonymizePanel({
   canSave,
   loggedIn,
   masterKeyAvailable,
+  tier = null,
   saveStatus,
   saveError,
   labelInputOpen,
@@ -620,11 +628,13 @@ export function PseudonymizePanel({
           title={
             !loggedIn
               ? 'Accedi o crea un account per salvare il mapping.'
-              : !masterKeyAvailable
+              : tier === 'pro' && !masterKeyAvailable
                 ? 'Master key non in memoria — esci e riaccedi.'
                 : entities.length === 0
                   ? 'Pseudonimizza un documento prima di salvare.'
-                  : 'Salva il mapping cifrato sul server.'
+                  : tier === 'free'
+                    ? 'Salva il mapping nel browser di questo computer.'
+                    : 'Salva il mapping cifrato sul server.'
           }
           data-testid="save-mapping-btn"
         >

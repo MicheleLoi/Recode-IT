@@ -536,19 +536,53 @@ code {
   gap: 4px;
 }
 
-.active-mapping-banner__label {
+/* Brief Item 3 ux-loop SID-20260526 — 3-row visual hierarchy:
+   identity (primary) / count (muted) / dirty (badge cue). */
+
+.active-mapping-banner__identity {
   font-size: 0.95rem;
   color: var(--ink);
 }
 
-.active-mapping-banner__dirty {
-  color: var(--warning-fg);
-  font-weight: 600;
+.active-mapping-banner__count {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* Pill-style state alert — color-coded distinct from inline-text, so the
+   "unsaved changes" cue reads as actionable, not as another count fact. */
+.active-mapping-banner__dirty-badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--warning-fg, #b06800);
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-top: 2px;
+}
+
+.active-mapping-banner__dirty-badge::before {
+  content: '●';
+  font-size: 0.65rem;
+  margin-right: 6px;
+  color: var(--warning-fg, #b06800);
 }
 
 .active-mapping-banner__hint {
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+/* Legacy class — preserved for any external selector that still references it,
+   but no longer applied to a DOM element (replaced by __identity / __count /
+   __dirty-badge). */
+.active-mapping-banner__label {
+  font-size: 0.95rem;
+  color: var(--ink);
 }
 
 .active-mapping-banner__close {
