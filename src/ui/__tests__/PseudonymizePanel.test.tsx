@@ -7,8 +7,11 @@
  *   - The label-input prompt appears when the save button is clicked.
  *   - The active-mapping badge shows the label + close button when a mapping
  *     is open.
- *   - The button label switches to "Estendi mapping" / "Aggiorna mapping"
- *     when a mapping is active.
+ *   - The primary action button is ALWAYS labeled "Pseudonimizza" — even
+ *     when a mapping is active (Round 2 UX-loop Item B: removed the
+ *     "Estendi mapping" jargon that surfaced the system's internal
+ *     extend-vs-create distinction to the user). The Save button still
+ *     renames to "Aggiorna mapping" when active (Save is secondary).
  *
  * The save POST itself is exercised manually by the founder (acceptance check)
  * and via the engine extend-mode test for the cross-document continuity
@@ -227,10 +230,18 @@ describe('PseudonymizePanel — Active mapping UX', () => {
     expect(screen.getByTestId('close-active-btn')).toBeInTheDocument()
   })
 
-  it('renames the primary button to "Estendi mapping" when a mapping is active', () => {
+  // Round 2 UX-loop — Item B regression: pre-fix, the primary button was
+  // renamed to "Estendi mapping" whenever `activeLabel` was set, surfacing
+  // the system's internal extend-vs-create distinction to the user (Steve
+  // Krug "Don't Make Me Think" violation). Fix: the primary button label is
+  // always "Pseudonimizza" — the engine still extends when a mapping is
+  // active, but that's invisible to the user.
+  // Brief: `MHC-Work/briefs/mhc-l/recode_it_ux_loop_action_flow_round2_20260526.md`.
+  it('keeps the primary button labelled "Pseudonimizza" even with an active mapping (Item B)', () => {
     render(<PseudonymizePanel {...baseProps} activeLabel="Causa Test" />)
     const btn = screen.getByTestId('pseudonymize-btn') as HTMLButtonElement
-    expect(btn.textContent).toMatch(/estendi mapping/i)
+    expect(btn.textContent).toMatch(/pseudonimizza/i)
+    expect(btn.textContent).not.toMatch(/estendi/i)
   })
 
   it('renames the Save button to "Aggiorna mapping" when a mapping is active', () => {

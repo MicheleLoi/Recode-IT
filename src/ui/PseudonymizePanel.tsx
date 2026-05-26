@@ -164,8 +164,27 @@ export function PseudonymizePanel({
     loaded: number
     total: number
   } | null>(null)
-  /** Design C — Pseudonimizzato vs Originale toggle (toolbar). */
-  const [displayMode, setDisplayMode] = useState<DisplayMode>('pseudonimo')
+  /**
+   * Design C — Pseudonimizzato vs Originale toggle (toolbar).
+   *
+   * Defaults to 'originale': pre-pseudonimizzazione del documento corrente,
+   * l'utente vede sempre l'originale, anche se un mapping precedente è già
+   * stato pre-applicato a `pseudonymizedText` dal parent (ClipboardWidget).
+   * Flippa a 'pseudonimo' solo dopo che l'utente clicca "Pseudonimizza" su
+   * questo documento (Round 2 UX-loop — Steve Krug Item A).
+   */
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('originale')
+  /**
+   * Tracks whether the user has explicitly clicked "Pseudonimizza" on the
+   * current document. Gates rendering of the view toggle + Copia + Recode
+   * controls so the primary action ("Pseudonimizza") owns the visual focus
+   * pre-action. Reset to false whenever `originalText` changes (new upload /
+   * paste / textarea edit / reset).
+   *
+   * Round 2 UX-loop — Steve Krug Items A+C (see brief
+   * `MHC-Work/briefs/mhc-l/recode_it_ux_loop_action_flow_round2_20260526.md`).
+   */
+  const [hasRunOnCurrentDoc, setHasRunOnCurrentDoc] = useState(false)
   /** Design C v3 — modalità split-pane Confronta originale (opt-in). */
   /** Micro-toast onboarding alla prima entrata in modalità confronto. */
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -215,6 +234,26 @@ export function PseudonymizePanel({
     // Re-init when the document language changes so the correct ONNX model
     // (it / en / de / fr) is reloaded into the worker.
   }, [language])
+
+  /**
+   * Reset the "has the user pseudonymized THIS document" flag + the view
+   * toggle every time the underlying document changes. Without this, a
+   * returning user with an active mapping would see the toggle (Pseudonimizzato
+   * / Originale) appear immediately on upload — because `pseudonymizedText`
+   * is pre-applied by ClipboardWidget — and the primary action would lose
+   * visual prominence. See brief
+   * `MHC-Work/briefs/mhc-l/recode_it_ux_loop_action_flow_round2_20260526.md`
+   * Item A (Steve Krug "Don't Make Me Think").
+   *
+   * Same-string setState in the parent (e.g. `runRegexOnly` passes `originalText`
+   * back through `onResult` → `setOriginalText(orig)`) is bailed out by React
+   * (Object.is) so this effect doesn't re-trigger after a successful
+   * pseudonymize run.
+   */
+  useEffect(() => {
+    setHasRunOnCurrentDoc(false)
+    setDisplayMode('originale')
+  }, [originalText])
 
   const handleFiles = useCallback(
     async (files: FileList | null) => {
@@ -278,6 +317,13 @@ export function PseudonymizePanel({
         pseudonymizedText: result.pseudonymizedText,
         mapping: result.mappingEntries,
       })
+      // Round 2 UX-loop — Steve Krug Item A: only AFTER an explicit user-
+      // triggered pseudonymize run does the toggle + Copia + Recode controls
+      // surface, and the view flips to the pseudonymized output. Both regex-
+      // only (no Worker / NER unavailable) and NER paths converge here, so
+      // this single call covers both successful run flavors.
+      setHasRunOnCurrentDoc(true)
+      setDisplayMode('pseudonimo')
     },
     [originalText, onResult, seedMapper, includePlaces],
   )
@@ -505,36 +551,47 @@ export function PseudonymizePanel({
         </div>
       )}
 
-      {/* Toolbar — Design C primary control surface (only when document loaded) */}
+      {/*
+        Toolbar — Design C primary control surface (only when document loaded).
+        Round 2 UX-loop (Steve Krug Items A+C): pre-pseudonimizzazione la
+        toolbar ospita solo "Nuovo documento" (e l'input file nascosto). Il
+        toggle Pseudonimizzato/Originale + Copia + Recode appaiono SOLO dopo
+        che l'utente ha cliccato esplicitamente "Pseudonimizza" su questo
+        documento (`hasRunOnCurrentDoc`). Così l'azione primaria
+        ("Pseudonimizza") domina la prima impressione visiva, anche per
+        returning user con mapping in browser.
+      */}
       {hasDocument && (
         <div className="docview-toolbar" data-testid="docview-toolbar">
           <div className="docview-toolbar__left">
-            <div
-              className="docview-toggle"
-              role="radiogroup"
-              aria-label="Modalità visualizzazione documento"
-            >
-              <button
-                type="button"
-                role="radio"
-                aria-checked={displayMode === 'pseudonimo'}
-                className={`docview-toggle__btn${displayMode === 'pseudonimo' ? ' is-active' : ''}`}
-                onClick={() => setDisplayMode('pseudonimo')}
-                data-testid="toggle-pseudonimo"
+            {hasRunOnCurrentDoc && (
+              <div
+                className="docview-toggle"
+                role="radiogroup"
+                aria-label="Modalità visualizzazione documento"
               >
-                {t('pseudo.toggle.pseudonimo')}
-              </button>
-              <button
-                type="button"
-                role="radio"
-                aria-checked={displayMode === 'originale'}
-                className={`docview-toggle__btn${displayMode === 'originale' ? ' is-active' : ''}`}
-                onClick={() => setDisplayMode('originale')}
-                data-testid="toggle-originale"
-              >
-                {t('pseudo.toggle.originale')}
-              </button>
-            </div>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={displayMode === 'pseudonimo'}
+                  className={`docview-toggle__btn${displayMode === 'pseudonimo' ? ' is-active' : ''}`}
+                  onClick={() => setDisplayMode('pseudonimo')}
+                  data-testid="toggle-pseudonimo"
+                >
+                  {t('pseudo.toggle.pseudonimo')}
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={displayMode === 'originale'}
+                  className={`docview-toggle__btn${displayMode === 'originale' ? ' is-active' : ''}`}
+                  onClick={() => setDisplayMode('originale')}
+                  data-testid="toggle-originale"
+                >
+                  {t('pseudo.toggle.originale')}
+                </button>
+              </div>
+            )}
             <button
               type="button"
               className="btn btn--ghost btn--small"
@@ -554,34 +611,36 @@ export function PseudonymizePanel({
               data-testid="file-input"
             />
           </div>
-          <div className="docview-toolbar__right">
-            <button
-              type="button"
-              className="btn btn--secondary"
-              onClick={handleCopy}
-              disabled={!pseudonymizedText}
-              data-testid="copy-pseudonymized-btn"
-              title="Copia il testo pseudonimizzato negli appunti"
-            >
-              {copyState === 'copied' ? '✓ Copiato' : 'Copia ⧉'}
-            </button>
-            {onOpenRecode && (
+          {hasRunOnCurrentDoc && (
+            <div className="docview-toolbar__right">
               <button
                 type="button"
-                className={`btn btn--primary${recodeOpen ? ' is-active' : ''}`}
-                onClick={onOpenRecode}
-                disabled={!hasResult}
-                data-testid="open-recode-btn"
-                title={
-                  hasResult
-                    ? t('pseudo.button.openRecodeReady')
-                    : t('pseudo.button.openRecodeEmpty')
-                }
+                className="btn btn--secondary"
+                onClick={handleCopy}
+                disabled={!pseudonymizedText}
+                data-testid="copy-pseudonymized-btn"
+                title="Copia il testo pseudonimizzato negli appunti"
               >
-                {t('pseudo.button.openRecode')}
+                {copyState === 'copied' ? '✓ Copiato' : 'Copia ⧉'}
               </button>
-            )}
-          </div>
+              {onOpenRecode && (
+                <button
+                  type="button"
+                  className={`btn btn--primary${recodeOpen ? ' is-active' : ''}`}
+                  onClick={onOpenRecode}
+                  disabled={!hasResult}
+                  data-testid="open-recode-btn"
+                  title={
+                    hasResult
+                      ? t('pseudo.button.openRecodeReady')
+                      : t('pseudo.button.openRecodeEmpty')
+                  }
+                >
+                  {t('pseudo.button.openRecode')}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -612,13 +671,18 @@ export function PseudonymizePanel({
           disabled={nerStatus === 'loading' || nerStatus === 'running'}
           data-testid="pseudonymize-btn"
         >
+          {/*
+            Round 2 UX-loop — Steve Krug Item B: label sempre "Pseudonimizza",
+            mai "Estendi mapping". L'utente vede UN documento da pseudonimizzare,
+            non un mapping da estendere. La logica extend-vs-create resta
+            trasparente all'engine. Brief
+            `MHC-Work/briefs/mhc-l/recode_it_ux_loop_action_flow_round2_20260526.md`.
+          */}
           {nerStatus === 'loading'
             ? t('pseudo.button.loading')
             : nerStatus === 'running'
               ? t('pseudo.button.running')
-              : activeLabel
-                ? t('pseudo.button.extend')
-                : t('pseudo.button.pseudonimize')}
+              : t('pseudo.button.pseudonimize')}
         </button>
         <button
           type="button"

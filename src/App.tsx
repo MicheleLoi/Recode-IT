@@ -205,25 +205,37 @@ function AppHeader({
             <span className="active-mapping-banner__hint">
               {t('banner.active.hint')}
             </span>
-            <button
-              type="button"
-              className="active-mapping-banner__close"
-              onClick={() => {
-                if (
-                  active.dirty &&
-                  // eslint-disable-next-line no-alert
-                  !window.confirm(t('banner.active.deleteConfirm'))
-                ) {
-                  return
-                }
-                closeActive()
-              }}
-              data-testid="close-active-mapping-btn"
-              title={t('banner.active.deleteTitle')}
-              aria-label={t('banner.active.deleteAria')}
-            >
-              {t('banner.active.delete')}
-            </button>
+            {/*
+              Round 2 UX-loop — Item D: "Elimina mapping" nascosto in empty
+              state (entries.length === 0), coerente con il pattern C1 di
+              `AccountDashboard` (commit d555a1d Round 1). Niente entries =
+              niente da eliminare; il banner mostra ancora identità + count
+              "ancora vuoto" cosicché l'utente sappia che il mapping è aperto,
+              ma senza il bottone destruttivo che lo invita a un'azione
+              senza scopo. Brief
+              `MHC-Work/briefs/mhc-l/recode_it_ux_loop_action_flow_round2_20260526.md`.
+            */}
+            {active.entries.length > 0 && (
+              <button
+                type="button"
+                className="active-mapping-banner__close"
+                onClick={() => {
+                  if (
+                    active.dirty &&
+                    // eslint-disable-next-line no-alert
+                    !window.confirm(t('banner.active.deleteConfirm'))
+                  ) {
+                    return
+                  }
+                  closeActive()
+                }}
+                data-testid="close-active-mapping-btn"
+                title={t('banner.active.deleteTitle')}
+                aria-label={t('banner.active.deleteAria')}
+              >
+                {t('banner.active.delete')}
+              </button>
+            )}
           </div>
         )}
       </div>
