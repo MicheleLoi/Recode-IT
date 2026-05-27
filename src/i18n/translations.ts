@@ -271,6 +271,14 @@ const it: Catalog = {
   'tabs.mappa.title': 'Vedi e modifica la mappa pseudonimi (gratis con account)',
   'tabs.decodifica': '3. Decodifica',
   'tabs.decodifica.title': 'Incolla la risposta dell’AI e ricevi i nomi reali (€20, sblocco a vita)',
+  // 2-macro toggle (wireframe-first SID-20260526-172143): natural-language task
+  // descriptions del mental model utente, NON jargon canon-side. Sostituiscono
+  // i 3-tab "1. Codifica / 2. Mappa / 3. Decodifica" come navigazione primaria.
+  'macro.ariaLabel': 'Azione principale',
+  'macro.codifica': 'Sostituisci con pseudonimo',
+  'macro.codifica.title': 'Pseudonimizza il documento (gratis)',
+  'macro.decodifica': 'Rimetti a posto gli originali',
+  'macro.decodifica.title': 'Incolla la risposta dell’AI e ricevi i nomi reali (€20, sblocco a vita)',
 
   // ────────────────────────── Mappa panel ──────────────────────────
   'mappa.heading': 'Mappa pseudonimi',
@@ -608,6 +616,11 @@ const en: Catalog = {
   'tabs.mappa.title': 'View and edit the pseudonym map (free with account)',
   'tabs.decodifica': '3. Decode',
   'tabs.decodifica.title': 'Paste the AI response and get back real names (€20, lifetime unlock)',
+  'macro.ariaLabel': 'Primary action',
+  'macro.codifica': 'Replace with pseudonym',
+  'macro.codifica.title': 'Pseudonymize the document (free)',
+  'macro.decodifica': 'Put back the originals',
+  'macro.decodifica.title': 'Paste the AI response and get back real names (€20, lifetime unlock)',
 
   // ────────────────────────── Mappa panel ──────────────────────────
   'mappa.heading': 'Pseudonym map',
@@ -945,6 +958,11 @@ const de: Catalog = {
   'tabs.mappa.title': 'Pseudonym-Zuordnung ansehen und bearbeiten (kostenlos mit Konto)',
   'tabs.decodifica': '3. Dekodieren',
   'tabs.decodifica.title': 'KI-Antwort einfügen und echte Namen zurückerhalten (20 €, dauerhafte Freischaltung)',
+  'macro.ariaLabel': 'Hauptaktion',
+  'macro.codifica': 'Mit Pseudonym ersetzen',
+  'macro.codifica.title': 'Dokument pseudonymisieren (kostenlos)',
+  'macro.decodifica': 'Originale wiederherstellen',
+  'macro.decodifica.title': 'KI-Antwort einfügen und echte Namen zurückerhalten (20 €, dauerhafte Freischaltung)',
 
   'mappa.heading': 'Pseudonym-Zuordnung',
   'mappa.subheading': 'Jeder echte Name aus Ihrem Dokument und das ihn ersetzende Pseudonym. Sie können Paare korrigieren, hinzufügen oder löschen.',
@@ -1248,6 +1266,11 @@ const fr: Catalog = {
   'tabs.mappa.title': 'Voir et modifier la carte des pseudonymes (gratuit avec compte)',
   'tabs.decodifica': '3. Décoder',
   'tabs.decodifica.title': 'Coller la réponse IA et récupérer les vrais noms (20 €, déblocage à vie)',
+  'macro.ariaLabel': 'Action principale',
+  'macro.codifica': 'Remplacer par pseudonyme',
+  'macro.codifica.title': 'Pseudonymiser le document (gratuit)',
+  'macro.decodifica': 'Remettre les originaux',
+  'macro.decodifica.title': 'Coller la réponse IA et récupérer les vrais noms (20 €, déblocage à vie)',
 
   'mappa.heading': 'Carte des pseudonymes',
   'mappa.subheading': 'Chaque vrai nom de votre document et le pseudonyme qui le remplace. Vous pouvez corriger, ajouter ou supprimer des paires.',

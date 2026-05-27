@@ -1,75 +1,66 @@
 /**
- * DecodificaWorkspace.tsx — 3-tab wrapper for the post-pivot Recode IT
- * workflow (capabilities_index §9.10):
+ * DecodificaWorkspace.tsx — 2-macro toggle wrapper (post wireframe-first
+ * SID-20260526-172143 redesign Phase 2a):
  *
- *   Tab 1 — Codifica  (free)            → ClipboardWidget (existing)
- *   Tab 2 — Mappa     (free with login) → MappaPanel (new, iter 2)
- *   Tab 3 — Decodifica (€20 una tantum) → DecodificaPanel (new, iter 3)
+ *   Macro 1 — "Sostituisci con pseudonimo" (= Codifica, gratis) → ClipboardWidget
+ *   Macro 2 — "Rimetti a posto gli originali" (= Decodifica, €20 / chiave MHC) → DecodificaPanel
  *
- * The tab structure is a standard top-tab pattern (role="tablist" / role="tab"
- * / role="tabpanel") — conventional enough that an avvocato who has used any
- * web app in the last 10 years will pick it up instantly (Krug principle 2).
+ * Sostituisce la precedente 3-tab structure (1. Codifica / 2. Mappa / 3. Decodifica).
+ * Decisione founder ratifica SID-20260526-172143: i 2 button macro usano
+ * natural-language task descriptions del mental model utente, NON jargon
+ * canon-side ("Codifica/Decodifica"). Il nome del bottone descrive cosa
+ * l'utente fa col documento, non la funzione interna.
  *
- * Numbered prefixes ("1. Codifica", "2. Mappa", "3. Decodifica") encode the
- * workflow sequence directly into the tab labels, so the user understands
- * order without reading documentation (Krug principle 7 — conventional flow).
+ * Mappa (precedente tab 2) accessibile via "I miei mapping" nel nav top
+ * (App.tsx → AccountDashboard). Integrazione in-workflow come sezione card
+ * sotto i panel arriverà in Phase 2c/2d.
  *
  * Used by:
- *   - App.tsx (main work view — replaces bare ClipboardWidget mount)
+ *   - App.tsx (main work view)
  *   - DecodificaDemoPage.tsx (dev-only smoke surface at /decodifica-demo)
  */
 
 import { useState } from 'react'
 import { ClipboardWidget } from './ClipboardWidget'
-import { MappaPanel } from './MappaPanel'
 import { DecodificaPanel } from './DecodificaPanel'
 import { useLanguage } from './LanguageContext'
 
-export type WorkspaceTab = 'codifica' | 'mappa' | 'decodifica'
+export type WorkspaceMacro = 'codifica' | 'decodifica'
+
+/** Backward-compat alias for legacy code that may still import WorkspaceTab. */
+export type WorkspaceTab = WorkspaceMacro
 
 type Props = {
-  /** Initial tab to show (defaults to 'codifica'). */
-  initialTab?: WorkspaceTab
+  /** Initial macro to show (defaults to 'codifica'). */
+  initialMacro?: WorkspaceMacro
 }
 
-export function DecodificaWorkspace({ initialTab = 'codifica' }: Props): JSX.Element {
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>(initialTab)
+export function DecodificaWorkspace({
+  initialMacro = 'codifica',
+}: Props): JSX.Element {
+  const [activeMacro, setActiveMacro] = useState<WorkspaceMacro>(initialMacro)
   const { t } = useLanguage()
 
   return (
     <div className="decodifica-workspace">
-      {/* ── Tab bar ─────────────────────────────────────────────────────── */}
+      {/* ── 2-macro toggle (replaces 3-tab nav) ──────────────────────────── */}
       <div
-        className="workspace-tabs"
+        className="macro-toggle"
         role="tablist"
-        aria-label={t('tabs.ariaLabel')}
+        aria-label={t('macro.ariaLabel')}
       >
         <button
           type="button"
           role="tab"
           id="tab-codifica"
           aria-controls="tabpanel-codifica"
-          aria-selected={activeTab === 'codifica'}
-          className={`workspace-tabs__tab${activeTab === 'codifica' ? ' is-active' : ''}`}
-          onClick={() => setActiveTab('codifica')}
-          title={t('tabs.codifica.title')}
+          aria-selected={activeMacro === 'codifica'}
+          className={`macro-toggle__btn${activeMacro === 'codifica' ? ' is-active' : ''}`}
+          onClick={() => setActiveMacro('codifica')}
+          title={t('macro.codifica.title')}
           data-testid="tab-codifica"
         >
-          {t('tabs.codifica')}
-        </button>
-
-        <button
-          type="button"
-          role="tab"
-          id="tab-mappa"
-          aria-controls="tabpanel-mappa"
-          aria-selected={activeTab === 'mappa'}
-          className={`workspace-tabs__tab${activeTab === 'mappa' ? ' is-active' : ''}`}
-          onClick={() => setActiveTab('mappa')}
-          title={t('tabs.mappa.title')}
-          data-testid="tab-mappa"
-        >
-          {t('tabs.mappa')}
+          {t('macro.codifica')}
         </button>
 
         <button
@@ -77,43 +68,31 @@ export function DecodificaWorkspace({ initialTab = 'codifica' }: Props): JSX.Ele
           role="tab"
           id="tab-decodifica"
           aria-controls="tabpanel-decodifica"
-          aria-selected={activeTab === 'decodifica'}
-          className={`workspace-tabs__tab${activeTab === 'decodifica' ? ' is-active' : ''}`}
-          onClick={() => setActiveTab('decodifica')}
-          title={t('tabs.decodifica.title')}
+          aria-selected={activeMacro === 'decodifica'}
+          className={`macro-toggle__btn${activeMacro === 'decodifica' ? ' is-active' : ''}`}
+          onClick={() => setActiveMacro('decodifica')}
+          title={t('macro.decodifica.title')}
           data-testid="tab-decodifica"
         >
-          {t('tabs.decodifica')}
+          {t('macro.decodifica')}
         </button>
       </div>
 
-      {/* ── Tab panels ─────────────────────────────────────────────────── */}
+      {/* ── Macro panels ──────────────────────────────────────────────────── */}
 
-      {/* Tab 1: Codifica — render always mounted so NER model stays warm */}
+      {/* Macro 1: Codifica — kept always mounted so NER model stays warm */}
       <div
         role="tabpanel"
         id="tabpanel-codifica"
         aria-labelledby="tab-codifica"
-        hidden={activeTab !== 'codifica'}
+        hidden={activeMacro !== 'codifica'}
         data-testid="tabpanel-codifica"
       >
         <ClipboardWidget />
       </div>
 
-      {/* Tab 2: Mappa */}
-      {activeTab === 'mappa' && (
-        <div
-          role="tabpanel"
-          id="tabpanel-mappa"
-          aria-labelledby="tab-mappa"
-          data-testid="tabpanel-mappa"
-        >
-          <MappaPanel />
-        </div>
-      )}
-
-      {/* Tab 3: Decodifica */}
-      {activeTab === 'decodifica' && (
+      {/* Macro 2: Decodifica */}
+      {activeMacro === 'decodifica' && (
         <div
           role="tabpanel"
           id="tabpanel-decodifica"

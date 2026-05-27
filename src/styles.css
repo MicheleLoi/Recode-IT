@@ -2045,6 +2045,57 @@ code {
   gap: 0;
 }
 
+/* ── Macro toggle (wireframe-first SID-20260526-172143 Phase 2a) ──────────
+   Replaces the 3-tab nav with 2 macro buttons side-by-side (Sostituisci
+   con pseudonimo / Rimetti a posto gli originali). Active = filled blu
+   accent, inactive = outline. Conventional toggle pattern. */
+.macro-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.macro-toggle__btn {
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 18px 24px;
+  border-radius: 10px;
+  border: 2px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  text-align: center;
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.macro-toggle__btn:hover:not(.is-active) {
+  border-color: var(--accent);
+}
+
+.macro-toggle__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.macro-toggle__btn.is-active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.10);
+}
+
+@media (max-width: 720px) {
+  .macro-toggle {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Legacy 3-tab workspace styles (kept for any non-migrated consumers) */
 .workspace-tabs {
   display: flex;
   gap: 0;
