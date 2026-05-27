@@ -2836,6 +2836,55 @@ code {
   min-width: 240px;
 }
 
+/* ── Lingua documento row (founder direttiva (c) SID-20260527) ─────────
+   Spostato dall'AppHeader al slot prototype-canonical fra Decodifica CTA
+   e Mappa cards. Pattern visual coerente col prototype.html lang-row. */
+.wireframe-lang-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.wireframe-lang-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: var(--wf-bg);
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius);
+  box-shadow: var(--wf-shadow-sm);
+  cursor: pointer;
+}
+
+.wireframe-lang-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.wireframe-lang-select {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--wf-text);
+  background: var(--wf-bg);
+  border: 1px solid var(--wf-border);
+  border-radius: 6px;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.wireframe-lang-select:focus {
+  outline: 2px solid var(--wf-accent);
+  outline-offset: 0;
+  border-color: var(--wf-accent);
+}
+
 /* ── Mappa section ──────────────────────────────────────────────── */
 .wireframe-mappa-section {
   display: flex;

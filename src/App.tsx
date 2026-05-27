@@ -51,7 +51,7 @@ function AppHeader({
 }): JSX.Element {
   const { user, logout, masterKey } = useAuth()
   const { active, closeActive } = useActiveMapping()
-  const { uiLanguage, setUiLanguage, docLanguage, setDocLanguage, t } = useLanguage()
+  const { uiLanguage, setUiLanguage, t } = useLanguage()
 
   const onLogout = useCallback(async () => {
     await logout()
@@ -92,31 +92,11 @@ function AppHeader({
         </div>
         <p className="app__tagline tagline">{TAGLINE_BY_LANG[uiLanguage]}</p>
 
+        {/* Lingua documento moved to WireframeWorkArea slot post-panels
+            (founder direttiva (c) SID-20260527: rimosso da AppHeader,
+            integrato canonical-per-prototype tra Decodifica CTA e Mappa
+            cards). Zero duplicazione UI. */}
         <div className="app__header-row">
-          <div className="app__lang-pickers">
-            <div className="app__lang-picker">
-              <label htmlFor="app-doc-lang-select" className="app__lang-label">
-                {t('lang.doc.label')}
-              </label>
-              <select
-                id="app-doc-lang-select"
-                data-testid="app-doc-lang-select"
-                className="app__lang-select"
-                value={docLanguage}
-                onChange={(e) => setDocLanguage(e.target.value as Language)}
-              >
-                {SUPPORTED_LANGUAGES.map((lng) => {
-                  const isUnavailable = lng === 'fr' || lng === 'de'
-                  const baseLabel = `${lng.toUpperCase()} — ${t(`lang.doc.option.${lng}`)}`
-                  return (
-                    <option key={lng} value={lng} disabled={isUnavailable}>
-                      {isUnavailable ? `${baseLabel} (in arrivo)` : baseLabel}
-                    </option>
-                  )
-                })}
-              </select>
-            </div>
-          </div>
           <nav className="app__nav" aria-label="Navigazione principale">
             {user ? (
               <>

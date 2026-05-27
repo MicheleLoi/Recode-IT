@@ -71,7 +71,7 @@ import type { MappingEntry, NerDetection } from '../types/engine'
 import { applyReverseSubstitution } from './DecodificaPanel'
 import { DocumentView } from './DocumentView'
 import { EntityReviewList } from './EntityReviewList'
-import { useLanguage } from './LanguageContext'
+import { type Language, SUPPORTED_LANGUAGES, useLanguage } from './LanguageContext'
 import { MappaPanel } from './MappaPanel'
 import { ModelLoadingState, type ModelLoadPhase } from './ModelLoadingState'
 import type { ReviewEntity, SwitchableCategory } from './types'
@@ -169,7 +169,7 @@ type Props = {
 export function WireframeWorkArea({
   initialMode = 'codifica',
 }: Props): JSX.Element {
-  const { t, docLanguage: language } = useLanguage()
+  const { t, docLanguage: language, setDocLanguage } = useLanguage()
   const { user, masterKey } = useAuth()
   const {
     active,
@@ -1409,13 +1409,33 @@ export function WireframeWorkArea({
         </div>
       )}
 
-      {/* ── Lingua documento row ──────────────────────────────────────── */}
-      {/* Nota: doc language picker lives in AppHeader; non duplichiamo qui.
-          La spec prototype mostra una select duplicata sotto i panels, ma per
-          coerenza con il sistema esistente (LanguageContext + AppHeader)
-          omettiamo questa riga e dell'app: l'utente ha già la select in alto.
-          Se il founder vuole comunque la riga doc-lang sotto i panels, basta
-          aggiungerla qui. */}
+      {/* ── Lingua documento row (founder direttiva (c) SID-20260527) ──
+          Spostato dall'AppHeader secondary row al slot prototype-canonical
+          tra Decodifica CTA e Mappa cards. Zero duplicazione (rimosso da
+          App.tsx AppHeader contestualmente). FR/DE marcate "(in arrivo)"
+          disabled per Phase 2/3 NER procurement pending. */}
+      <div className="wireframe-lang-row">
+        <label className="wireframe-lang-cell">
+          <span className="wireframe-lang-label">{t('lang.doc.label')}</span>
+          <select
+            id="app-doc-lang-select"
+            data-testid="app-doc-lang-select"
+            className="wireframe-lang-select"
+            value={language}
+            onChange={(e) => setDocLanguage(e.target.value as Language)}
+          >
+            {SUPPORTED_LANGUAGES.map((lng) => {
+              const isUnavailable = lng === 'fr' || lng === 'de'
+              const baseLabel = `${lng.toUpperCase()} — ${t(`lang.doc.option.${lng}`)}`
+              return (
+                <option key={lng} value={lng} disabled={isUnavailable}>
+                  {isUnavailable ? `${baseLabel} (in arrivo)` : baseLabel}
+                </option>
+              )
+            })}
+          </select>
+        </label>
+      </div>
 
       {/* ── Mappa cards ──────────────────────────────────────────────── */}
       <div className="wireframe-mappa-section">
