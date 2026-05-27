@@ -31,6 +31,7 @@ import {
   type Language,
 } from './ui/LanguageContext'
 import { VerifiedBanner } from './ui/VerifiedBanner'
+import { BundleBanner } from './ui/BundleBanner'
 import { LoginPage } from './ui/auth/LoginPage'
 import { SignupPage } from './ui/auth/SignupPage'
 import { RecoveryPage } from './ui/auth/RecoveryPage'
@@ -304,6 +305,7 @@ function AppInner(): JSX.Element {
 
   return (
     <div className="app">
+      <BundleBanner />
       <VerifiedBanner />
       <AppHeader view={view} onNavigate={setView} />
       {showUpgrade ? (
@@ -319,6 +321,61 @@ function AppInner(): JSX.Element {
       ) : (
         <AppShell view={view} onNavigate={setView} />
       )}
+      {/* Bundle cross-link section "Sotto il brand RegIA" — Touchpoint 3
+          (SID-20260527). Sits above the existing minimal footer; uniforms
+          the app with landing pages /recode-it/, /beccaria/, /mhc-c/.
+          NB: NO mention of /mhc-h/ — Authority discipline, not shipped.
+          Canon: notes/research/recode-it/wireframes/bundle_crosslink_prototype_20260527.html */}
+      <section
+        className="app__footer-bundle"
+        aria-labelledby="app-footer-bundle-heading"
+        data-testid="app-footer-bundle"
+      >
+        <h2
+          id="app-footer-bundle-heading"
+          className="app__footer-bundle-heading"
+        >
+          {t('app.footer.bundle.heading')}
+        </h2>
+        <p className="app__footer-bundle-text">
+          {t('app.footer.bundle.lead')}{' '}
+          <strong>{t('app.footer.bundle.bundleName')}</strong>
+          {t('app.footer.bundle.leadTail')}
+        </p>
+        <nav
+          className="app__footer-bundle-links"
+          aria-label={t('app.footer.bundle.heading')}
+        >
+          <a
+            href="https://micheleloi.pro/mhc-l/"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="footer-bundle-link-mhcL"
+          >
+            {t('app.footer.bundle.link.mhcL')}
+          </a>
+          <a
+            href="https://micheleloi.pro/beccaria/"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="footer-bundle-link-beccaria"
+          >
+            {t('app.footer.bundle.link.beccaria')}
+          </a>
+          <a
+            href="https://micheleloi.pro/mhc-c/"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="footer-bundle-link-mhcC"
+          >
+            {t('app.footer.bundle.link.mhcC')}
+          </a>
+        </nav>
+        <div className="app__footer-bundle-meta">
+          {t('app.footer.bundle.meta')}{' '}
+          <a href="mailto:mhcl@micheleloi.pro">mhcl@micheleloi.pro</a>
+        </div>
+      </section>
       <footer className="app__footer">
         <span>
           {BRAND_BY_LANG[uiLanguage]} — {t('app.footer.tagline')}

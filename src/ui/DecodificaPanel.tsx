@@ -211,6 +211,14 @@ export function DecodificaPanel(): JSX.Element {
   })()
 
   // ── Render: LOCKED ─────────────────────────────────────────────────────────
+  // Polo E flip (SID-20260527, ratified decision_log 2026-05-27 SID-20260527-102449):
+  // bearer MHC-L (FREE) is the PRIMARY path with visual emphasis (gradient blue,
+  // "Consigliato" badge); the €20 Stripe purchase becomes the FALLBACK with sober
+  // visual treatment (subtle gray background, link-style CTA instead of button).
+  // Both paths are preserved — source labels `mhc_bearer / paid / pro_tier` stay
+  // untouched in the unlocked state. Anonymous users keep the notLoggedIn notice
+  // (Polo E flip applies only to logged-in users; anon gating is invariant).
+  // Canon: notes/research/recode-it/wireframes/bundle_crosslink_prototype_20260527.html
   if (!granted) {
     return (
       <section
@@ -236,35 +244,16 @@ export function DecodificaPanel(): JSX.Element {
             </p>
           ) : (
             <>
-              {/* Primary CTA first — visible before description (Krug: scan-first) */}
-              <div className="decodifica-panel__pay">
-                <button
-                  type="button"
-                  className="btn btn--primary btn--large"
-                  onClick={() => void handlePayCTA()}
-                  disabled={localStatus === 'checkout-opening'}
-                  data-testid="decodifica-pay-btn"
-                >
-                  {localStatus === 'checkout-opening'
-                    ? t('decodifica.locked.paymentLoading')
-                    : t('decodifica.locked.payCTA')}
-                </button>
-                <p className="decodifica-panel__hint">
-                  {t('decodifica.locked.payHint')}
-                </p>
-              </div>
-              {/* Description below the button — reads as elaboration, not prerequisite */}
-              <p className="decodifica-panel__description">
-                {t('decodifica.locked.description')}
-              </p>
-
-              <div className="decodifica-panel__separator" aria-hidden="true" />
-
-              {/* Secondary: MHC Bearer */}
-              <div className="decodifica-panel__bearer">
-                <p className="decodifica-panel__hint">
-                  {t('decodifica.locked.bearerHint')}
-                </p>
+              {/* PRIMARY PATH — MHC-L bearer (FREE).
+                  Gradient blue card + "Consigliato" badge. Comes FIRST because
+                  the bundle path is the cheap-for-user, sticky-for-product flow. */}
+              <div
+                className="decodifica-panel__locked--primary"
+                data-badge={t('decodifica.locked.primaryBadge')}
+                data-testid="decodifica-locked-primary"
+              >
+                <h4>{t('decodifica.locked.primaryTitle')}</h4>
+                <p>{t('decodifica.locked.primaryDescription')}</p>
                 <label className="field">
                   <span className="field__label">
                     {t('decodifica.locked.bearerLabel')}
@@ -283,7 +272,7 @@ export function DecodificaPanel(): JSX.Element {
                 </label>
                 <button
                   type="button"
-                  className="btn btn--secondary"
+                  className="btn btn--primary"
                   onClick={() => void handleBearerValidate()}
                   disabled={
                     localStatus === 'bearer-validating' ||
@@ -304,6 +293,46 @@ export function DecodificaPanel(): JSX.Element {
                     {bearerError}
                   </p>
                 )}
+                <p
+                  className="decodifica-panel__locked-bearer-help"
+                  data-testid="decodifica-bearer-help"
+                >
+                  {t('decodifica.locked.bearerHelp.lead')}{' '}
+                  <a
+                    href="https://micheleloi.pro/mhc-l/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid="decodifica-bundle-link"
+                  >
+                    {t('decodifica.locked.bearerHelp.linkText')}
+                  </a>{' '}
+                  {t('decodifica.locked.bearerHelp.tail')}
+                </p>
+              </div>
+
+              {/* FALLBACK PATH — €20 Stripe one-time (sober visual).
+                  Subtle gray card; link-style CTA (not button) per prototype
+                  to keep visual hierarchy in favour of the bundle path. */}
+              <div
+                className="decodifica-panel__locked--fallback"
+                data-testid="decodifica-locked-fallback"
+              >
+                <div className="decodifica-panel__locked--fallback-label">
+                  {t('decodifica.locked.fallbackLabel')}
+                </div>
+                <h4>{t('decodifica.locked.fallbackTitle')}</h4>
+                <p>{t('decodifica.locked.fallbackDescription')}</p>
+                <button
+                  type="button"
+                  className="decodifica-panel__locked--fallback-link"
+                  onClick={() => void handlePayCTA()}
+                  disabled={localStatus === 'checkout-opening'}
+                  data-testid="decodifica-pay-btn"
+                >
+                  {localStatus === 'checkout-opening'
+                    ? t('decodifica.locked.paymentLoading')
+                    : t('decodifica.locked.fallbackLink')}
+                </button>
               </div>
             </>
           )}

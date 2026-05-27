@@ -433,6 +433,38 @@ const it: Catalog = {
   'wireframe.scannedPdf.title': 'PDF scannerizzato rilevato',
   'wireframe.scannedPdf.body': "Questo PDF è una scansione (non ha testo selezionabile). L'OCR per fotocopie e PDF scannerizzati è nel piano Pro, in arrivo. Per ora carica una versione con testo selezionabile.",
   'wireframe.scannedPdf.ok': 'Capito',
+
+  // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
+  // Canon: notes/research/recode-it/wireframes/bundle_crosslink_prototype_20260527.html
+  // Polo E flip: free path (MHC-L bundle €0) primary, €20 standalone fallback.
+  // Touchpoint 1 — persistent header banner
+  'bundleBanner.text': 'Decodifica gratis con iscrizione MHC-L (€0) — bundle modulare RegIA.',
+  'bundleBanner.cta': 'Scopri →',
+  'bundleBanner.dismissAria': 'Chiudi questo banner',
+  // Touchpoint 2 — Decodifica lock screen Polo E flip (primary = bearer free, fallback = €20)
+  'decodifica.locked.primaryBadge': 'Consigliato',
+  'decodifica.locked.primaryTitle': 'Sblocca con la tua chiave MHC-L',
+  'decodifica.locked.primaryDescription': 'Se sei già nell\'ecosistema MHC-L, incolla la chiave qui sotto e usi Decodifica senza ulteriore pagamento.',
+  'decodifica.locked.bearerHelp.lead': 'Non hai una chiave?',
+  'decodifica.locked.bearerHelp.linkText': 'Iscrizione MHC-L è gratis (€0)',
+  'decodifica.locked.bearerHelp.tail': '— bundle modulare RegIA.',
+  'decodifica.locked.fallbackLabel': 'Oppure standalone',
+  'decodifica.locked.fallbackTitle': 'Decodifica — €20 una tantum',
+  'decodifica.locked.fallbackDescription': 'Per chi non è membro MHC-L e vuole solo Recode IT Decodifica subito. Pagamento singolo, niente abbonamento, a vita.',
+  'decodifica.locked.fallbackLink': '→ Acquista €20 via Stripe',
+  // Touchpoint 3 — footer cross-link "Sotto il brand RegIA"
+  'app.footer.bundle.heading': 'Sotto il brand RegIA',
+  'app.footer.bundle.lead': 'Recode IT è una delle componenti del bundle',
+  'app.footer.bundle.bundleName': 'MHC-L',
+  'app.footer.bundle.leadTail': '. Le altre:',
+  'app.footer.bundle.link.mhcL': '→ MHC-L bundle landing',
+  'app.footer.bundle.link.beccaria': '→ BeccarIA (legal-AI italiano)',
+  'app.footer.bundle.link.mhcC': '→ MHC-C (skill capture per Claude)',
+  'app.footer.bundle.meta': 'Recode IT — open source AGPL-3.0 — built browser-side, niente cloud — contatto',
+  // Touchpoint 4 — modal upsell bundle callout
+  'wireframe.modal.upsell.bundleCtaLead': 'Sei membro MHC-L?',
+  'wireframe.modal.upsell.bundleCtaBody': 'Riceverai notifica priorità quando il Pro viene attivato.',
+  'wireframe.modal.upsell.bundleCtaLink': 'Iscrizione MHC-L è gratis →',
 }
 
 const en: Catalog = {
@@ -834,6 +866,32 @@ const en: Catalog = {
   'wireframe.scannedPdf.title': 'Scanned PDF detected',
   'wireframe.scannedPdf.body': 'This PDF is a scan (no selectable text). OCR for scanned PDFs is in the upcoming Pro plan. For now please upload a version with selectable text.',
   'wireframe.scannedPdf.ok': 'Got it',
+
+  // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
+  'bundleBanner.text': 'Free Decoding when you join MHC-L (€0) — modular RegIA bundle.',
+  'bundleBanner.cta': 'Learn more →',
+  'bundleBanner.dismissAria': 'Dismiss this banner',
+  'decodifica.locked.primaryBadge': 'Recommended',
+  'decodifica.locked.primaryTitle': 'Unlock with your MHC-L key',
+  'decodifica.locked.primaryDescription': 'If you are already in the MHC-L ecosystem, paste your key below and use Decoding with no extra payment.',
+  'decodifica.locked.bearerHelp.lead': 'No key yet?',
+  'decodifica.locked.bearerHelp.linkText': 'Joining MHC-L is free (€0)',
+  'decodifica.locked.bearerHelp.tail': '— modular RegIA bundle.',
+  'decodifica.locked.fallbackLabel': 'Or standalone',
+  'decodifica.locked.fallbackTitle': 'Decoding — €20 one-time',
+  'decodifica.locked.fallbackDescription': 'For non-members who want only Recode IT Decoding right now. Single payment, no subscription, for life.',
+  'decodifica.locked.fallbackLink': '→ Buy €20 via Stripe',
+  'app.footer.bundle.heading': 'Under the RegIA brand',
+  'app.footer.bundle.lead': 'Recode IT is one of the components of the',
+  'app.footer.bundle.bundleName': 'MHC-L',
+  'app.footer.bundle.leadTail': ' bundle. The others:',
+  'app.footer.bundle.link.mhcL': '→ MHC-L bundle landing',
+  'app.footer.bundle.link.beccaria': '→ BeccarIA (Italian legal-AI)',
+  'app.footer.bundle.link.mhcC': '→ MHC-C (skill capture for Claude)',
+  'app.footer.bundle.meta': 'Recode IT — open source AGPL-3.0 — built browser-side, no cloud — contact',
+  'wireframe.modal.upsell.bundleCtaLead': 'Are you an MHC-L member?',
+  'wireframe.modal.upsell.bundleCtaBody': 'You will receive priority notice when Pro goes live.',
+  'wireframe.modal.upsell.bundleCtaLink': 'Joining MHC-L is free →',
 }
 
 const de: Catalog = {
@@ -1201,6 +1259,32 @@ const de: Catalog = {
   'wireframe.scannedPdf.title': 'Gescanntes PDF erkannt',
   'wireframe.scannedPdf.body': 'Diese PDF ist ein Scan (kein auswählbarer Text). OCR für gescannte PDFs kommt im Pro-Plan. Bitte laden Sie eine Version mit auswählbarem Text.',
   'wireframe.scannedPdf.ok': 'Verstanden',
+
+  // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
+  'bundleBanner.text': 'Dekodierung gratis mit MHC-L-Beitritt (€0) — modulares RegIA-Bundle.',
+  'bundleBanner.cta': 'Mehr erfahren →',
+  'bundleBanner.dismissAria': 'Dieses Banner schließen',
+  'decodifica.locked.primaryBadge': 'Empfohlen',
+  'decodifica.locked.primaryTitle': 'Mit Ihrem MHC-L-Schlüssel freischalten',
+  'decodifica.locked.primaryDescription': 'Wenn Sie bereits im MHC-L-Ökosystem sind, fügen Sie den Schlüssel unten ein und nutzen Sie die Dekodierung ohne zusätzliche Zahlung.',
+  'decodifica.locked.bearerHelp.lead': 'Noch keinen Schlüssel?',
+  'decodifica.locked.bearerHelp.linkText': 'MHC-L-Beitritt ist gratis (€0)',
+  'decodifica.locked.bearerHelp.tail': '— modulares RegIA-Bundle.',
+  'decodifica.locked.fallbackLabel': 'Oder eigenständig',
+  'decodifica.locked.fallbackTitle': 'Dekodierung — 20 € einmalig',
+  'decodifica.locked.fallbackDescription': 'Für Nicht-Mitglieder, die nur Recode IT Dekodierung jetzt wollen. Einmalige Zahlung, kein Abo, lebenslang.',
+  'decodifica.locked.fallbackLink': '→ Für 20 € über Stripe kaufen',
+  'app.footer.bundle.heading': 'Unter der Marke RegIA',
+  'app.footer.bundle.lead': 'Recode IT ist eine der Komponenten des Bundles',
+  'app.footer.bundle.bundleName': 'MHC-L',
+  'app.footer.bundle.leadTail': '. Die anderen:',
+  'app.footer.bundle.link.mhcL': '→ MHC-L Bundle-Landingpage',
+  'app.footer.bundle.link.beccaria': '→ BeccarIA (italienisches Rechts-KI)',
+  'app.footer.bundle.link.mhcC': '→ MHC-C (Skill Capture für Claude)',
+  'app.footer.bundle.meta': 'Recode IT — Open Source AGPL-3.0 — im Browser ausgeführt, keine Cloud — Kontakt',
+  'wireframe.modal.upsell.bundleCtaLead': 'Sind Sie MHC-L-Mitglied?',
+  'wireframe.modal.upsell.bundleCtaBody': 'Sie erhalten vorrangige Benachrichtigung, wenn Pro freigeschaltet wird.',
+  'wireframe.modal.upsell.bundleCtaLink': 'MHC-L-Beitritt ist gratis →',
 }
 
 const fr: Catalog = {
@@ -1568,6 +1652,32 @@ const fr: Catalog = {
   'wireframe.scannedPdf.title': 'PDF scanné détecté',
   'wireframe.scannedPdf.body': "Ce PDF est un scan (aucun texte sélectionnable). L'OCR pour PDF scannés arrive avec le plan Pro. Pour l'instant chargez une version avec du texte sélectionnable.",
   'wireframe.scannedPdf.ok': 'Compris',
+
+  // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
+  'bundleBanner.text': "Décodage gratuit avec l'adhésion MHC-L (€0) — bundle modulaire RegIA.",
+  'bundleBanner.cta': 'En savoir plus →',
+  'bundleBanner.dismissAria': 'Fermer cette bannière',
+  'decodifica.locked.primaryBadge': 'Recommandé',
+  'decodifica.locked.primaryTitle': 'Débloquer avec votre clé MHC-L',
+  'decodifica.locked.primaryDescription': "Si vous êtes déjà dans l'écosystème MHC-L, collez la clé ci-dessous et utilisez le Décodage sans paiement supplémentaire.",
+  'decodifica.locked.bearerHelp.lead': 'Pas encore de clé ?',
+  'decodifica.locked.bearerHelp.linkText': "L'adhésion MHC-L est gratuite (€0)",
+  'decodifica.locked.bearerHelp.tail': '— bundle modulaire RegIA.',
+  'decodifica.locked.fallbackLabel': 'Ou en autonome',
+  'decodifica.locked.fallbackTitle': 'Décodage — 20 € une seule fois',
+  'decodifica.locked.fallbackDescription': 'Pour ceux qui ne sont pas membres MHC-L et veulent seulement Recode IT Décodage tout de suite. Paiement unique, pas d\'abonnement, à vie.',
+  'decodifica.locked.fallbackLink': '→ Acheter 20 € via Stripe',
+  'app.footer.bundle.heading': 'Sous la marque RegIA',
+  'app.footer.bundle.lead': 'Recode IT est l\'une des composantes du bundle',
+  'app.footer.bundle.bundleName': 'MHC-L',
+  'app.footer.bundle.leadTail': '. Les autres :',
+  'app.footer.bundle.link.mhcL': '→ Landing page bundle MHC-L',
+  'app.footer.bundle.link.beccaria': '→ BeccarIA (legal-AI italien)',
+  'app.footer.bundle.link.mhcC': '→ MHC-C (skill capture pour Claude)',
+  'app.footer.bundle.meta': 'Recode IT — open source AGPL-3.0 — exécuté dans le navigateur, sans cloud — contact',
+  'wireframe.modal.upsell.bundleCtaLead': 'Êtes-vous membre MHC-L ?',
+  'wireframe.modal.upsell.bundleCtaBody': 'Vous recevrez une notification prioritaire quand le Pro sera activé.',
+  'wireframe.modal.upsell.bundleCtaLink': "L'adhésion MHC-L est gratuite →",
 }
 
 export const TRANSLATIONS: Record<Language, Catalog> = { it, en, de, fr }

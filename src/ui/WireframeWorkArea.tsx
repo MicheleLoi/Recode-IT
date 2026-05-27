@@ -1605,6 +1605,37 @@ export function WireframeWorkArea({
                   <p className="wireframe-modal__upsell-details">
                     {t('wireframe.modal.upsell.details')}
                   </p>
+                  {/* Parked notice (visible box) — Touchpoint 4 component A.
+                      Matches prototype 1:1; alert() still fires on unlock-now
+                      click for explicit user feedback. SID-20260527. */}
+                  <div
+                    className="wireframe-modal__parked-notice"
+                    data-testid="wireframe-modal-parked-notice"
+                  >
+                    ⏳ {t('wireframe.modal.upsell.parkedNotice')}
+                  </div>
+                  {/* Bundle CTA callout — Touchpoint 4 component B.
+                      Cross-link to MHC-L bundle landing: chi sta valutando Pro
+                      vede subito che il bundle MHC-L è un percorso parallelo
+                      (gratis €0). Canon prototype SID-20260527.
+                      NB: NO mention of /mhc-h/ — Authority discipline. */}
+                  <div
+                    className="wireframe-modal__bundle-cta"
+                    data-testid="wireframe-modal-bundle-cta"
+                  >
+                    <strong>
+                      {t('wireframe.modal.upsell.bundleCtaLead')}
+                    </strong>{' '}
+                    {t('wireframe.modal.upsell.bundleCtaBody')}{' '}
+                    <a
+                      href="https://micheleloi.pro/mhc-l/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-testid="wireframe-modal-bundle-link"
+                    >
+                      {t('wireframe.modal.upsell.bundleCtaLink')}
+                    </a>
+                  </div>
                   <button
                     type="button"
                     className="btn btn--primary"
