@@ -463,12 +463,18 @@ const it: Catalog = {
   'app.footer.bundle.leadTail': '. Le altre:',
   // Italian wording cleanup SID-20260527-181552 (founder direttiva 'odio
   // questi termini in inglese nell'interfaccia italiana'): the IT labels are
-  // rewritten in pure Italian (suite integrata / AI per il diritto italiano /
-  // skill di pensiero in Claude). EN/DE/FR keep their tech-English original
-  // wording — those audiences accept the English tech terms.
+  // rewritten in pure Italian (suite integrata / AI per il diritto italiano).
+  // EN/DE/FR keep their tech-English original wording — those audiences accept
+  // the English tech terms.
+  //
+  // SID-20260527-(post-181552) — MHC-C link provvisoriamente puntato al repo
+  // GitHub invece che a /mhc-c/ (palette/design page broken, vedi trace
+  // notes/traces/trace_copy_discipline_italiana_avvocato_audience_20260527.md).
+  // Label uniforme su 4 lingue: l'URL github.com/MicheleLoi/MHC-C è universale.
+  // Quando /mhc-c/ sarà ridisegnato + bonificato, ribaltare al sito.
   'app.footer.bundle.link.mhcL': '→ MHC-L — la suite integrata',
   'app.footer.bundle.link.beccaria': '→ BeccarIA — AI per il diritto italiano',
-  'app.footer.bundle.link.mhcC': '→ MHC-C — skill di pensiero in Claude',
+  'app.footer.bundle.link.mhcC': '→ MHC-C — github.com/MicheleLoi/MHC-C',
   'app.footer.bundle.meta': 'Recode IT — open source AGPL-3.0 — built browser-side, niente cloud — contatto',
   // Touchpoint 4 — modal upsell bundle callout
   'wireframe.modal.upsell.bundleCtaLead': 'Sei membro MHC-L?',
@@ -896,7 +902,7 @@ const en: Catalog = {
   'app.footer.bundle.leadTail': ' bundle. The others:',
   'app.footer.bundle.link.mhcL': '→ MHC-L bundle landing',
   'app.footer.bundle.link.beccaria': '→ BeccarIA (Italian legal-AI)',
-  'app.footer.bundle.link.mhcC': '→ MHC-C (skill capture for Claude)',
+  'app.footer.bundle.link.mhcC': '→ MHC-C — github.com/MicheleLoi/MHC-C',
   'app.footer.bundle.meta': 'Recode IT — open source AGPL-3.0 — built browser-side, no cloud — contact',
   'wireframe.modal.upsell.bundleCtaLead': 'Are you an MHC-L member?',
   'wireframe.modal.upsell.bundleCtaBody': 'You will receive priority notice when Pro goes live.',
@@ -1289,7 +1295,7 @@ const de: Catalog = {
   'app.footer.bundle.leadTail': '. Die anderen:',
   'app.footer.bundle.link.mhcL': '→ MHC-L Bundle-Landingpage',
   'app.footer.bundle.link.beccaria': '→ BeccarIA (italienisches Rechts-KI)',
-  'app.footer.bundle.link.mhcC': '→ MHC-C (Skill Capture für Claude)',
+  'app.footer.bundle.link.mhcC': '→ MHC-C — github.com/MicheleLoi/MHC-C',
   'app.footer.bundle.meta': 'Recode IT — Open Source AGPL-3.0 — im Browser ausgeführt, keine Cloud — Kontakt',
   'wireframe.modal.upsell.bundleCtaLead': 'Sind Sie MHC-L-Mitglied?',
   'wireframe.modal.upsell.bundleCtaBody': 'Sie erhalten vorrangige Benachrichtigung, wenn Pro freigeschaltet wird.',
@@ -1682,7 +1688,7 @@ const fr: Catalog = {
   'app.footer.bundle.leadTail': '. Les autres :',
   'app.footer.bundle.link.mhcL': '→ Landing page bundle MHC-L',
   'app.footer.bundle.link.beccaria': '→ BeccarIA (legal-AI italien)',
-  'app.footer.bundle.link.mhcC': '→ MHC-C (skill capture pour Claude)',
+  'app.footer.bundle.link.mhcC': '→ MHC-C — github.com/MicheleLoi/MHC-C',
   'app.footer.bundle.meta': 'Recode IT — open source AGPL-3.0 — exécuté dans le navigateur, sans cloud — contact',
   'wireframe.modal.upsell.bundleCtaLead': 'Êtes-vous membre MHC-L ?',
   'wireframe.modal.upsell.bundleCtaBody': 'Vous recevrez une notification prioritaire quand le Pro sera activé.',

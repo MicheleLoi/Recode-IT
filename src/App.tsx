@@ -376,7 +376,7 @@ function AppInner(): JSX.Element {
             {t('app.footer.bundle.link.beccaria')}
           </a>
           <a
-            href="https://micheleloi.pro/mhc-c/"
+            href="https://github.com/MicheleLoi/MHC-C"
             target="_blank"
             rel="noopener noreferrer"
             data-testid="footer-bundle-link-mhcC"
