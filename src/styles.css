@@ -3368,6 +3368,49 @@ code {
   }
 }
 
+/* ─── Unlocked confirmation variant ─────────────────────────────────
+   Founder direttiva SID-20260527-181552 follow-up ('questo mi piace
+   esegui' → Opzione 1a state-based hide automatico). When the user has
+   authenticated via the MHC bearer path, the banner shifts from PROMO
+   (active CTA invite) to STATUS INDICATOR (calm confirmation). Visual
+   weight is reduced: soft green background, dark green text, ✓ icon,
+   no CTA pill, no hover effect — it's informational, not interactive.
+
+   The component falls back to the promo variant for every OTHER auth
+   state (anonymous / paid €20 / pro_tier / no AuthProvider in test).
+   ─────────────────────────────────────────────────────────────────── */
+.bundle-banner.bundle-banner--inline.bundle-banner--unlocked {
+  background: var(--regia-green-soft);
+  color: var(--regia-green-dark);
+  /* Lighter padding — informational density, not invite density. */
+  padding: 12px 24px;
+  /* Disable the promo-variant hover state (no longer interactive). */
+  transition: none;
+}
+
+.bundle-banner.bundle-banner--inline.bundle-banner--unlocked:hover {
+  /* Same as base — confirmation does NOT respond to hover. */
+  background: var(--regia-green-soft);
+}
+
+.bundle-banner.bundle-banner--header.bundle-banner--unlocked {
+  background: var(--regia-green-soft);
+  color: var(--regia-green-dark);
+}
+
+.bundle-banner__text--unlocked {
+  color: var(--regia-green-dark);
+  font-weight: 500;
+}
+
+.bundle-banner__check {
+  color: var(--regia-green-dark);
+  font-weight: 700;
+  font-size: 1.05em;
+  line-height: 1;
+  display: inline-block;
+}
+
 /* ─── Touchpoint 2: Decodifica lock screen — Polo E flip ────────── */
 .decodifica-panel__locked--primary {
   background: linear-gradient(180deg, var(--regia-blue-soft) 0%, var(--regia-blue-light) 100%);

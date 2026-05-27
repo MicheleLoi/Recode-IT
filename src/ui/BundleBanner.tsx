@@ -19,95 +19,98 @@
  *
  * Behavior (both variants):
  *   - Visible by default for every visitor (anonymous or logged-in).
- *   - Dismissible via the ✕ button — state persisted in localStorage so a
- *     page reload (or returning visit) doesn't re-surface it after dismiss.
- *   - Defensive: if localStorage is unavailable (private mode / disabled),
- *     dismissal still works in-memory for the current page lifetime.
+ *   - State-based content (founder direttiva SID-20260527-181552 refinement):
+ *       · IF auth bearer source === 'mhc_bearer' → render confirmation
+ *         "✓ Decodifica sbloccata via MHC-L" (sober pill, no CTA link).
+ *         The user has already redeemed the bundle invite via MHC-L; the
+ *         banner shifts from promo to status indicator.
+ *       · ELSE (anonymous / paid / pro_tier / no provider) → render the
+ *         standard promo "Decodifica gratis con iscrizione MHC-L (€0)"
+ *         + "Scopri →" CTA pointing at the bundle landing.
+ *   - NOT dismissible (Minerva: position-locked toolbar element, symmetric
+ *     to ".wireframe-modifier-row" "sostituisci anche" which is itself
+ *     non-dismissible). Removed the ✕ close button + the localStorage
+ *     persistence in SID-20260527 follow-up (chat 'questo mi piace esegui'
+ *     to Opzione 1a). Tone shifts via auth state, not via dismiss.
+ *
+ * Auth coupling: uses useAuthOptional() so the component renders correctly
+ * even in test contexts that omit AuthProvider (the existing
+ * BundleBanner.test.tsx wraps only in LanguageProvider). When the provider
+ * is absent the hook returns null and we fall back to the promo variant —
+ * the same content an anonymous user would see in the live app.
  *
  * Canon spec: notes/research/recode-it/wireframes/bundle_crosslink_prototype_20260527.html
  * (Polo E flip; inline variant is the post-181552 refinement, header variant
  * is preserved for option-recovery if needed.)
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useAuthOptional } from '../auth/auth-context'
 import { useLanguage } from './LanguageContext'
 
-const DISMISS_KEY = 'recode-it.bundleBanner.dismissed'
 const BUNDLE_LANDING_URL = 'https://micheleloi.pro/mhc-l/'
 
 type Variant = 'inline' | 'header'
-
-function readDismissed(): boolean {
-  if (typeof window === 'undefined') return false
-  try {
-    return window.localStorage.getItem(DISMISS_KEY) === '1'
-  } catch {
-    // localStorage may be unavailable (Safari private mode, disabled storage,
-    // etc.). We don't treat that as "dismissed" — banner stays visible.
-    return false
-  }
-}
-
-function writeDismissed(): void {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(DISMISS_KEY, '1')
-  } catch {
-    /* silent — same defensive posture as readDismissed */
-  }
-}
 
 type Props = {
   /** Render variant — defaults to 'inline' (post SID-20260527-181552). */
   variant?: Variant
 }
 
-export function BundleBanner({ variant = 'inline' }: Props = {}): JSX.Element | null {
+export function BundleBanner({ variant = 'inline' }: Props = {}): JSX.Element {
   const { t } = useLanguage()
-  const [visible, setVisible] = useState<boolean>(() => !readDismissed())
+  const auth = useAuthOptional()
+  // Confirmation mode is gated on the MHC bearer authority path specifically.
+  // Other sources ('paid' = €20 una tantum, 'pro_tier' = Pro subscription)
+  // keep showing the promo CTA — those users have NOT redeemed via MHC-L.
+  const isMhcBearerUnlocked = auth?.reverseSubstitutionSource === 'mhc_bearer'
 
-  // Re-evaluate on mount in case storage state changed in another tab.
-  useEffect(() => {
-    setVisible(!readDismissed())
-  }, [])
-
-  const dismiss = useCallback(() => {
-    writeDismissed()
-    setVisible(false)
-  }, [])
-
-  if (!visible) return null
+  const dataAuthState = isMhcBearerUnlocked ? 'unlocked-mhc' : 'promo'
 
   if (variant === 'inline') {
     return (
       <div
-        className="bundle-banner bundle-banner--inline"
+        className={
+          isMhcBearerUnlocked
+            ? 'bundle-banner bundle-banner--inline bundle-banner--unlocked'
+            : 'bundle-banner bundle-banner--inline'
+        }
         role="region"
         data-testid="bundle-banner"
         data-variant="inline"
+        data-auth-state={dataAuthState}
       >
-        <span className="bundle-banner__text bundle-banner__text--inline">
-          {t('bundleBanner.text')}
-        </span>
-        <a
-          href={BUNDLE_LANDING_URL}
-          className="bundle-banner__cta bundle-banner__cta--inline"
-          target="_blank"
-          rel="noopener noreferrer"
-          data-testid="bundle-banner-cta"
-        >
-          {t('bundleBanner.cta')}
-        </a>
-        <button
-          type="button"
-          className="bundle-banner__close bundle-banner__close--inline"
-          onClick={dismiss}
-          aria-label={t('bundleBanner.dismissAria')}
-          title={t('bundleBanner.dismissAria')}
-          data-testid="bundle-banner-close"
-        >
-          ×
-        </button>
+        {isMhcBearerUnlocked ? (
+          <>
+            <span
+              className="bundle-banner__check"
+              aria-hidden="true"
+              data-testid="bundle-banner-check"
+            >
+              ✓
+            </span>
+            <span
+              className="bundle-banner__text bundle-banner__text--unlocked"
+              data-testid="bundle-banner-unlocked-text"
+            >
+              {t('bundleBanner.unlocked.text')}
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="bundle-banner__text bundle-banner__text--inline">
+              {t('bundleBanner.text')}
+            </span>
+            <a
+              href={BUNDLE_LANDING_URL}
+              className="bundle-banner__cta bundle-banner__cta--inline"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="bundle-banner-cta"
+            >
+              {t('bundleBanner.cta')}
+            </a>
+          </>
+        )}
       </div>
     )
   }
@@ -115,35 +118,47 @@ export function BundleBanner({ variant = 'inline' }: Props = {}): JSX.Element | 
   // variant === 'header' (legacy gradient banner above AppHeader)
   return (
     <div
-      className="bundle-banner bundle-banner--header"
+      className={
+        isMhcBearerUnlocked
+          ? 'bundle-banner bundle-banner--header bundle-banner--unlocked'
+          : 'bundle-banner bundle-banner--header'
+      }
       role="region"
       data-testid="bundle-banner"
       data-variant="header"
+      data-auth-state={dataAuthState}
     >
-      <div className="bundle-banner__text">
-        <strong>{t('bundleBanner.text')}</strong>
-      </div>
-      <a
-        href={BUNDLE_LANDING_URL}
-        className="bundle-banner__cta"
-        target="_blank"
-        rel="noopener noreferrer"
-        data-testid="bundle-banner-cta"
-      >
-        {t('bundleBanner.cta')}
-      </a>
-      <button
-        type="button"
-        className="bundle-banner__close"
-        onClick={dismiss}
-        aria-label={t('bundleBanner.dismissAria')}
-        title={t('bundleBanner.dismissAria')}
-        data-testid="bundle-banner-close"
-      >
-        ×
-      </button>
+      {isMhcBearerUnlocked ? (
+        <div className="bundle-banner__text bundle-banner__text--unlocked">
+          <span
+            className="bundle-banner__check"
+            aria-hidden="true"
+            data-testid="bundle-banner-check"
+          >
+            ✓
+          </span>{' '}
+          <span data-testid="bundle-banner-unlocked-text">
+            {t('bundleBanner.unlocked.text')}
+          </span>
+        </div>
+      ) : (
+        <>
+          <div className="bundle-banner__text">
+            <strong>{t('bundleBanner.text')}</strong>
+          </div>
+          <a
+            href={BUNDLE_LANDING_URL}
+            className="bundle-banner__cta"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="bundle-banner-cta"
+          >
+            {t('bundleBanner.cta')}
+          </a>
+        </>
+      )}
     </div>
   )
 }
 
-export const __TEST__ = { DISMISS_KEY, BUNDLE_LANDING_URL, readDismissed, writeDismissed }
+export const __TEST__ = { BUNDLE_LANDING_URL }

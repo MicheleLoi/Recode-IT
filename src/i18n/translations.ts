@@ -440,7 +440,11 @@ const it: Catalog = {
   // Touchpoint 1 — persistent header banner
   'bundleBanner.text': 'Decodifica gratis con iscrizione MHC-L (€0) — bundle modulare RegIA.',
   'bundleBanner.cta': 'Scopri →',
-  'bundleBanner.dismissAria': 'Chiudi questo banner',
+  // Unlocked confirmation variant (auth bearer source === 'mhc_bearer').
+  // Founder direttiva SID-20260527-181552 follow-up: state-based shift —
+  // when the user has already validated an MHC bearer, the banner is no
+  // longer a promo, it's a status indicator.
+  'bundleBanner.unlocked.text': 'Decodifica sbloccata via MHC-L',
   // Touchpoint 2 — Decodifica lock screen Polo E flip (primary = bearer free, fallback = €20)
   'decodifica.locked.primaryBadge': 'Consigliato',
   'decodifica.locked.primaryTitle': 'Sblocca con la tua chiave MHC-L',
@@ -457,9 +461,14 @@ const it: Catalog = {
   'app.footer.bundle.lead': 'Recode IT è una delle componenti del bundle',
   'app.footer.bundle.bundleName': 'MHC-L',
   'app.footer.bundle.leadTail': '. Le altre:',
-  'app.footer.bundle.link.mhcL': '→ MHC-L bundle landing',
-  'app.footer.bundle.link.beccaria': '→ BeccarIA (legal-AI italiano)',
-  'app.footer.bundle.link.mhcC': '→ MHC-C (skill capture per Claude)',
+  // Italian wording cleanup SID-20260527-181552 (founder direttiva 'odio
+  // questi termini in inglese nell'interfaccia italiana'): the IT labels are
+  // rewritten in pure Italian (suite integrata / AI per il diritto italiano /
+  // skill di pensiero in Claude). EN/DE/FR keep their tech-English original
+  // wording — those audiences accept the English tech terms.
+  'app.footer.bundle.link.mhcL': '→ MHC-L — la suite integrata',
+  'app.footer.bundle.link.beccaria': '→ BeccarIA — AI per il diritto italiano',
+  'app.footer.bundle.link.mhcC': '→ MHC-C — skill di pensiero in Claude',
   'app.footer.bundle.meta': 'Recode IT — open source AGPL-3.0 — built browser-side, niente cloud — contatto',
   // Touchpoint 4 — modal upsell bundle callout
   'wireframe.modal.upsell.bundleCtaLead': 'Sei membro MHC-L?',
@@ -870,7 +879,7 @@ const en: Catalog = {
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': 'Free Decoding when you join MHC-L (€0) — modular RegIA bundle.',
   'bundleBanner.cta': 'Learn more →',
-  'bundleBanner.dismissAria': 'Dismiss this banner',
+  'bundleBanner.unlocked.text': 'Decoding unlocked via MHC-L',
   'decodifica.locked.primaryBadge': 'Recommended',
   'decodifica.locked.primaryTitle': 'Unlock with your MHC-L key',
   'decodifica.locked.primaryDescription': 'If you are already in the MHC-L ecosystem, paste your key below and use Decoding with no extra payment.',
@@ -1263,7 +1272,7 @@ const de: Catalog = {
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': 'Dekodierung gratis mit MHC-L-Beitritt (€0) — modulares RegIA-Bundle.',
   'bundleBanner.cta': 'Mehr erfahren →',
-  'bundleBanner.dismissAria': 'Dieses Banner schließen',
+  'bundleBanner.unlocked.text': 'Dekodierung über MHC-L freigeschaltet',
   'decodifica.locked.primaryBadge': 'Empfohlen',
   'decodifica.locked.primaryTitle': 'Mit Ihrem MHC-L-Schlüssel freischalten',
   'decodifica.locked.primaryDescription': 'Wenn Sie bereits im MHC-L-Ökosystem sind, fügen Sie den Schlüssel unten ein und nutzen Sie die Dekodierung ohne zusätzliche Zahlung.',
@@ -1656,7 +1665,7 @@ const fr: Catalog = {
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': "Décodage gratuit avec l'adhésion MHC-L (€0) — bundle modulaire RegIA.",
   'bundleBanner.cta': 'En savoir plus →',
-  'bundleBanner.dismissAria': 'Fermer cette bannière',
+  'bundleBanner.unlocked.text': 'Décodage débloqué via MHC-L',
   'decodifica.locked.primaryBadge': 'Recommandé',
   'decodifica.locked.primaryTitle': 'Débloquer avec votre clé MHC-L',
   'decodifica.locked.primaryDescription': "Si vous êtes déjà dans l'écosystème MHC-L, collez la clé ci-dessous et utilisez le Décodage sans paiement supplémentaire.",
