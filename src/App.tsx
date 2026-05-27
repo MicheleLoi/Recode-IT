@@ -99,23 +99,17 @@ function AppHeader({
         <div className="app__header-row">
           <nav className="app__nav" aria-label="Navigazione principale">
             {user ? (
+              /* Founder direttiva SID-20260527: row top "Strumento / I miei
+                 mapping / email / Esci" semplificata a solo identity + Esci.
+                 - "Strumento" (nav-work): rimosso — è già la default view,
+                   pulsante ridondante.
+                 - "I miei mapping" (nav-dashboard): rimosso — la pagina
+                   AccountDashboard resta accessibile via card "Chiavi su
+                   server" (modal upsell €25). Non si butta la pagina,
+                   semplicemente non la mostriamo finché Pro €25 è parcheggiato.
+                 Route 'dashboard' resta nel codice (App.tsx AppShell dispatch)
+                 per riattivazione futura quando Pro cloud va live. */
               <>
-                <button
-                  type="button"
-                  className={`btn btn--secondary${view === 'work' ? ' is-active' : ''}`}
-                  onClick={() => onNavigate('work')}
-                  data-testid="nav-work"
-                >
-                  {t('nav.work')}
-                </button>
-                <button
-                  type="button"
-                  className={`btn btn--secondary${view === 'dashboard' ? ' is-active' : ''}`}
-                  onClick={() => onNavigate('dashboard')}
-                  data-testid="nav-dashboard"
-                >
-                  {t('nav.dashboard')}
-                </button>
                 <span className="app__user" data-testid="auth-user-email">
                   {user.email}
                   {user.tier === 'pro' && !masterKey && (
