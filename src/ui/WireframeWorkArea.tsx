@@ -1489,22 +1489,57 @@ export function WireframeWorkArea({
         </div>
       </div>
 
-      {/* ── Active mapping badge (cross-doc continuity) ──────────────── */}
+      {/* ── Active mapping banner (cross-doc continuity) ─────────────────
+          Founder direttiva SID-20260527: la "bolla" che era duplicata in
+          alto (App.tsx AppHeader) "visualizza meglio" — spostata qui al
+          posto della versione ridotta wireframe-active-mapping precedente.
+          Stesso pattern 3-row visual hierarchy (identity / count or empty
+          pill / dirty badge / hint) + Elimina nascosto in stato vuoto
+          (Round 1+2 UX-loop SID-20260526 doctrine preservata). */}
       {active && (
         <div
-          className="wireframe-active-mapping"
-          data-testid="wireframe-active-mapping"
+          className="active-mapping-banner"
+          data-testid="active-mapping-banner"
         >
-          <span>
+          <div className="active-mapping-banner__identity">
             {t('banner.active.label')}{' '}
             <strong>{active.label}</strong>
-            {' — '}
+          </div>
+          {active.entries.length === 0 ? (
+            <div
+              className="active-mapping-banner__count-empty"
+              data-testid="banner-active-count"
+            >
+              {t('banner.active.empty')}
+            </div>
+          ) : (
+            <div
+              className="active-mapping-banner__count"
+              data-testid="banner-active-count"
+            >
+              {active.entries.length === 1
+                ? t('banner.active.countOne')
+                : t('banner.active.countMany').replace(
+                    '{n}',
+                    String(active.entries.length),
+                  )}
+            </div>
+          )}
+          {active.dirty && (
+            <div
+              className="active-mapping-banner__dirty-badge"
+              data-testid="banner-active-dirty"
+            >
+              {t('banner.active.dirty')}
+            </div>
+          )}
+          <span className="active-mapping-banner__hint">
             {t('banner.active.hint')}
           </span>
           {active.entries.length > 0 && (
             <button
               type="button"
-              className="btn btn--secondary btn--small"
+              className="active-mapping-banner__close"
               onClick={() => {
                 if (
                   active.dirty &&
@@ -1515,7 +1550,9 @@ export function WireframeWorkArea({
                 }
                 closeActive()
               }}
-              data-testid="wireframe-close-active"
+              data-testid="close-active-mapping-btn"
+              title={t('banner.active.deleteTitle')}
+              aria-label={t('banner.active.deleteAria')}
             >
               {t('banner.active.delete')}
             </button>

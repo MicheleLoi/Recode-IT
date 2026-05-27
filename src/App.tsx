@@ -21,7 +21,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { GIT_SHA } from './buildInfo'
 import heroUrl from './assets/hero.png'
 import { AuthProvider, useAuth } from './auth/auth-context'
-import { ActiveMappingProvider, useActiveMapping } from './auth/active-mapping-context'
+import { ActiveMappingProvider } from './auth/active-mapping-context'
 import {
   BRAND_BY_LANG,
   LanguageProvider,
@@ -50,7 +50,6 @@ function AppHeader({
   onNavigate: (v: View) => void
 }): JSX.Element {
   const { user, logout, masterKey } = useAuth()
-  const { active, closeActive } = useActiveMapping()
   const { uiLanguage, setUiLanguage, t } = useLanguage()
 
   const onLogout = useCallback(async () => {
@@ -153,95 +152,10 @@ function AppHeader({
             )}
           </nav>
         </div>
-        {active && view === 'work' && (
-          <div className="active-mapping-banner" data-testid="active-mapping-banner">
-            {/* Row 1 — identity (primary weight): "Mapping attivo: <label>"
-                Brief Item 3 (ux-loop SID-20260526): visual hierarchy separates
-                meta-info by valenza informazionale (identity / count / alert)
-                instead of bullet-separating same-weight inline. */}
-            <div className="active-mapping-banner__identity">
-              {t('banner.active.label')}{' '}
-              <strong>{active.label}</strong>
-            </div>
-            {/* Row 2 — count (asymmetric treatment):
-                - count === 0 ("ancora vuoto") → pill-style class
-                  `active-mapping-banner__count-empty`. Founder direttiva
-                  SID-20260526-011753: "ancora vuoto" non è dato meta, è
-                  **explanatory anchor** — spiega all'utente perché in
-                  altre tab (es. 2.Mappa "Nessuna mappa ancora") non trova
-                  nulla. Va prominente, non muted.
-                - count > 0 ("N pseudonimi") → testo medium weight class
-                  `active-mapping-banner__count` (info positiva di stato,
-                  non explanatory anchor).
-                Manual {n} interpolation: il sistema i18n usa lookup-only
-                (LanguageContext.t() non interpola). */}
-            {active.entries.length === 0 ? (
-              <div
-                className="active-mapping-banner__count-empty"
-                data-testid="banner-active-count"
-              >
-                {t('banner.active.empty')}
-              </div>
-            ) : (
-              <div
-                className="active-mapping-banner__count"
-                data-testid="banner-active-count"
-              >
-                {active.entries.length === 1
-                  ? t('banner.active.countOne')
-                  : t('banner.active.countMany').replace(
-                      '{n}',
-                      String(active.entries.length),
-                    )}
-              </div>
-            )}
-            {/* Row 3 — dirty alert (conditional, distinct badge): rendered as
-                a pill-style cue with color/icon so it reads as state-alert,
-                not as another count fact. */}
-            {active.dirty && (
-              <div
-                className="active-mapping-banner__dirty-badge"
-                data-testid="banner-active-dirty"
-              >
-                {t('banner.active.dirty')}
-              </div>
-            )}
-            <span className="active-mapping-banner__hint">
-              {t('banner.active.hint')}
-            </span>
-            {/*
-              Round 2 UX-loop — Item D: "Elimina mapping" nascosto in empty
-              state (entries.length === 0), coerente con il pattern C1 di
-              `AccountDashboard` (commit d555a1d Round 1). Niente entries =
-              niente da eliminare; il banner mostra ancora identità + count
-              "ancora vuoto" cosicché l'utente sappia che il mapping è aperto,
-              ma senza il bottone destruttivo che lo invita a un'azione
-              senza scopo. Brief
-              `MHC-Work/briefs/mhc-l/recode_it_ux_loop_action_flow_round2_20260526.md`.
-            */}
-            {active.entries.length > 0 && (
-              <button
-                type="button"
-                className="active-mapping-banner__close"
-                onClick={() => {
-                  if (
-                    active.dirty &&
-                    // eslint-disable-next-line no-alert
-                    !window.confirm(t('banner.active.deleteConfirm'))
-                  ) {
-                    return
-                  }
-                  closeActive()
-                }}
-                data-testid="close-active-mapping-btn"
-                title={t('banner.active.deleteTitle')}
-                aria-label={t('banner.active.deleteAria')}
-              >
-                {t('banner.active.delete')}
-              </button>
-            )}
-          </div>
-        )}
+        {/* Active mapping banner moved to WireframeWorkArea (founder
+            direttiva SID-20260527: era duplicato in alto qui + in basso lì,
+            qui rimosso, lì il "good design" 3-row vince). Il banner appare
+            sotto i panel + mappa cards, vicino al contesto di lavoro. */}
       </div>
     </header>
   )
