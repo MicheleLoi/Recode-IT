@@ -1,5 +1,7 @@
 # Recode IT
 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
 Browser-based pseudonymization tool for Italian legal professionals (lawyers,
 accountants, public administrations). Recode IT lets users drag a document,
 inspect and correct an Italian-aware pseudonymized preview, copy the result to
@@ -10,6 +12,9 @@ the server stores only AES-256-GCM ciphertext (zero-knowledge).
 The product is a browser repackaging of the validated Python pipeline already in
 production in MHC-L — see `DESIGN.md` §2 ("Heritage from MHC-L") for the reuse
 inventory.
+
+Live: <https://recode.micheleloi.pro/> — part of the RegIA modular bundle
+(see <https://micheleloi.pro/mhc-l/>).
 
 ## Quick start
 
@@ -49,3 +54,12 @@ scaffolded with its R-07 `--check-signatures` mode already functional.
 - `TEST_PLAN.md` — testing posture and per-phase test inventory.
 - `OPEN_RISKS.md` — risk register; R-01 (port fidelity), R-04 (crypto),
   R-07 (heritage drift) are the load-bearing ones for early phases.
+
+## License
+
+Recode IT is licensed under the **GNU Affero General Public License v3.0 or later**
+(AGPL-3.0-or-later). See [`LICENSE`](LICENSE) for the full text. AGPL means: you
+can use, modify, and redistribute the source freely, including for commercial
+use; if you run a modified version as a network service, you must offer the
+source of your modifications to users of that service. This protects the
+zero-knowledge architecture from being silently weakened in downstream forks.
