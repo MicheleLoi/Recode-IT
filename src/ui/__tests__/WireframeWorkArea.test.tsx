@@ -22,7 +22,7 @@ import { AuthProvider } from '../../auth/auth-context'
 import { ActiveMappingProvider } from '../../auth/active-mapping-context'
 import { LanguageProvider } from '../LanguageContext'
 
-const FIXTURE = `Il sig. Mario Rossi (CF: RSSMRA80A01H501Z) ha contattato l'avvocato via mario.rossi@example.com.`
+const FIXTURE = `Il sig. Mario Rossi (CF: RSSMRA80A01H501U) ha contattato l'avvocato via mario.rossi@example.com.`
 
 function renderWithProviders(): ReturnType<typeof render> {
   return render(
@@ -154,7 +154,7 @@ describe('WireframeWorkArea — Codifica flow', () => {
     // contains substituted tokens.
     const dxPanel = screen.getByTestId('wireframe-panel-pseudonimizzato')
     // CF / email regex matched
-    expect(dxPanel.textContent).not.toContain('RSSMRA80A01H501Z')
+    expect(dxPanel.textContent).not.toContain('RSSMRA80A01H501U')
     expect(dxPanel.textContent).not.toContain('mario.rossi@example.com')
     // Expected masks
     expect(dxPanel.textContent).toContain('<DS>')

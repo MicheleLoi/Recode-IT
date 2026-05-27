@@ -13,7 +13,7 @@ Persone:
 Aziende:
   - Impianti Alpini Bellunesi S.p.A.         → test: nome lungo, suffisso S.p.A. (non S.r.l.)
 Codici da anonimizzare (regex):
-  - CF: PLLGRG65M01F205R, BRTSVN78A41A952K, FNTMRC85E01H501Y
+  - CF: PLLGRG65M01F205V, BRTSVN78A41A952D, FNTMRC85E01H501L
   - P.IVA: 02345678901
 Da preservare:
   - Date: 1 febbraio 1978, 1 maggio 1985, 15 gennaio 2025
@@ -34,15 +34,15 @@ PERIZIA MEDICO-LEGALE E RICORSO PER RISARCIMENTO DANNI
 
 Tribunale di Belluno — Sezione Civile
 
-Il Dott. Giorgio Pellizzon (C.F. PLLGRG65M01F205R), medico legale iscritto
+Il Dott. Giorgio Pellizzon (C.F. PLLGRG65M01F205V), medico legale iscritto
 all'Ordine di Venezia, nominato CTU dal Tribunale, certifica quanto segue.
 
-Silvana Oberti (C.F. BRTSVN78A41A952K), nata a Bolzano il 1 febbraio 1978,
+Silvana Oberti (C.F. BRTSVN78A41A952D), nata a Bolzano il 1 febbraio 1978,
 ha riportato frattura scomposta del femore destro sulle piste da sci di
 Cortina, gestite da Impianti Alpini Bellunesi S.p.A. (P.IVA 02345678901),
 in data 15 gennaio 2025.
 
-Marco Fuentes (C.F. FNTMRC85E01H501Y), nato a Madrid il 1 maggio 1985,
+Marco Fuentes (C.F. FNTMRC85E01H501L), nato a Madrid il 1 maggio 1985,
 sciatore responsabile del sinistro, risulta assicurato per RC terzi.
 
 La Oberti ha riportato: frattura del femore destro, trauma cranico lieve,

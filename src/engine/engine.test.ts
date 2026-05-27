@@ -20,11 +20,14 @@ describe('engine entrypoint (Phase 1)', () => {
   })
 
   it('runs the regex layer end-to-end on a representative Italian snippet', () => {
+    // CF re-encoded to a checksum-valid form (CEI 12-1979) to satisfy the
+    // post-match `validateCF` filter introduced in Pacchetto A
+    // (SID-20260527-181552). The IBAN was already MOD-97-valid.
     const text =
-      'Mario Rossi, C.F. RSSMRA70B03A662X, IBAN IT60X0542811101000000123456, ' +
+      'Mario Rossi, C.F. RSSMRA70B03A662E, IBAN IT60X0542811101000000123456, ' +
       'email mario.rossi@studio.it.'
     const result = anonymize(text)
-    expect(result.pseudonymizedText).not.toContain('RSSMRA70B03A662X')
+    expect(result.pseudonymizedText).not.toContain('RSSMRA70B03A662E')
     expect(result.pseudonymizedText).not.toContain('IT60X0542811101000000123456')
     expect(result.pseudonymizedText).not.toContain('mario.rossi@studio.it')
     expect(result.pseudonymizedText).toContain('<DS>')

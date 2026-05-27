@@ -12,7 +12,7 @@ Persone:
 Aziende:
   - Costruzioni Meridionali S.r.l. → test: con/senza suffisso S.r.l.
 Codici da anonimizzare (regex):
-  - CF: FRRMRC80A01L219Z, RMNGLI85M41L219K
+  - CF: FRRMRC80A01L219O, RMNGLI85M41L219M
   - P.IVA: 01234567890
   - IBAN: IT60X0542811101000000123456
 Da preservare:
@@ -30,10 +30,10 @@ ATTO DI CITAZIONE
 
 Tribunale di Torino — Sezione II Civile
 
-L'Avv. Marco Ferrari (C.F. FRRMRC80A01L219Z), del Foro di Torino,
+L'Avv. Marco Ferrari (C.F. FRRMRC80A01L219O), del Foro di Torino,
 con studio in Via Garibaldi 12, Torino, difensore di:
 
-Giulia Romano (C.F. RMNGLI85M41L219K), nata a Milano il 15 agosto 1985,
+Giulia Romano (C.F. RMNGLI85M41L219M), nata a Milano il 15 agosto 1985,
 residente in Via Mazzini 5, Genova,
 
 — di seguito "parte attrice" —

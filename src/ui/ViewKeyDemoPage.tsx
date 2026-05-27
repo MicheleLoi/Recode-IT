@@ -55,7 +55,7 @@ const MOCK_ENTRIES: MappingEntry[] = [
   { realValue: 'Banca Popolare di Milano', pseudonym: 'ENTE_02', category: 'organizzazione' },
   { realValue: 'Tribunale di Torino', pseudonym: 'TRIBUNALE_01', category: 'tribunale' },
   { realValue: 'Via Garibaldi 42, Roma', pseudonym: 'LUOGO_01', category: 'luogo' },
-  { realValue: 'CF: RSSMRA80A01H501Z', pseudonym: 'CODICE_01', category: 'codice' },
+  { realValue: 'CF: RSSMRA80A01H501U', pseudonym: 'CODICE_01', category: 'codice' },
 ]
 
 function buildAuthValue(mode: DemoMode): AuthContextValue {

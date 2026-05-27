@@ -3,28 +3,28 @@ Documento di test con dati personali interamente fittizi
 Avvertenza: tutti i nomi, codici fiscali, email, telefoni e indirizzi sotto riportati sono inventati e non corrispondono a persone reali.
 
 1. Alessia Rinaldi
-   Codice fiscale: RNLLSS80A41F205B
+   Codice fiscale: RNLLSS80A41F205J
    Email: alessia.rinaldi@example.it
    Telefono: +39 340 123 4567
    Indirizzo: Via Roma 12, Milano
    Note: cliente storico.
 
 2. Marco Bellini
-   Codice fiscale: BLLMRC75H07L219X
+   Codice fiscale: BLLMRC75H07L219B
    Email: marco.bellini@example.it
    Telefono: +39 347 551 2093
    Indirizzo: Via Garibaldi 5, Torino
    Note: nuovo incarico 2026.
 
 3. Giulia Ferraro
-   Codice fiscale: FRRGLI82M52F839K
+   Codice fiscale: FRRGLI82M52F839X
    Email: giulia.ferraro@example.it
    Telefono: +39 333 998 7766
    Indirizzo: Piazza Dante 18, Napoli
    Note: erede testamentaria.
 
 4. Davide Conti
-   Codice fiscale: CNTDVD68P15G273Y
+   Codice fiscale: CNTDVD68P15G273J
    Email: davide.conti@example.it
    Telefono: +39 348 222 1100
    Indirizzo: Corso Levante 33, Palermo

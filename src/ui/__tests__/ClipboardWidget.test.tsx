@@ -9,7 +9,10 @@ import { ClipboardWidget } from '../ClipboardWidget'
 import { AuthProvider } from '../../auth/auth-context'
 import { ActiveMappingProvider } from '../../auth/active-mapping-context'
 
-const FIXTURE = `Il sig. Mario Rossi (CF: RSSMRA80A01H501Z), residente in
+// CF re-encoded to a checksum-valid form (CEI 12-1979) to satisfy the
+// post-match `validateCF` filter introduced in Pacchetto A
+// (SID-20260527-181552 — CF hardening). The IBAN was already MOD-97-valid.
+const FIXTURE = `Il sig. Mario Rossi (CF: RSSMRA80A01H501U), residente in
 Roma, ha contattato l'avvocato all'indirizzo mario.rossi@example.com per
 il bonifico sull'IBAN IT60X0542811101000000123456.`
 
@@ -71,7 +74,7 @@ describe('ClipboardWidget', () => {
     const pseudo = screen.getByTestId('pseudonymized-textarea') as HTMLTextAreaElement
     // Regex pipeline should mask the CF, IBAN and email — none of the original
     // structured identifiers should survive in the masked output.
-    expect(pseudo.value).not.toContain('RSSMRA80A01H501Z')
+    expect(pseudo.value).not.toContain('RSSMRA80A01H501U')
     expect(pseudo.value).not.toContain('mario.rossi@example.com')
     expect(pseudo.value).not.toContain('IT60X0542811101000000123456')
     expect(pseudo.value).toContain('<DS>')

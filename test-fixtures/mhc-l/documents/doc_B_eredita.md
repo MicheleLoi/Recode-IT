@@ -14,7 +14,7 @@ Persone:
   - Carlo Brambilla (notaio)             → test: "Notaio Brambilla", "il Brambilla", "del Brambilla"
 Non-PII ma referenziato: "de cuius / Arturo Vanzetti" — terzo non parte, potrebbe essere rilevato da NER
 Codici da anonimizzare (regex):
-  - CF: MDRRSL79D41F205X, VNZRMN52C67F205P, VNZTRS78H01F205Q, BRMCRL55D01F205A
+  - CF: MDRRSL79D41F205Z, VNZRMN52C67F205E, VNZTRS78H01F205A, BRMCRL55D01F205A
 Da preservare:
   - Date: 27 marzo 1952, 1 giugno 1978, 12 agosto 2024, 3 marzo 2024
   - Articoli: artt. 536 c.c., art. 116 c.p.c.
@@ -36,17 +36,17 @@ ATTO DI OPPOSIZIONE AL TESTAMENTO OLOGRAFO
 
 Tribunale di Milano — Sezione Successioni
 
-L'Avv. Rossella Amadori (C.F. MDRRSL79D41F205X), del Foro di Milano,
+L'Avv. Rossella Amadori (C.F. MDRRSL79D41F205Z), del Foro di Milano,
 difensore di:
 
-Erminia Vanzetti (C.F. VNZRMN52C67F205P), nata a Lecco il 27 marzo 1952,
+Erminia Vanzetti (C.F. VNZRMN52C67F205E), nata a Lecco il 27 marzo 1952,
 vedova del de cuius Arturo Vanzetti, deceduto il 12 agosto 2024,
 
 — di seguito "opponente" —
 
 contro:
 
-Tarcisio Vanzetti (C.F. VNZTRS78H01F205Q), nato a Milano il 1 giugno 1978,
+Tarcisio Vanzetti (C.F. VNZTRS78H01F205A), nato a Milano il 1 giugno 1978,
 figlio del de cuius, beneficiario esclusivo del testamento olografo
 datato 3 marzo 2024,
 

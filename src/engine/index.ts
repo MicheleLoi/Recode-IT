@@ -12,6 +12,8 @@ export const ENGINE_VERSION = '0.1.0-phase1'
 export { anonymize } from './engine'
 export { recodeText } from './recode'
 export { applyRegexRules, REGEX_RULES } from './regex'
+export { validateCF, OMOCODIA_LETTERS } from './cf-validator'
+export { validateIBAN } from './iban-validator'
 export {
   DE_CUIUS_RE,
   FALSE_POSITIVE_PATTERNS,

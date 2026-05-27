@@ -37,10 +37,14 @@ describe('recodeText — primitive', () => {
   })
 
   it('replaces tag-style pseudonyms (<DS>, <IBAN>, <EMAIL>) literally', () => {
+    // CF re-encoded to a checksum-valid form (Pacchetto A
+    // SID-20260527-181552). `recodeText` does not validate — it performs
+    // a pure tag→realValue substitution — but using a real-valid CF keeps
+    // the fixture coherent with the rest of the suite.
     const result = recodeText('CF <DS>, IBAN <IBAN>', [
       {
         pseudonym: '<DS>',
-        realValue: 'RSSMRA70B03A662X',
+        realValue: 'RSSMRA70B03A662E',
         category: 'CF',
       },
       {
@@ -49,7 +53,7 @@ describe('recodeText — primitive', () => {
         category: 'IBAN',
       },
     ])
-    expect(result).toBe('CF RSSMRA70B03A662X, IBAN IT60X0542811101000000123456')
+    expect(result).toBe('CF RSSMRA70B03A662E, IBAN IT60X0542811101000000123456')
   })
 
   it('returns input unchanged when mapping is empty', () => {

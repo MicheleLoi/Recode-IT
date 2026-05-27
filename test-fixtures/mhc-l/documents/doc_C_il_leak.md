@@ -14,7 +14,7 @@ Aziende:
   - NovaBit S.r.l. (startup attrice)        → test: con/senza suffisso, "di NovaBit", "la NovaBit"
   - Axiom Technologies S.p.A. (convenuta)  → test: nome lungo, S.p.A. (non S.r.l.), azienda #2 → "Beta"
 Codici da anonimizzare (regex):
-  - CF: LNZPTR75H01H501Z, CLBMRT82D49H501V, RNDSND90A01H501W
+  - CF: LNZPTR75H01H501P, CLBMRT82D49H501Y, RNDSND90A01H501H
   - P.IVA: 09876543210, 11223344556
 Da preservare:
   - Date: 15 marzo 2021, 30 settembre 2024, 15 novembre 2024
@@ -39,17 +39,17 @@ CITAZIONE PER VIOLAZIONE NDA E SOTTRAZIONE DI SEGRETI AZIENDALI
 
 Tribunale di Roma — Sezione Specializzata Imprese
 
-Avv. Pietro Lanzafame (C.F. LNZPTR75H01H501Z), del Foro di Roma,
+Avv. Pietro Lanzafame (C.F. LNZPTR75H01H501P), del Foro di Roma,
 difensore di:
 
 NovaBit S.r.l. (P.IVA 09876543210), startup tecnologica con sede in Roma,
-in persona della legale rappresentante Ing. Marta Colombo (C.F. CLBMRT82D49H501V),
+in persona della legale rappresentante Ing. Marta Colombo (C.F. CLBMRT82D49H501Y),
 
 — di seguito "parte attrice" —
 
 CITA
 
-Alessandro Rinaudo (C.F. RNDSND90A01H501W), ex-dipendente di NovaBit S.r.l.,
+Alessandro Rinaudo (C.F. RNDSND90A01H501H), ex-dipendente di NovaBit S.r.l.,
 assunto attualmente presso:
 
 Axiom Technologies S.p.A. (P.IVA 11223344556), con sede in Milano,

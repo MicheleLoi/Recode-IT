@@ -30,7 +30,7 @@ describe('Active-mapping blob serialization', () => {
         category: 'persona',
         isFalsePositive: true,
       },
-      { pseudonym: '<DS>', realValue: 'RSSMRA80A01H501Z', category: 'CF' },
+      { pseudonym: '<DS>', realValue: 'RSSMRA80A01H501U', category: 'CF' },
     ]
     const blob = entriesToBlobMap(entries)
     const round = blobMapToEntries(blob)
@@ -83,13 +83,13 @@ describe('Active-mapping blob serialization', () => {
   it('does not collide entries with duplicate pseudonyms (e.g. multiple <DS>)', () => {
     // Different CFs both map to '<DS>'; the round-trip must preserve both.
     const entries: MappingEntry[] = [
-      { pseudonym: '<DS>', realValue: 'RSSMRA80A01H501Z', category: 'CF' },
-      { pseudonym: '<DS>', realValue: 'BNCGLI90B02H501W', category: 'CF' },
+      { pseudonym: '<DS>', realValue: 'RSSMRA80A01H501U', category: 'CF' },
+      { pseudonym: '<DS>', realValue: 'BNCGLI90B02H501E', category: 'CF' },
     ]
     const round = blobMapToEntries(entriesToBlobMap(entries))
     expect(round.length).toBe(2)
     expect(round.map((e) => e.realValue).sort()).toEqual(
-      ['BNCGLI90B02H501W', 'RSSMRA80A01H501Z'],
+      ['BNCGLI90B02H501E', 'RSSMRA80A01H501U'],
     )
   })
 })
