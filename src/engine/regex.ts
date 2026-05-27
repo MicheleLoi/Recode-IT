@@ -32,13 +32,24 @@ export type RegexRule = {
 // Individual patterns — exported as named consts for direct testing.
 // ---------------------------------------------------------------------------
 
-/** Persona CF — 16-char alphanumeric. Case-insensitive (OCR / lowercase). */
+/**
+ * Persona CF — 16-char, tollerante di whitespace ai 3 boundary naturali fra
+ * i blocchi della struttura CCC-CCC-NNCNN-CNNNC.
+ *
+ * Forme accettate:
+ *  - canonical no-space: `RNLLSS84C52H501Z`
+ *  - 3-group readable (6L prefix together): `RNLLSS 84C52 H501Z`
+ *  - 4-group readable (split cognome|nome, form-field style): `RNL LSS 84C52 H501Z`
+ *  - tutte combinazioni mixed (es. solo split 6L, solo split data/codice)
+ *
+ * Founder direttiva SID-20260527-181552: il form-field readable 4-group era
+ * il caso che le precedenti due regex (canonical + 3-group con 6L joined) NON
+ * coprivano, missing CF in screenshots come `RNL LSS 84C52 H501Z`.
+ *
+ * Case-insensitive (OCR / lowercase).
+ */
 export const CF_RE =
-  /\b[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]\b/gi
-
-/** Persona CF tolerant of internal whitespace (OCR artefact). */
-export const CF_WS_RE =
-  /\b[A-Z]{6}\s+[0-9]{2}[A-Z][0-9]{2}\s+[A-Z][0-9]{3}[A-Z]\b/gi
+  /\b[A-Z]{3}\s*[A-Z]{3}\s*[0-9]{2}[A-Z][0-9]{2}\s*[A-Z][0-9]{3}[A-Z]\b/gi
 
 /** CF azienda con prefisso esplicito "C.F." / "CF:". */
 export const CF_NUM_RE = /(C\.?\s*F\.?\s*:?\s*)(\d{11})/gi
@@ -99,7 +110,6 @@ export const NUM_PRENOT_RE =
 
 export const REGEX_RULES: RegexRule[] = [
   { category: 'CF', pattern: CF_RE, replacement: '<DS>' },
-  { category: 'CF', pattern: CF_WS_RE, replacement: '<DS>' },
   {
     category: 'CF_NUM',
     pattern: CF_NUM_RE,

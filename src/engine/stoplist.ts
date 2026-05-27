@@ -41,6 +41,52 @@ export const LEGAL_STOPLIST: Set<string> = new Set([
 ])
 
 // ---------------------------------------------------------------------------
+// GENERIC_LABELS_IT — Italian form-field labels that must NEVER produce entity
+// pills. These are document-structure markers (key in key:value form-fields),
+// not personal data. Founder direttiva SID-20260527-181552: pill su "Nome",
+// "Codice fiscale" etc. leggono come "sostituzione" e creano confusione visiva
+// per audience target (avvocato non-tech).
+// ---------------------------------------------------------------------------
+
+export const GENERIC_LABELS_IT: Set<string> = new Set([
+  'nome',
+  'cognome',
+  'nome e cognome',
+  'codice fiscale',
+  'cf',
+  'partita iva',
+  'piva',
+  'p. iva',
+  'contatti',
+  'contatto',
+  'recapiti',
+  'recapito',
+  'indirizzo',
+  'residenza',
+  'domicilio',
+  'email',
+  'e-mail',
+  'posta elettronica',
+  'telefono',
+  'tel',
+  'cellulare',
+  'cell',
+  'note',
+  'nota',
+  'osservazioni',
+  'cliente',
+  'clienti',
+  'fornitore',
+  'data',
+  'data di nascita',
+  'luogo di nascita',
+])
+
+export function isGenericLabel(text: string): boolean {
+  return GENERIC_LABELS_IT.has(text.trim().toLowerCase())
+}
+
+// ---------------------------------------------------------------------------
 // FALSE_POSITIVE_PATTERNS — abbreviations / titles GLiNER tends to misclassify.
 // Each pattern is anchored with start/end markers; we use `^…$` semantics by
 // matching against the trimmed input.
@@ -57,6 +103,7 @@ export function isStoplist(token: string): boolean {
   const trimmed = token.trim()
   const normalized = trimmed.toLowerCase()
   if (LEGAL_STOPLIST.has(normalized)) return true
+  if (GENERIC_LABELS_IT.has(normalized)) return true
   for (const pat of FALSE_POSITIVE_PATTERNS) {
     // Mimic Python's `fullmatch` for anchored patterns; for the one
     // un-anchored pattern (`procura ...`), `test()` is what we want.

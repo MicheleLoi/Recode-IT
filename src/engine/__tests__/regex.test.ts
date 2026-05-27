@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { applyRegexRules } from '../regex'
+import { applyRegexRules, CF_RE } from '../regex'
 
 function counts(detections: ReturnType<typeof applyRegexRules>['detections']) {
   const c: Record<string, number> = {}
@@ -29,6 +29,46 @@ describe('regex layer — CF (16-char alphanumeric)', () => {
     const out = applyRegexRules('CONTRATTO12345678 is not a CF')
     expect(out.text).toBe('CONTRATTO12345678 is not a CF')
     expect(out.detections).toHaveLength(0)
+  })
+})
+
+describe('CF regex flessibile (4-group form-field)', () => {
+  // Founder direttiva SID-20260527-181552: CF readable split cognome|nome
+  // (forma form-field) NON era coperto dalle precedenti due regex (canonical
+  // + 3-group). La regex consolidata `\s*` ai 3 boundary copre TUTTE le forme.
+  it('matches 4-group split cognome|nome (RNL LSS 84C52 H501Z)', () => {
+    const m = 'RNL LSS 84C52 H501Z'.match(CF_RE)
+    expect(m).not.toBeNull()
+    expect(m).toHaveLength(1)
+  })
+
+  it('matches a second 4-group case (BLL MRC 79A11 F205Q)', () => {
+    const m = 'BLL MRC 79A11 F205Q'.match(CF_RE)
+    expect(m).not.toBeNull()
+    expect(m).toHaveLength(1)
+  })
+
+  it('backward compat — canonical no-space (RNLLSS84C52H501Z)', () => {
+    const m = 'RNLLSS84C52H501Z'.match(CF_RE)
+    expect(m).not.toBeNull()
+    expect(m).toHaveLength(1)
+  })
+
+  it('backward compat — 3-group readable (RNLLSS 84C52 H501Z)', () => {
+    const m = 'RNLLSS 84C52 H501Z'.match(CF_RE)
+    expect(m).not.toBeNull()
+    expect(m).toHaveLength(1)
+  })
+
+  it('false positive guard — lorem ipsum does not match', () => {
+    const m = 'Lorem ipsum dolor sit amet'.match(CF_RE)
+    expect(m).toBeNull()
+  })
+
+  it('end-to-end via applyRegexRules — 4-group CF replaced with <DS>', () => {
+    const out = applyRegexRules('Codice fiscale: RNL LSS 84C52 H501Z')
+    expect(out.text).toContain('<DS>')
+    expect(out.text).not.toContain('RNL LSS 84C52 H501Z')
   })
 })
 

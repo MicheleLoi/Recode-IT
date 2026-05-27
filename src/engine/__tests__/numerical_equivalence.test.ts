@@ -36,6 +36,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { anonymize } from '../engine'
 import { recodeText } from '../recode'
+import { isGenericLabel } from '../stoplist'
 import type { MappingEntry, NerDetection } from '../../types/engine'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -187,8 +188,16 @@ describeOrSkip('Phase 4 numerical equivalence vs Python reference', () => {
         // `bare.lower()` (post-title-strip). We expose the same Map from the
         // TS engine via `result.personMap`. Compare key sets; pseudonym
         // *values* may differ due to pool-allocation order.
+        //
+        // Carve-out (founder SID-20260527-181552): Italian form-field labels
+        // (`cliente`, `nome`, etc.) are now filtered by `isGenericLabel`
+        // BEFORE NER post-process, so they no longer reach `personMap`. The
+        // Python reference fixture was generated before this filter existed
+        // and treats some labels as person entities — we skip those keys
+        // explicitly here. This is intentional new behaviour, not regression.
         for (const pyKey of Object.keys(golden.person_map)) {
           if (golden.skip_set.includes(pyKey)) continue
+          if (isGenericLabel(pyKey)) continue
           expect(
             full.personMap.has(pyKey),
             `Person key "${pyKey}" missing from browser personMap`,
@@ -199,6 +208,7 @@ describeOrSkip('Phase 4 numerical equivalence vs Python reference', () => {
         const pyGroups = new Map<string, string[]>()
         for (const [k, v] of Object.entries(golden.person_map)) {
           if (golden.skip_set.includes(k)) continue
+          if (isGenericLabel(k)) continue
           const arr = pyGroups.get(v) ?? []
           arr.push(k)
           pyGroups.set(v, arr)
@@ -219,15 +229,22 @@ describeOrSkip('Phase 4 numerical equivalence vs Python reference', () => {
 
       it('EQ.2 surname_map equivalence (strict)', () => {
         // Same shape as EQ.1: keys must match, values may differ.
+        // Carve-out: see EQ.1 comment — generic form-field labels are now
+        // filtered by `isGenericLabel` and absent from `surnameMap`.
         for (const pySurname of Object.keys(golden.surname_map)) {
+          if (isGenericLabel(pySurname)) continue
           expect(
             full.surnameMap.has(pySurname),
             `Surname key "${pySurname}" missing from browser surnameMap`,
           ).toBe(true)
         }
-        // Cardinality: the surname coverage should not regress.
+        // Cardinality: the surname coverage should not regress (relative to
+        // the post-filter Python expectation — count labels filtered out).
+        const filteredPyLabels = Object.keys(golden.surname_map).filter((k) =>
+          isGenericLabel(k),
+        ).length
         expect(full.surnameMap.size).toBeGreaterThanOrEqual(
-          Object.keys(golden.surname_map).length,
+          Object.keys(golden.surname_map).length - filteredPyLabels,
         )
       })
 

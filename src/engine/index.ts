@@ -16,6 +16,8 @@ export {
   DE_CUIUS_RE,
   FALSE_POSITIVE_PATTERNS,
   findDeCuiusNames,
+  GENERIC_LABELS_IT,
+  isGenericLabel,
   isStoplist,
   ITALIAN_ARTICLES,
   LEGAL_STOPLIST,

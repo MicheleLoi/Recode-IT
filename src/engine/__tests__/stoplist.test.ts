@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   findDeCuiusNames,
+  isGenericLabel,
   isStoplist,
   ITALIAN_ARTICLES,
   stripTitle,
@@ -126,6 +127,54 @@ describe('findDeCuiusNames — A-2 fix', () => {
     expect(findDeCuiusNames('contratto di compravendita ordinario').size).toBe(
       0,
     )
+  })
+})
+
+describe('GENERIC_LABELS_IT — form-field labels (founder SID-20260527-181552)', () => {
+  it('flags single-word labels (Nome, Cognome, Indirizzo)', () => {
+    expect(isGenericLabel('Nome')).toBe(true)
+    expect(isGenericLabel('Cognome')).toBe(true)
+    expect(isGenericLabel('Indirizzo')).toBe(true)
+    expect(isGenericLabel('Contatti')).toBe(true)
+    expect(isGenericLabel('Note')).toBe(true)
+    expect(isGenericLabel('Cliente')).toBe(true)
+  })
+
+  it('flags multi-word labels (Codice fiscale, Data di nascita)', () => {
+    expect(isGenericLabel('Codice fiscale')).toBe(true)
+    expect(isGenericLabel('Data di nascita')).toBe(true)
+    expect(isGenericLabel('Luogo di nascita')).toBe(true)
+    expect(isGenericLabel('Nome e cognome')).toBe(true)
+  })
+
+  it('flags case variants (NOME, codice FISCALE)', () => {
+    expect(isGenericLabel('NOME')).toBe(true)
+    expect(isGenericLabel('codice FISCALE')).toBe(true)
+  })
+
+  it('flags leading/trailing whitespace (trim)', () => {
+    expect(isGenericLabel('  nome  ')).toBe(true)
+    expect(isGenericLabel('\tcodice fiscale\n')).toBe(true)
+  })
+
+  it('does NOT flag personal names', () => {
+    expect(isGenericLabel('Alessia')).toBe(false)
+    expect(isGenericLabel('Marco Bellini')).toBe(false)
+    expect(isGenericLabel('Erminia Vanzetti')).toBe(false)
+  })
+
+  it('does NOT flag empty string', () => {
+    expect(isGenericLabel('')).toBe(false)
+    expect(isGenericLabel('   ')).toBe(false)
+  })
+
+  it('isStoplist integrates GENERIC_LABELS_IT (NER post-filter hook)', () => {
+    // Hook diretto in `isStoplist()` => filtra entrambi i punti
+    // (engine.ts NER post-process + ner.worker.ts worker output).
+    expect(isStoplist('Nome')).toBe(true)
+    expect(isStoplist('Codice fiscale')).toBe(true)
+    expect(isStoplist('Indirizzo')).toBe(true)
+    expect(isStoplist('Marco Bellini')).toBe(false) // real name still passes
   })
 })
 
