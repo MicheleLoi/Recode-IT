@@ -2381,3 +2381,721 @@ code {
   font-size: 0.9rem;
   color: var(--ok);
 }
+
+/* ============================ Wireframe Work Area (SID-20260527) ============================
+ * New side-by-side work area canonical from prototype HTML
+ * `MHC-Work/notes/research/recode-it/wireframes/prototype/prototype.html`.
+ * Styles below intentionally mirror the prototype CSS (var names mapped to
+ * existing project tokens) so visual fidelity is high. Cleanup of legacy
+ * .clipboard-widget rules can happen in a follow-up — they don't render
+ * anymore since DecodificaWorkspace now mounts WireframeWorkArea.
+ */
+
+:root {
+  --wf-brand-blue: #2563eb;
+  --wf-brand-blue-hover: #1d4ed8;
+  --wf-brand-blue-disabled: #93c5fd;
+  --wf-grey-modifier: #6b7280;
+  --wf-grey-modifier-hover: #4b5563;
+  --wf-grey-muted-bg: #f3f4f6;
+  --wf-grey-muted-text: #9ca3af;
+  --wf-border: #d1d5db;
+  --wf-bg: #ffffff;
+  --wf-panel-bg: #fafafa;
+  --wf-label-bg: #f9fafb;
+  --wf-text-muted: #6b7280;
+  --wf-accent-soft: #eff6ff;
+  --wf-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --wf-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+  --wf-radius: 10px;
+}
+
+.wireframe-workarea {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* ── 2 macro buttons ────────────────────────────────────────────── */
+.wireframe-macro-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.wireframe-macro-btn {
+  padding: 18px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: var(--wf-radius);
+  border: 2px solid var(--wf-border);
+  background: var(--wf-bg);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: var(--wf-shadow-sm);
+  text-align: center;
+  font-family: inherit;
+}
+
+.wireframe-macro-btn:hover:not(.is-active) {
+  border-color: var(--wf-brand-blue);
+}
+
+.wireframe-macro-btn.is-active {
+  background: var(--wf-brand-blue);
+  color: white;
+  border-color: var(--wf-brand-blue);
+  font-weight: 600;
+  box-shadow: var(--wf-shadow);
+}
+
+/* ── Toolbar verticale ──────────────────────────────────────────── */
+.wireframe-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px 22px 18px;
+  background: var(--wf-bg);
+  border-radius: var(--wf-radius);
+  border: 1px solid var(--wf-border);
+  box-shadow: var(--wf-shadow-sm);
+}
+
+.wireframe-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 22px 36px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  background: var(--wf-brand-blue);
+  color: white;
+  border: none;
+  border-radius: var(--wf-radius);
+  cursor: pointer;
+  align-self: center;
+  min-width: 380px;
+  box-shadow: var(--wf-shadow);
+  transition: background 0.15s ease, transform 0.05s ease;
+  font-family: inherit;
+}
+
+.wireframe-action-btn:hover:not(:disabled) {
+  background: var(--wf-brand-blue-hover);
+}
+
+.wireframe-action-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.wireframe-action-btn:disabled {
+  background: var(--wf-brand-blue-disabled);
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.wireframe-arrow {
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.wireframe-action-label {
+  font-family: inherit;
+}
+
+.wireframe-modifier-row {
+  position: relative;
+}
+
+.wireframe-modifier-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  background: var(--wf-grey-modifier);
+  color: white;
+  border: none;
+  border-radius: var(--wf-radius);
+  cursor: pointer;
+  width: 100%;
+  box-shadow: var(--wf-shadow-sm);
+  transition: background 0.15s ease;
+  font-family: inherit;
+}
+
+.wireframe-modifier-btn:hover {
+  background: var(--wf-grey-modifier-hover);
+}
+
+.wireframe-modifier-count {
+  background: white;
+  color: var(--wf-grey-modifier);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  min-width: 24px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.wireframe-chevron {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.wireframe-modifier-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 6px;
+  background: var(--wf-bg);
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  padding: 12px 18px;
+  z-index: 10;
+}
+
+.wireframe-modifier-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.wireframe-modifier-option input[type='checkbox'] {
+  accent-color: var(--wf-brand-blue);
+}
+
+/* Save (Codifica) — discreet secondary action below toolbar primary button */
+.wireframe-save-btn {
+  align-self: center;
+  margin-top: 2px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--wf-bg);
+  color: var(--wf-brand-blue);
+  border: 1px solid var(--wf-brand-blue);
+  border-radius: var(--wf-radius);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+
+.wireframe-save-btn:hover:not(:disabled) {
+  background: var(--wf-accent-soft);
+}
+
+.wireframe-save-btn:disabled {
+  border-color: var(--wf-border);
+  color: var(--wf-text-muted);
+  cursor: not-allowed;
+}
+
+.wireframe-save-label-form {
+  background: var(--wf-bg);
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius);
+  padding: 16px;
+  margin-top: -4px;
+}
+
+/* ── 2 panels side-by-side ─────────────────────────────────────── */
+.wireframe-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  min-height: 340px;
+}
+
+.wireframe-panel {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius);
+  background: var(--wf-bg);
+  overflow: hidden;
+  box-shadow: var(--wf-shadow-sm);
+  position: relative;
+}
+
+.wireframe-panel--dragover {
+  background: var(--wf-accent-soft);
+  border-color: var(--wf-brand-blue);
+}
+
+.wireframe-panel__label {
+  padding: 11px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wf-text-muted);
+  background: var(--wf-label-bg);
+  border-bottom: 1px solid var(--wf-border);
+  text-transform: lowercase;
+  letter-spacing: 0.4px;
+}
+
+.wireframe-panel__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--wf-panel-bg);
+  position: relative;
+}
+
+.wireframe-textarea {
+  flex: 1;
+  min-height: 280px;
+  width: 100%;
+  border: none;
+  padding: 16px;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 14px;
+  background: transparent;
+  resize: none;
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+.wireframe-textarea:focus {
+  outline: none;
+  background: var(--wf-bg);
+}
+
+.wireframe-textarea:disabled {
+  color: var(--wf-text-muted);
+  cursor: default;
+}
+
+.wireframe-textarea::placeholder {
+  color: var(--wf-grey-muted-text);
+  font-style: italic;
+}
+
+.wireframe-upload-pill {
+  align-self: flex-start;
+  margin: 12px 12px 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--wf-brand-blue);
+  background: var(--wf-accent-soft);
+  border: 1px dashed var(--wf-brand-blue);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.wireframe-upload-pill:hover {
+  background: #dbeafe;
+}
+
+.wireframe-new-doc-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  background: var(--wf-bg);
+  border: 1px solid var(--wf-border);
+  color: var(--wf-text-muted);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: var(--wf-shadow-sm);
+  transition: all 0.15s ease;
+}
+
+.wireframe-new-doc-btn:hover {
+  border-color: var(--wf-brand-blue);
+  color: var(--wf-brand-blue);
+}
+
+/* ── Preview banner (Decodifica free tier) ──────────────────────── */
+.wireframe-preview-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #fef3c7;
+  border-bottom: 1px solid #fde68a;
+  font-size: 12px;
+  color: #92400e;
+}
+
+.wireframe-preview-badge {
+  background: #d97706;
+  color: white;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+/* ── Entity review expandable ───────────────────────────────────── */
+.wireframe-entity-review {
+  border-top: 1px solid var(--wf-border);
+  background: var(--wf-bg);
+}
+
+.wireframe-entity-review > summary {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--wf-text-muted);
+  user-select: none;
+  list-style: none;
+}
+
+.wireframe-entity-review > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wireframe-entity-review > summary::before {
+  content: '▸ ';
+  color: var(--wf-brand-blue);
+  font-weight: 700;
+}
+
+.wireframe-entity-review[open] > summary::before {
+  content: '▾ ';
+}
+
+.wireframe-entity-review[open] > summary {
+  border-bottom: 1px solid var(--wf-border);
+}
+
+.wireframe-entity-review__pending {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.wireframe-entity-review .review-list {
+  padding: 8px 16px 16px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* ── Decodifica CTA (below panels, free tier) ───────────────────── */
+.wireframe-decodifica-cta {
+  border: 2px solid var(--wf-brand-blue);
+  background: var(--wf-accent-soft);
+  border-radius: var(--wf-radius);
+  padding: 18px 22px;
+  box-shadow: var(--wf-shadow);
+}
+
+.wireframe-decodifica-cta__lead {
+  font-size: 15px;
+  color: var(--ink);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.wireframe-decodifica-cta__actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.wireframe-decodifica-cta__or {
+  font-size: 13px;
+  color: var(--wf-text-muted);
+  font-style: italic;
+}
+
+.wireframe-decodifica-cta__bearer-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.wireframe-decodifica-cta__bearer-row input {
+  flex: 1;
+  min-width: 240px;
+}
+
+/* ── Mappa section ──────────────────────────────────────────────── */
+.wireframe-mappa-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wireframe-mappa-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.wireframe-mappa-card {
+  padding: 18px 20px;
+  border: 2px solid var(--wf-border);
+  border-radius: var(--wf-radius);
+  background: var(--wf-bg);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  box-shadow: var(--wf-shadow-sm);
+}
+
+.wireframe-mappa-card:hover:not(:disabled):not([data-active='true']) {
+  border-color: var(--wf-brand-blue);
+}
+
+.wireframe-mappa-card[data-active='true'] {
+  border-color: var(--wf-brand-blue);
+  background: var(--wf-accent-soft);
+  box-shadow: var(--wf-shadow);
+}
+
+.wireframe-mappa-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.wireframe-mappa-card__meta {
+  font-size: 13px;
+  color: var(--wf-text-muted);
+  margin-top: 4px;
+}
+
+.wireframe-mappa-card__cta {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wf-brand-blue);
+  margin-top: 8px;
+}
+
+.wireframe-mappa-detail {
+  min-height: 180px;
+  padding: 0;
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius);
+  background: var(--wf-bg);
+  box-shadow: var(--wf-shadow-sm);
+  overflow: hidden;
+}
+
+.wireframe-mappa-detail__placeholder {
+  color: var(--wf-grey-muted-text);
+  font-style: italic;
+  font-size: 14px;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+/* Override MappaPanel inset when mounted inside wireframe-mappa-detail */
+.wireframe-mappa-detail .mappa-panel,
+.wireframe-mappa-detail .panel {
+  border: none;
+  box-shadow: none;
+  margin: 0;
+}
+
+/* ── Active mapping pill ────────────────────────────────────────── */
+.wireframe-active-mapping {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--surface-soft);
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius);
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* ── Modal "I miei mapping" (Chiavi su server) ──────────────────── */
+.wireframe-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+  animation: wf-fade-in 0.15s ease;
+}
+
+@keyframes wf-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.wireframe-modal {
+  background: var(--wf-bg);
+  border-radius: var(--wf-radius);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+  max-width: 640px;
+  width: 100%;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.wireframe-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--wf-border);
+}
+
+.wireframe-modal__header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.wireframe-modal__close {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--wf-text-muted);
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+.wireframe-modal__close:hover {
+  background: var(--wf-grey-muted-bg);
+  color: var(--ink);
+}
+
+.wireframe-modal__body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.wireframe-modal__lead {
+  margin: 0 0 20px 0;
+  color: var(--wf-text-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.wireframe-modal__upsell {
+  background: var(--wf-accent-soft);
+  border: 1px solid var(--wf-brand-blue);
+  border-radius: var(--wf-radius);
+  padding: 20px;
+}
+
+.wireframe-modal__upsell-status {
+  font-size: 13px;
+  color: var(--wf-brand-blue);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+
+.wireframe-modal__upsell-cta {
+  background: var(--wf-bg);
+  border-radius: var(--wf-radius);
+  padding: 20px;
+}
+
+.wireframe-modal__upsell-price {
+  font-size: 18px;
+  color: var(--ink);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.wireframe-modal__upsell-price strong {
+  color: var(--wf-brand-blue);
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.wireframe-modal__upsell-details {
+  font-size: 14px;
+  color: var(--wf-text-muted);
+  margin: 0 0 18px 0;
+  line-height: 1.55;
+}
+
+.wireframe-modal__empty {
+  text-align: center;
+  color: var(--wf-grey-muted-text);
+  font-style: italic;
+  padding: 20px 0 0;
+  font-size: 13px;
+}
+
+/* DocumentView mounted inside wireframe panel needs to fill the panel body
+ * and lose its default padding for a clean side-by-side feel. */
+.wireframe-panel__body .docview-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+}
+
+.wireframe-panel__body .docview {
+  flex: 1;
+  padding: 16px;
+  background: transparent;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-y: auto;
+}
+
+.wireframe-panel__body .docview__manual-hint {
+  padding: 6px 16px;
+  margin: 0;
+  font-size: 11px;
+  color: var(--wf-text-muted);
+  background: var(--wf-label-bg);
+  border-bottom: 1px dashed var(--wf-border);
+}
+
+/* Mobile responsive: stack panels vertically on narrow viewports. */
+@media (max-width: 768px) {
+  .wireframe-panels,
+  .wireframe-mappa-cards,
+  .wireframe-macro-row {
+    grid-template-columns: 1fr;
+  }
+  .wireframe-action-btn {
+    min-width: 0;
+    width: 100%;
+  }
+}
+

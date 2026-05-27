@@ -1,0 +1,1602 @@
+/**
+ * WireframeWorkArea — wireframe-first work area (founder direttiva
+ * SID-20260527 "cambia tutto, rendilo come il prototype").
+ *
+ * Sostituisce la combinazione ClipboardWidget + PseudonymizePanel come surface
+ * principale del work view. La spec visiva canonica è il prototipo HTML
+ * `MHC-Work/notes/research/recode-it/wireframes/prototype/prototype.html`
+ * (SID-20260526-172143 → SID-20260527, ratificato founder via ~30 iterazioni
+ * chat). Trace dottrinale: `MHC-Work/notes/traces/trace_vibecoding_antipattern_wireframe_first_20260526.md`.
+ *
+ * Architettura del layout (top → bottom):
+ *
+ *   1. **2 macro buttons** — Codifica / Decodifica (toggle macro mode)
+ *   2. **Toolbar verticale centrata** — PSEUDONIMIZZA / DECODIFICA big-button
+ *      blu con frecce direzionali (→/←) + (Codifica only) bottone grigio
+ *      "sostituisci anche" full-width sotto.
+ *   3. **2 panel side-by-side** — labels semantici STABILI (sx=originale,
+ *      dx=pseudonimizzato), flusso che si INVERTE: Codifica → sx=input
+ *      editabile, dx=output read-only; Decodifica → dx=input editabile,
+ *      sx=output read-only. Switch macro NON svuota i panel.
+ *   4. **Entity review expandable** — sotto panel originale dopo Pseudonimizza
+ *      su questo doc, "Rivedi entità rilevate (N)" expandable section.
+ *   5. **Decodifica preview CTA (free tier only)** — card blu "Hai visto
+ *      l'anteprima, sblocca per €20 / chiave MHC" inline bearer input.
+ *   6. **Lingua documento row** — full-width sotto i panel (FR/DE disabled).
+ *   7. **2 cards mappa paritarie** — "Chiavi locali" + "Chiavi su server"
+ *      (free tier → "Sblocca per 25 euro / una tantum").
+ *   8. **Vista dettaglio mappa** — placeholder quando nessuna card selezionata,
+ *      tabella CRUD piena quando "Chiavi locali" attiva.
+ *
+ * Modal "I miei mapping" aperta da card "Chiavi su server" con upsell €25.
+ *
+ * Engine logic preservata 1:1 dal vecchio ClipboardWidget/PseudonymizePanel:
+ * - anonymize() pipeline (regex + NER worker via NerRunner)
+ * - manual_annotate via popup contestuale (DocumentView)
+ * - active mapping context: extend mode automatica, FP propagation, save/save-as
+ * - upload multi-format: .txt/.md/.docx/.pdf via extractText
+ * - decodifica reverse via applyReverseSubstitution
+ *
+ * Features DROP rispetto al vecchio layout:
+ * - Pattern "default single-view + button '⇆ Confronta originale' opt-in":
+ *   side-by-side è sempre on
+ * - CompareView opt-in: la SUA LOGICA è incorporata come default
+ * - 3-tab structure: superata da 2-macro + sezione mappa integrata
+ * - DecodificaResidualDetector: drop (già coperto da disclosure deployata)
+ */
+
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+} from 'react'
+
+import { useActiveMapping } from '../auth/active-mapping-context'
+import { useAuth } from '../auth/auth-context'
+import {
+  ApiError,
+  claimReverseSubstitutionByBearer,
+  claimReverseSubstitutionCheckout,
+} from '../api/client'
+import { anonymize } from '../engine/engine'
+import { manualAnnotate, type ManualCategory } from '../engine/manual_annotate'
+import { NerRunner, type NerProgressEvent } from '../engine/ner_runner'
+import { PseudonymMapper } from '../engine/pseudonym_mapper'
+import { extractText, SUPPORTED_EXTENSIONS } from '../extraction/extract'
+import type { MappingEntry, NerDetection } from '../types/engine'
+import { applyReverseSubstitution } from './DecodificaPanel'
+import { DocumentView } from './DocumentView'
+import { EntityReviewList } from './EntityReviewList'
+import { useLanguage } from './LanguageContext'
+import { MappaPanel } from './MappaPanel'
+import { ModelLoadingState, type ModelLoadPhase } from './ModelLoadingState'
+import type { ReviewEntity, SwitchableCategory } from './types'
+
+type MacroMode = 'codifica' | 'decodifica'
+
+const DECODIFICA_PREVIEW_LIMIT = 150
+const ACCEPTED_EXTENSIONS = SUPPORTED_EXTENSIONS
+
+const SOSTITUISCI_ANCHE_CATEGORIES = [
+  { key: 'cf', labelKey: 'wireframe.modifier.cf' },
+  { key: 'iban', labelKey: 'wireframe.modifier.iban' },
+  { key: 'date', labelKey: 'wireframe.modifier.date' },
+  { key: 'cap', labelKey: 'wireframe.modifier.cap' },
+  { key: 'phone', labelKey: 'wireframe.modifier.phone' },
+  { key: 'booking', labelKey: 'wireframe.modifier.booking' },
+] as const
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Helper — entity rebuild                                                     */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function buildReviewEntities(mapping: MappingEntry[]): ReviewEntity[] {
+  return mapping.map((entry, idx) => ({
+    pseudonym: entry.pseudonym,
+    realValue: entry.realValue,
+    category: entry.category,
+    isFalsePositive: entry.isFalsePositive,
+    isPreserved: entry.isPreserved,
+    pass: entry.pass,
+    source: entry.source,
+    id: `${entry.category}::${entry.realValue}::${idx}`,
+    status: entry.isFalsePositive
+      ? ('falsePositive' as const)
+      : ('pending' as const),
+  }))
+}
+
+function applyAllSubstitutions(
+  original: string,
+  entries: ReadonlyArray<MappingEntry>,
+): string {
+  if (!original) return original
+  const ordered = [...entries]
+    .filter(
+      (e) =>
+        e.isPreserved !== true &&
+        e.isFalsePositive !== true &&
+        e.pseudonym !== e.realValue,
+    )
+    .sort((a, b) => b.realValue.length - a.realValue.length)
+  let out = original
+  for (const e of ordered) {
+    out = out.split(e.realValue).join(e.pseudonym)
+  }
+  return out
+}
+
+function mergeEntries(
+  cumulative: MappingEntry[],
+  fresh: MappingEntry[],
+): MappingEntry[] {
+  const seen = new Map<string, MappingEntry>()
+  for (const e of cumulative) {
+    const k = `${e.category}::${e.realValue.toLowerCase()}`
+    seen.set(k, e)
+  }
+  for (const e of fresh) {
+    const k = `${e.category}::${e.realValue.toLowerCase()}`
+    if (seen.has(k)) {
+      const prev = seen.get(k)!
+      seen.set(k, {
+        ...prev,
+        pseudonym: prev.pseudonym,
+        category: prev.category,
+        isFalsePositive: prev.isFalsePositive,
+        isPreserved: prev.isPreserved,
+        pass: prev.pass,
+      })
+    } else {
+      seen.set(k, e)
+    }
+  }
+  return Array.from(seen.values())
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Main component                                                              */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+type Props = {
+  initialMode?: MacroMode
+}
+
+export function WireframeWorkArea({
+  initialMode = 'codifica',
+}: Props): JSX.Element {
+  const { t, docLanguage: language } = useLanguage()
+  const { user, masterKey } = useAuth()
+  const {
+    active,
+    saveActive,
+    closeActive,
+    updateEntries,
+  } = useActiveMapping()
+  const authCtx = useAuth()
+
+  /* ── macro mode ────────────────────────────────────────────────────────── */
+  const [mode, setMode] = useState<MacroMode>(initialMode)
+
+  /* ── panel content (preserved across mode switches) ────────────────────── */
+  const [originaleText, setOriginaleText] = useState('')
+  const [pseudonimizzatoText, setPseudonimizzatoText] = useState('')
+  // Decodifica preview banner / cta visibility — true after a Decodifica run
+  // in free tier with non-empty output. `decodificaTruncated` value is
+  // accessed via data-truncated attribute on the panel for E2E test
+  // affordance + future telemetry; UI visibility derives from
+  // `showDecodificaFreeAffordance` below.
+  const [decodificaTruncated, setDecodificaTruncated] = useState(false)
+  // Decodifica run state (the user has clicked DECODIFICA at least once on the
+  // current input — drives banner ANTEPRIMA + CTA visibility).
+  const [hasRunDecodifica, setHasRunDecodifica] = useState(false)
+
+  /* ── entity review state ───────────────────────────────────────────────── */
+  const [entities, setEntities] = useState<ReviewEntity[]>([])
+  const [entityReviewOpen, setEntityReviewOpen] = useState(false)
+
+  /* ── pseudonimizzazione engine state ───────────────────────────────────── */
+  const [nerStatus, setNerStatus] = useState<
+    'idle' | 'loading' | 'running' | 'unavailable'
+  >('idle')
+  const [loadProgress, setLoadProgress] = useState<{
+    phase: ModelLoadPhase
+    loaded: number
+    total: number
+  } | null>(null)
+  const [pseudoError, setPseudoError] = useState<string | null>(null)
+  const [partialNotice, setPartialNotice] = useState<{
+    failedRanges: Array<[number, number]>
+  } | null>(null)
+  const [scannedPdfModalOpen, setScannedPdfModalOpen] = useState(false)
+  const [hasRunOnCurrentDoc, setHasRunOnCurrentDoc] = useState(false)
+
+  /* ── "sostituisci anche" dropdown (variante β-ish) ─────────────────────── */
+  const [sostituisciAncheOpen, setSostituisciAncheOpen] = useState(false)
+  const [sostituisciAnche, setSostituisciAnche] = useState<Set<string>>(
+    () => new Set(),
+  )
+
+  /* ── upload affordance ─────────────────────────────────────────────────── */
+  const [dragOver, setDragOver] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  /* ── mappa cards ───────────────────────────────────────────────────────── */
+  const [selectedCard, setSelectedCard] = useState<'locali' | null>(null)
+  const [modalChiaviServerOpen, setModalChiaviServerOpen] = useState(false)
+
+  /* ── Decodifica unlock state ───────────────────────────────────────────── */
+  const granted = authCtx?.reverseSubstitutionGranted ?? false
+  const refreshReverseSubstitution =
+    authCtx?.refreshReverseSubstitution ?? (async () => {})
+  const [bearerInput, setBearerInput] = useState('')
+  const [bearerInputVisible, setBearerInputVisible] = useState(false)
+  const [bearerValidating, setBearerValidating] = useState(false)
+  const [bearerError, setBearerError] = useState<string | null>(null)
+  const [stripeOpening, setStripeOpening] = useState(false)
+
+  /* ── save mapping ──────────────────────────────────────────────────────── */
+  const [labelInputOpen, setLabelInputOpen] = useState(false)
+  const [labelInput, setLabelInput] = useState('')
+  const [saveStatus, setSaveStatus] = useState<
+    'idle' | 'saving' | 'saved' | 'error'
+  >('idle')
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  /* ── NER runner ────────────────────────────────────────────────────────── */
+  const runnerRef = useRef<NerRunner | null>(null)
+  const localMapperRef = useRef<PseudonymMapper | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    if (typeof Worker === 'undefined') return
+    const runner = new NerRunner({ language })
+    runnerRef.current = runner
+    setNerStatus('loading')
+    setLoadProgress({ phase: 'wasm', loaded: 0, total: 0 })
+    runner
+      .init((evt: NerProgressEvent) => {
+        if (cancelled) return
+        setLoadProgress({ phase: evt.phase, loaded: evt.loaded, total: evt.total })
+      })
+      .then(() => {
+        if (cancelled) return
+        setLoadProgress(null)
+        setNerStatus('idle')
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setLoadProgress(null)
+        runnerRef.current = null
+        setNerStatus('unavailable')
+        const rawMsg = (err as Error)?.message ?? 'errore sconosciuto'
+        if (rawMsg.includes('ERR_MODEL_NOT_FOUND')) {
+          setPseudoError(t('pseudo.error.nerUnavailable'))
+        } else {
+          setPseudoError(
+            `${t('pseudo.error.nerBackend')} ${rawMsg.replace(/^ERR_BACKEND_INIT:\s*/, '')}`,
+          )
+        }
+      })
+    return () => {
+      cancelled = true
+      runner.terminate()
+      runnerRef.current = null
+    }
+  }, [language, t])
+
+  /* ── hydrate from active mapping ───────────────────────────────────────── */
+  const activeMappingId = active?.mappingId ?? null
+  const prevActiveIdRef = useRef<string | null>(activeMappingId)
+  useEffect(() => {
+    if (active) {
+      setEntities(buildReviewEntities(active.entries))
+      setLabelInput(active.label)
+    } else if (prevActiveIdRef.current !== null) {
+      setOriginaleText('')
+      setPseudonimizzatoText('')
+      setEntities([])
+      localMapperRef.current = null
+      setSaveStatus('idle')
+      setSaveError(null)
+      setHasRunOnCurrentDoc(false)
+    } else {
+      setSaveStatus('idle')
+      setSaveError(null)
+    }
+    prevActiveIdRef.current = activeMappingId
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMappingId])
+
+  // Reactive sync to MappaPanel edits
+  useEffect(() => {
+    if (!active) return
+    if (!originaleText) return
+    setEntities((prev) => {
+      const statusByKey = new Map<string, ReviewEntity['status']>()
+      for (const e of prev) {
+        statusByKey.set(`${e.category}::${e.realValue.toLowerCase()}`, e.status)
+      }
+      return active.entries.map((entry, idx) => {
+        const key = `${entry.category}::${entry.realValue.toLowerCase()}`
+        const prevStatus = statusByKey.get(key)
+        return {
+          pseudonym: entry.pseudonym,
+          realValue: entry.realValue,
+          category: entry.category,
+          isFalsePositive: entry.isFalsePositive,
+          isPreserved: entry.isPreserved,
+          pass: entry.pass,
+          source: entry.source,
+          id: `${entry.category}::${entry.realValue}::${idx}`,
+          status: entry.isFalsePositive
+            ? ('falsePositive' as const)
+            : prevStatus ?? ('pending' as const),
+        }
+      })
+    })
+    setPseudonimizzatoText(applyAllSubstitutions(originaleText, active.entries))
+  }, [active, originaleText])
+
+  /* ── reset doc-run flag on new doc ─────────────────────────────────────── */
+  useEffect(() => {
+    setHasRunOnCurrentDoc(false)
+  }, [originaleText])
+
+  /* ── user FP carry-over ────────────────────────────────────────────────── */
+  const userFalsePositiveTerms = useMemo<Set<string>>(() => {
+    const out = new Set<string>()
+    if (active) {
+      for (const e of active.entries) {
+        if (e.isFalsePositive) out.add(e.realValue)
+      }
+    }
+    for (const e of entities) {
+      if (e.status === 'falsePositive') out.add(e.realValue)
+    }
+    return out
+  }, [active, entities])
+
+  /* ────────────────────────────────────────────────────────────────────── */
+  /* Engine actions                                                          */
+  /* ────────────────────────────────────────────────────────────────────── */
+
+  const seedMapper = useMemo(() => {
+    if (
+      active?.mapper instanceof PseudonymMapper &&
+      active.mapper.language === language
+    ) {
+      return active.mapper
+    }
+    return null
+  }, [active, language])
+
+  const pushEntriesToActive = useCallback(
+    (next: ReviewEntity[]) => {
+      if (!active) return
+      const fresh: MappingEntry[] = next.map((e) => ({
+        pseudonym: e.pseudonym,
+        realValue: e.realValue,
+        category: e.category,
+        isFalsePositive: e.status === 'falsePositive',
+      }))
+      const merged = mergeEntries(active.entries, fresh)
+      const same =
+        merged.length === active.entries.length &&
+        merged.every((m, i) => {
+          const prev = active.entries[i]
+          return (
+            prev !== undefined &&
+            prev.pseudonym === m.pseudonym &&
+            prev.realValue === m.realValue &&
+            prev.category === m.category &&
+            (prev.isFalsePositive ?? false) === (m.isFalsePositive ?? false)
+          )
+        })
+      if (!same) updateEntries(merged)
+    },
+    [active, updateEntries],
+  )
+
+  const runRegexOnly = useCallback(
+    (userFalsePositives: Set<string>, nerDetections?: NerDetection[]) => {
+      const result = anonymize(originaleText, {
+        userFalsePositives,
+        nerDetections,
+        seedMapper: seedMapper ?? undefined,
+        includeCategoriesPass2: sostituisciAnche.size > 0,
+        language,
+      })
+      setPseudonimizzatoText(result.pseudonymizedText)
+      const fresh = buildReviewEntities(result.mappingEntries)
+      if (active) {
+        const merged = mergeEntries(
+          active.entries,
+          fresh.map((e) => ({
+            pseudonym: e.pseudonym,
+            realValue: e.realValue,
+            category: e.category,
+            isFalsePositive: false,
+          })),
+        )
+        setEntities(buildReviewEntities(merged))
+        updateEntries(merged)
+      } else {
+        setEntities(fresh)
+      }
+      setSaveStatus('idle')
+      setHasRunOnCurrentDoc(true)
+    },
+    [
+      originaleText,
+      seedMapper,
+      sostituisciAnche,
+      language,
+      active,
+      updateEntries,
+    ],
+  )
+
+  const handlePseudonimizza = useCallback(async () => {
+    setPseudoError(null)
+    setPartialNotice(null)
+    if (!originaleText.trim()) {
+      setPseudoError(t('wireframe.error.emptyDoc'))
+      return
+    }
+    const userFalsePositives = new Set<string>([
+      ...entities
+        .filter((e) => e.status === 'falsePositive')
+        .map((e) => e.realValue),
+      ...userFalsePositiveTerms,
+    ])
+
+    const workerSupported =
+      typeof Worker !== 'undefined' && nerStatus !== 'unavailable'
+
+    if (!workerSupported || !runnerRef.current) {
+      runRegexOnly(userFalsePositives)
+      return
+    }
+
+    let nerDetections: NerDetection[] | undefined
+    setNerStatus('running')
+    try {
+      const predictResult = await runnerRef.current.predict(originaleText)
+      nerDetections = predictResult.detections
+      if (predictResult.partial) {
+        setPartialNotice({ failedRanges: predictResult.failedChunkRanges })
+      }
+    } catch (err) {
+      const rawMsg = (err as Error).message ?? 'errore sconosciuto'
+      const isPermanent =
+        rawMsg.includes('ERR_MODEL_NOT_FOUND') ||
+        rawMsg.includes('ERR_BACKEND_INIT')
+      if (isPermanent) {
+        runnerRef.current = null
+        setNerStatus('unavailable')
+      }
+      setPseudoError(
+        `${t('pseudo.error.nerBackend')} ${rawMsg.replace(/^ERR_[A-Z_]+:\s*/, '')}`,
+      )
+    } finally {
+      setNerStatus((prev) => (prev === 'running' ? 'idle' : prev))
+    }
+
+    runRegexOnly(userFalsePositives, nerDetections)
+  }, [
+    originaleText,
+    entities,
+    userFalsePositiveTerms,
+    nerStatus,
+    runRegexOnly,
+    t,
+  ])
+
+  const handleDecodifica = useCallback(() => {
+    if (!pseudonimizzatoText.trim()) return
+    const result = applyReverseSubstitution(
+      pseudonimizzatoText,
+      active?.entries ?? [],
+    )
+    const tier = user?.tier ?? null
+    const isFreeTierWithoutGrant = !granted && tier !== 'pro'
+    if (
+      isFreeTierWithoutGrant &&
+      result.output.length > DECODIFICA_PREVIEW_LIMIT
+    ) {
+      setOriginaleText(result.output.slice(0, DECODIFICA_PREVIEW_LIMIT) + '…')
+      setDecodificaTruncated(true)
+    } else {
+      setOriginaleText(result.output)
+      setDecodificaTruncated(isFreeTierWithoutGrant && result.output.length > 0)
+    }
+    setHasRunDecodifica(true)
+  }, [pseudonimizzatoText, active, user, granted])
+
+  /* ────────────────────────────────────────────────────────────────────── */
+  /* File upload                                                             */
+  /* ────────────────────────────────────────────────────────────────────── */
+
+  const handleFiles = useCallback(
+    async (files: FileList | null) => {
+      setPseudoError(null)
+      if (!files || files.length === 0) return
+      const file = files[0]
+      if (!file) return
+      const name = file.name.toLowerCase()
+      if (!ACCEPTED_EXTENSIONS.some((ext) => name.endsWith(ext))) {
+        setPseudoError(
+          `${t('pseudo.upload.errorFormatPrefix')}${ACCEPTED_EXTENSIONS.join(', ')}${t('pseudo.upload.errorFormatSuffix')}`,
+        )
+        return
+      }
+      try {
+        const result = await extractText(file)
+        if (result.scannedPdf) {
+          setScannedPdfModalOpen(true)
+          return
+        }
+        setOriginaleText(result.text)
+      } catch (err) {
+        setPseudoError(
+          `${t('pseudo.upload.errorReadPrefix')}${(err as Error).message}`,
+        )
+      }
+    },
+    [t],
+  )
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setDragOver(false)
+    if (mode !== 'codifica') return
+    void handleFiles(e.dataTransfer.files)
+  }
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    if (mode !== 'codifica') return
+    setDragOver(true)
+  }
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setDragOver(false)
+  }
+  const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
+    void handleFiles(e.target.files)
+  }
+
+  /* ────────────────────────────────────────────────────────────────────── */
+  /* Entity review actions                                                   */
+  /* ────────────────────────────────────────────────────────────────────── */
+
+  const handleAccept = (id: string) => {
+    setEntities((prev) => {
+      const next = prev.map((e) =>
+        e.id === id ? { ...e, status: 'accepted' as const } : e,
+      )
+      pushEntriesToActive(next)
+      return next
+    })
+  }
+
+  const handleChangeCategory = (id: string, newCategory: SwitchableCategory) => {
+    setEntities((prev) => {
+      const next = prev.map((e) =>
+        e.id === id
+          ? { ...e, category: newCategory, status: 'accepted' as const }
+          : e,
+      )
+      pushEntriesToActive(next)
+      return next
+    })
+  }
+
+  const handleFalsePositive = (id: string) => {
+    setEntities((prev) => {
+      const target = prev.find((e) => e.id === id)
+      if (!target) return prev
+      if (target.pseudonym && target.pseudonym !== target.realValue) {
+        setPseudonimizzatoText((cur) =>
+          cur.split(target.pseudonym).join(target.realValue),
+        )
+      }
+      const next = prev.map((e) =>
+        e.id === id ? { ...e, status: 'falsePositive' as const } : e,
+      )
+      pushEntriesToActive(next)
+      return next
+    })
+  }
+
+  const ensureLocalMapper = (currentEntities: ReviewEntity[]): PseudonymMapper => {
+    if (localMapperRef.current !== null) return localMapperRef.current
+    let mapper: PseudonymMapper
+    if (
+      active?.mapper instanceof PseudonymMapper &&
+      active.mapper.language === language
+    ) {
+      mapper = active.mapper
+    } else {
+      mapper = new PseudonymMapper({ language })
+      const seedEntries = currentEntities
+        .filter((e) => e.isPreserved !== true && e.status !== 'falsePositive')
+        .map((e) => ({
+          pseudonym: e.pseudonym,
+          realValue: e.realValue,
+          category: e.category,
+        }))
+      if (seedEntries.length > 0) mapper.seedFromEntries(seedEntries)
+    }
+    localMapperRef.current = mapper
+    return mapper
+  }
+
+  const handleSubstituteAnyway = (id: string) => {
+    setEntities((prev) => {
+      const target = prev.find((e) => e.id === id)
+      if (!target) return prev
+      if (target.isPreserved !== true) return prev
+      const mapper = ensureLocalMapper(prev)
+      let pseudonym: string
+      const cat = target.category.toLowerCase()
+      if (cat === 'citta' || cat === 'città' || cat === 'luogo') {
+        pseudonym = mapper.getCity(target.realValue)
+      } else if (cat === 'via') {
+        pseudonym = mapper.getStreet(target.realValue)
+      } else if (cat === 'tribunale') {
+        pseudonym = mapper.getCourt(target.realValue)
+      } else if (cat === 'azienda') {
+        pseudonym = mapper.getCompany(target.realValue)
+      } else {
+        pseudonym = mapper.getOrg(target.realValue)
+      }
+      if (pseudonym && pseudonym !== target.realValue) {
+        setPseudonimizzatoText((cur) =>
+          cur.split(target.realValue).join(pseudonym),
+        )
+      }
+      const next = prev.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              pseudonym,
+              isPreserved: false,
+              status: 'accepted' as const,
+            }
+          : e,
+      )
+      pushEntriesToActive(next)
+      return next
+    })
+  }
+
+  const handleManualAnnotate = (
+    start: number,
+    end: number,
+    category: ManualCategory,
+  ) => {
+    if (!originaleText) return
+    if (start >= end || start < 0 || end > originaleText.length) return
+    const mapper = ensureLocalMapper(entities)
+    const baseEntries: MappingEntry[] = entities.map((e) => ({
+      pseudonym: e.pseudonym,
+      realValue: e.realValue,
+      category: e.category,
+      isFalsePositive: e.status === 'falsePositive',
+      isPreserved: e.isPreserved,
+      pass: e.pass,
+      source: e.source,
+    }))
+    let result
+    try {
+      result = manualAnnotate(
+        originaleText,
+        start,
+        end,
+        category,
+        mapper,
+        baseEntries,
+      )
+    } catch {
+      return
+    }
+    if (result.pseudonymizedText === '') return
+    setPseudonimizzatoText(result.pseudonymizedText)
+    const statusByKey = new Map<string, ReviewEntity['status']>()
+    for (const e of entities) {
+      statusByKey.set(`${e.category}::${e.realValue.toLowerCase()}`, e.status)
+    }
+    const nextEntities: ReviewEntity[] = result.entries.map((entry, idx) => {
+      const key = `${entry.category}::${entry.realValue.toLowerCase()}`
+      const prevStatus = statusByKey.get(key)
+      return {
+        pseudonym: entry.pseudonym,
+        realValue: entry.realValue,
+        category: entry.category,
+        isFalsePositive: entry.isFalsePositive,
+        isPreserved: entry.isPreserved,
+        pass: entry.pass,
+        source: entry.source,
+        id: `${entry.category}::${entry.realValue}::${idx}`,
+        status: entry.isFalsePositive
+          ? 'falsePositive'
+          : prevStatus ?? 'pending',
+      }
+    })
+    setEntities(nextEntities)
+    pushEntriesToActive(nextEntities)
+  }
+
+  /* ────────────────────────────────────────────────────────────────────── */
+  /* Save mapping                                                            */
+  /* ────────────────────────────────────────────────────────────────────── */
+
+  const canSave =
+    user !== null &&
+    entities.length > 0 &&
+    (user.tier === 'free' || masterKey !== null)
+
+  const onSaveClick = () => {
+    if (!user) {
+      setSaveError(t('wireframe.save.errorAnon'))
+      return
+    }
+    if (user.tier === 'pro' && !masterKey) {
+      setSaveError(t('wireframe.save.errorMasterKey'))
+      return
+    }
+    setLabelInput(active?.label ?? '')
+    setLabelInputOpen(true)
+    setSaveError(null)
+  }
+
+  const onSaveConfirm = async () => {
+    const trimmedLabel = labelInput.trim()
+    if (!trimmedLabel) {
+      setSaveError(t('wireframe.save.errorLabel'))
+      return
+    }
+    setSaveStatus('saving')
+    setSaveError(null)
+    try {
+      const entriesToSave: MappingEntry[] = entities.map((e) => ({
+        pseudonym: e.pseudonym,
+        realValue: e.realValue,
+        category: e.category,
+        isFalsePositive: e.status === 'falsePositive',
+      }))
+      const finalEntries = active
+        ? mergeEntries(active.entries, entriesToSave)
+        : entriesToSave
+      await saveActive(trimmedLabel, finalEntries)
+      setSaveStatus('saved')
+      setLabelInputOpen(false)
+      window.setTimeout(() => setSaveStatus('idle'), 2500)
+    } catch (err) {
+      setSaveStatus('error')
+      const msg =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : t('wireframe.save.errorGeneric')
+      setSaveError(msg)
+    }
+  }
+
+  /* ────────────────────────────────────────────────────────────────────── */
+  /* Decodifica unlock handlers                                              */
+  /* ────────────────────────────────────────────────────────────────────── */
+
+  const handleBearerValidate = useCallback(async () => {
+    const trimmed = bearerInput.trim()
+    setBearerError(null)
+    if (!trimmed || !trimmed.startsWith('mhc_live_')) {
+      setBearerError(t('decodifica.locked.bearerFormatInvalid'))
+      return
+    }
+    setBearerValidating(true)
+    try {
+      await claimReverseSubstitutionByBearer(trimmed)
+      await refreshReverseSubstitution()
+      setBearerInput('')
+      setBearerInputVisible(false)
+      // Re-decode full output now that we are paid tier
+      if (mode === 'decodifica' && pseudonimizzatoText) {
+        const result = applyReverseSubstitution(
+          pseudonimizzatoText,
+          active?.entries ?? [],
+        )
+        setOriginaleText(result.output)
+        setDecodificaTruncated(false)
+      }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setBearerError(
+          err.status === 401
+            ? t('decodifica.locked.bearerInvalid')
+            : err.status === 400
+              ? t('decodifica.locked.bearerFormatInvalid')
+              : t('decodifica.locked.bearerError'),
+        )
+      } else {
+        setBearerError(t('decodifica.locked.errorGeneric'))
+      }
+    } finally {
+      setBearerValidating(false)
+    }
+  }, [
+    bearerInput,
+    refreshReverseSubstitution,
+    t,
+    mode,
+    pseudonimizzatoText,
+    active,
+  ])
+
+  const handlePayStripeCTA = useCallback(async () => {
+    setBearerError(null)
+    setStripeOpening(true)
+    try {
+      const resp = await claimReverseSubstitutionCheckout()
+      if (resp.already_granted) {
+        await refreshReverseSubstitution()
+        setStripeOpening(false)
+        return
+      }
+      if (!resp.checkout_url) {
+        setBearerError(t('decodifica.locked.errorGeneric'))
+        setStripeOpening(false)
+        return
+      }
+      window.location.href = resp.checkout_url
+    } catch {
+      setBearerError(t('decodifica.locked.errorGeneric'))
+      setStripeOpening(false)
+    }
+  }, [refreshReverseSubstitution, t])
+
+  /* ────────────────────────────────────────────────────────────────────── */
+  /* Render derivatives                                                      */
+  /* ────────────────────────────────────────────────────────────────────── */
+
+  // Pseudonimizza/Decodifica button disabled when input side is empty
+  const inputContent =
+    mode === 'codifica' ? originaleText : pseudonimizzatoText
+  const actionDisabled =
+    !inputContent.trim() ||
+    nerStatus === 'loading' ||
+    nerStatus === 'running'
+
+  // Decodifica free-tier preview affordance visibility
+  const tier = user?.tier ?? null
+  const isFreeTierWithoutGrant = !granted && tier !== 'pro'
+  const showDecodificaFreeAffordance =
+    mode === 'decodifica' &&
+    isFreeTierWithoutGrant &&
+    hasRunDecodifica &&
+    !!originaleText.trim()
+
+  const showLockedDecodificaCTA =
+    mode === 'decodifica' && isFreeTierWithoutGrant && !user
+
+  const visibleEntityCount = entities.filter(
+    (e) => e.status === 'pending' || e.status === 'accepted',
+  ).length
+  const pendingEntityCount = entities.filter(
+    (e) => e.status === 'pending',
+  ).length
+
+  const tokens = useMemo(() => {
+    const set = new Set<string>()
+    for (const e of entities) {
+      if (e.status !== 'falsePositive' && e.isPreserved !== true) {
+        set.add(e.pseudonym)
+      }
+    }
+    return Array.from(set)
+  }, [entities])
+
+  /* ────────────────────────────────────────────────────────────────────── */
+  /* Render                                                                  */
+  /* ────────────────────────────────────────────────────────────────────── */
+
+  return (
+    <div
+      className="wireframe-workarea"
+      data-testid="wireframe-workarea"
+      data-decodifica-truncated={decodificaTruncated ? 'true' : 'false'}
+    >
+      {/* ── 2-macro toggle ────────────────────────────────────────────── */}
+      <div
+        className="wireframe-macro-row"
+        role="tablist"
+        aria-label={t('macro.ariaLabel')}
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'codifica'}
+          className={`wireframe-macro-btn${mode === 'codifica' ? ' is-active' : ''}`}
+          onClick={() => setMode('codifica')}
+          data-testid="wireframe-macro-codifica"
+        >
+          {t('macro.codifica')}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'decodifica'}
+          className={`wireframe-macro-btn${mode === 'decodifica' ? ' is-active' : ''}`}
+          onClick={() => setMode('decodifica')}
+          data-testid="wireframe-macro-decodifica"
+        >
+          {t('macro.decodifica')}
+        </button>
+      </div>
+
+      {/* ── Toolbar: PSEUDONIMIZZA/DECODIFICA + sostituisci anche ──────── */}
+      <div className="wireframe-toolbar">
+        <button
+          type="button"
+          className="wireframe-action-btn"
+          onClick={() => {
+            if (mode === 'codifica') {
+              void handlePseudonimizza()
+            } else {
+              handleDecodifica()
+            }
+          }}
+          disabled={actionDisabled}
+          data-testid="wireframe-action-btn"
+        >
+          <span className="wireframe-arrow">
+            {mode === 'codifica' ? '→' : '←'}
+          </span>
+          <span className="wireframe-action-label">
+            {mode === 'codifica'
+              ? nerStatus === 'loading'
+                ? t('pseudo.button.loading')
+                : nerStatus === 'running'
+                  ? t('pseudo.button.running')
+                  : t('wireframe.action.pseudonimize')
+              : t('wireframe.action.decodifica')}
+          </span>
+          <span className="wireframe-arrow">
+            {mode === 'codifica' ? '→' : '←'}
+          </span>
+        </button>
+
+        {mode === 'codifica' && (
+          <div className="wireframe-modifier-row">
+            <button
+              type="button"
+              className="wireframe-modifier-btn"
+              onClick={(e) => {
+                e.stopPropagation()
+                setSostituisciAncheOpen((v) => !v)
+              }}
+              data-testid="wireframe-modifier-btn"
+            >
+              <span>{t('wireframe.modifier.label')}</span>
+              {sostituisciAnche.size > 0 && (
+                <span className="wireframe-modifier-count">
+                  {sostituisciAnche.size}
+                </span>
+              )}
+              <span className="wireframe-chevron" aria-hidden>
+                ▾
+              </span>
+            </button>
+            {sostituisciAncheOpen && (
+              <div
+                className="wireframe-modifier-dropdown"
+                role="menu"
+                aria-label={t('wireframe.modifier.label')}
+                data-testid="wireframe-modifier-dropdown"
+              >
+                {SOSTITUISCI_ANCHE_CATEGORIES.map(({ key, labelKey }) => (
+                  <label key={key} className="wireframe-modifier-option">
+                    <input
+                      type="checkbox"
+                      checked={sostituisciAnche.has(key)}
+                      onChange={(e) => {
+                        setSostituisciAnche((prev) => {
+                          const next = new Set(prev)
+                          if (e.target.checked) next.add(key)
+                          else next.delete(key)
+                          return next
+                        })
+                      }}
+                      data-testid={`wireframe-modifier-${key}`}
+                    />
+                    {t(labelKey)}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Save button (Codifica only) — discreet secondary action below */}
+        {mode === 'codifica' && user && entities.length > 0 && (
+          <button
+            type="button"
+            className="wireframe-save-btn"
+            onClick={onSaveClick}
+            disabled={!canSave || saveStatus === 'saving'}
+            data-testid="wireframe-save-btn"
+            title={
+              user.tier === 'pro' && !masterKey
+                ? t('wireframe.save.errorMasterKey')
+                : user.tier === 'free'
+                  ? t('wireframe.save.tooltipFree')
+                  : t('wireframe.save.tooltipPro')
+            }
+          >
+            {saveStatus === 'saving'
+              ? t('pseudo.save.saving')
+              : saveStatus === 'saved'
+                ? t('pseudo.save.saved')
+                : active?.label
+                  ? t('pseudo.save.update')
+                  : t('pseudo.button.save')}
+          </button>
+        )}
+      </div>
+
+      {/* Save label form */}
+      {labelInputOpen && (
+        <div className="wireframe-save-label-form" data-testid="wireframe-save-label-form">
+          <label className="field">
+            <span className="field__label">{t('wireframe.save.labelHint')}</span>
+            <input
+              type="text"
+              value={labelInput}
+              onChange={(e) => setLabelInput(e.target.value)}
+              className="auth-input"
+              autoFocus
+              data-testid="wireframe-save-label-input"
+              maxLength={120}
+              placeholder={t('wireframe.save.labelPlaceholder')}
+            />
+          </label>
+          <div className="actions actions--inline">
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => void onSaveConfirm()}
+              disabled={!labelInput.trim() || saveStatus === 'saving'}
+              data-testid="wireframe-save-label-confirm"
+            >
+              {saveStatus === 'saving'
+                ? t('wireframe.save.saving')
+                : t('wireframe.save.confirm')}
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => {
+                setLabelInputOpen(false)
+                setSaveError(null)
+              }}
+              data-testid="wireframe-save-label-cancel"
+            >
+              {t('wireframe.save.cancel')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {saveError && (
+        <div className="error" role="alert" data-testid="wireframe-save-error">
+          {saveError}
+        </div>
+      )}
+
+      {nerStatus === 'loading' && loadProgress && (
+        <ModelLoadingState
+          phase={loadProgress.phase}
+          loaded={loadProgress.loaded}
+          total={loadProgress.total}
+        />
+      )}
+
+      {pseudoError && (
+        <div className="error" role="alert" data-testid="wireframe-pseudo-error">
+          {pseudoError}
+        </div>
+      )}
+
+      {partialNotice && (
+        <div
+          className="banner banner--warning"
+          role="status"
+          data-testid="wireframe-partial-banner"
+        >
+          <strong>{t('pseudo.partial.title')}</strong>{' '}
+          {partialNotice.failedRanges.length}{' '}
+          {partialNotice.failedRanges.length === 1
+            ? t('pseudo.partial.singular')
+            : t('pseudo.partial.plural')}{' '}
+          {t('pseudo.partial.body')} {t('pseudo.partial.manualHint')}
+        </div>
+      )}
+
+      {/* ── Decodifica output warning (in unlocked or just-run state) ─── */}
+      {mode === 'decodifica' && hasRunDecodifica && originaleText && (
+        <div
+          className="banner banner--warning"
+          role="status"
+          data-testid="wireframe-decodifica-warning"
+        >
+          <strong>{t('decodifica.outputWarning.title')}</strong>{' '}
+          {t('decodifica.outputWarning.body')}
+        </div>
+      )}
+
+      {/* ── 2 panels side-by-side ─────────────────────────────────────── */}
+      <div className="wireframe-panels">
+        {/* SX: Originale */}
+        <div
+          className={`wireframe-panel wireframe-panel--originale${dragOver && mode === 'codifica' ? ' wireframe-panel--dragover' : ''}`}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          data-testid="wireframe-panel-originale"
+        >
+          <div className="wireframe-panel__label">{t('wireframe.panel.originale')}</div>
+          {showDecodificaFreeAffordance && (
+            <div
+              className="wireframe-preview-banner"
+              data-testid="wireframe-preview-banner"
+            >
+              <span className="wireframe-preview-badge">
+                {t('wireframe.preview.badge')}
+              </span>
+              <span>
+                {t('wireframe.preview.text').replace(
+                  '{n}',
+                  String(DECODIFICA_PREVIEW_LIMIT),
+                )}
+              </span>
+            </div>
+          )}
+          <div className="wireframe-panel__body">
+            {mode === 'codifica' && !originaleText && (
+              <>
+                <button
+                  type="button"
+                  className="wireframe-upload-pill"
+                  onClick={() => fileInputRef.current?.click()}
+                  title=".txt · .md · .docx · .pdf"
+                  data-testid="wireframe-upload-pill"
+                >
+                  {t('wireframe.upload.pill')}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,.md,.docx,.pdf,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={handleFileInput}
+                  style={{ display: 'none' }}
+                  data-testid="wireframe-file-input"
+                />
+              </>
+            )}
+
+            {/* When document is loaded AND in codifica mode, show DocumentView
+                (highlighted entities inline) instead of textarea — but only
+                after pseudonymize run; otherwise plain editable textarea. */}
+            {mode === 'codifica' && originaleText && hasRunOnCurrentDoc ? (
+              <DocumentView
+                originalText={originaleText}
+                pseudonymizedText={pseudonimizzatoText}
+                entities={entities}
+                displayMode="originale"
+                onAccept={handleAccept}
+                onFalsePositive={handleFalsePositive}
+                onChangeCategory={handleChangeCategory}
+                onSubstituteAnyway={handleSubstituteAnyway}
+                onManualAnnotate={handleManualAnnotate}
+              />
+            ) : (
+              <textarea
+                className="wireframe-textarea"
+                value={originaleText}
+                onChange={(e) => {
+                  if (mode === 'codifica') setOriginaleText(e.target.value)
+                }}
+                disabled={mode !== 'codifica'}
+                placeholder={
+                  mode === 'codifica'
+                    ? t('wireframe.placeholder.originale.codifica')
+                    : t('wireframe.placeholder.originale.decodifica')
+                }
+                data-testid="wireframe-textarea-originale"
+                rows={10}
+              />
+            )}
+
+            {/* New document affordance — discreet, top-right of the originale panel
+                when a document is loaded. */}
+            {mode === 'codifica' && originaleText && (
+              <button
+                type="button"
+                className="wireframe-new-doc-btn"
+                onClick={() => {
+                  setOriginaleText('')
+                  setPseudonimizzatoText('')
+                  setHasRunOnCurrentDoc(false)
+                  setEntityReviewOpen(false)
+                }}
+                data-testid="wireframe-new-doc-btn"
+                title={t('pseudo.button.newDocumentTitle')}
+              >
+                {t('wireframe.newDoc.button')}
+              </button>
+            )}
+          </div>
+
+          {/* Entity review expandable (Codifica only, after run) */}
+          {mode === 'codifica' && hasRunOnCurrentDoc && entities.length > 0 && (
+            <details
+              className="wireframe-entity-review"
+              open={entityReviewOpen}
+              onToggle={(e) =>
+                setEntityReviewOpen((e.target as HTMLDetailsElement).open)
+              }
+              data-testid="wireframe-entity-review"
+            >
+              <summary>
+                <strong>{t('wireframe.entityReview.heading')}</strong>{' '}
+                ({visibleEntityCount}
+                {pendingEntityCount > 0 ? (
+                  <>
+                    {' '}
+                    ·{' '}
+                    <span className="wireframe-entity-review__pending">
+                      {pendingEntityCount}{' '}
+                      {t('wireframe.entityReview.pending')}
+                    </span>
+                  </>
+                ) : null}
+                )
+              </summary>
+              <EntityReviewList
+                entities={entities}
+                onAccept={handleAccept}
+                onChangeCategory={handleChangeCategory}
+                onFalsePositive={handleFalsePositive}
+                onSubstituteAnyway={handleSubstituteAnyway}
+              />
+            </details>
+          )}
+        </div>
+
+        {/* DX: Pseudonimizzato */}
+        <div
+          className="wireframe-panel wireframe-panel--pseudonimizzato"
+          data-testid="wireframe-panel-pseudonimizzato"
+        >
+          <div className="wireframe-panel__label">
+            {t('wireframe.panel.pseudonimizzato')}
+          </div>
+          <div className="wireframe-panel__body">
+            {/* In codifica mode after run, show DocumentView (pseudo). In
+                decodifica mode, plain editable textarea (user paste AI response). */}
+            {mode === 'codifica' && pseudonimizzatoText && hasRunOnCurrentDoc ? (
+              <DocumentView
+                originalText={originaleText}
+                pseudonymizedText={pseudonimizzatoText}
+                entities={entities}
+                displayMode="pseudonimo"
+                onAccept={handleAccept}
+                onFalsePositive={handleFalsePositive}
+                onChangeCategory={handleChangeCategory}
+                onSubstituteAnyway={handleSubstituteAnyway}
+                onManualAnnotate={handleManualAnnotate}
+              />
+            ) : (
+              <textarea
+                className="wireframe-textarea"
+                value={pseudonimizzatoText}
+                onChange={(e) => {
+                  if (mode === 'decodifica') {
+                    setPseudonimizzatoText(e.target.value)
+                    setHasRunDecodifica(false)
+                  }
+                }}
+                disabled={mode !== 'decodifica'}
+                placeholder={
+                  mode === 'codifica'
+                    ? t('wireframe.placeholder.pseudonimizzato.codifica')
+                    : t('wireframe.placeholder.pseudonimizzato.decodifica')
+                }
+                data-testid="wireframe-textarea-pseudonimizzato"
+                rows={10}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Decodifica preview CTA (free tier, has output) ────────────── */}
+      {showDecodificaFreeAffordance && user && (
+        <div
+          className="wireframe-decodifica-cta"
+          data-testid="wireframe-decodifica-cta"
+        >
+          <div className="wireframe-decodifica-cta__lead">
+            {t('wireframe.decodifica.cta.lead')}
+          </div>
+          <div className="wireframe-decodifica-cta__actions">
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => void handlePayStripeCTA()}
+              disabled={stripeOpening}
+              data-testid="wireframe-decodifica-stripe-btn"
+            >
+              {stripeOpening
+                ? t('decodifica.locked.paymentLoading')
+                : t('wireframe.decodifica.cta.stripeBtn')}
+            </button>
+            <span className="wireframe-decodifica-cta__or">
+              {t('wireframe.decodifica.cta.or')}
+            </span>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => setBearerInputVisible((v) => !v)}
+              data-testid="wireframe-decodifica-bearer-toggle"
+            >
+              {t('wireframe.decodifica.cta.bearerToggle')}
+            </button>
+          </div>
+          {bearerInputVisible && (
+            <div className="wireframe-decodifica-cta__bearer-row">
+              <input
+                type="text"
+                value={bearerInput}
+                onChange={(e) => setBearerInput(e.target.value)}
+                placeholder={t('decodifica.locked.bearerPlaceholder')}
+                className="auth-input"
+                disabled={bearerValidating}
+                data-testid="wireframe-decodifica-bearer-input"
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => void handleBearerValidate()}
+                disabled={bearerValidating || bearerInput.trim() === ''}
+                data-testid="wireframe-decodifica-bearer-btn"
+              >
+                {bearerValidating
+                  ? t('decodifica.locked.bearerValidating')
+                  : t('decodifica.locked.bearerValidate')}
+              </button>
+            </div>
+          )}
+          {bearerError && (
+            <p
+              className="error"
+              role="alert"
+              data-testid="wireframe-decodifica-bearer-error"
+            >
+              {bearerError}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Anonymous user trying Decodifica → sign-in nudge */}
+      {showLockedDecodificaCTA && (
+        <div
+          className="wireframe-decodifica-cta"
+          data-testid="wireframe-decodifica-anon"
+        >
+          <div className="wireframe-decodifica-cta__lead">
+            {t('decodifica.locked.notLoggedIn')}
+          </div>
+        </div>
+      )}
+
+      {/* ── Lingua documento row ──────────────────────────────────────── */}
+      {/* Nota: doc language picker lives in AppHeader; non duplichiamo qui.
+          La spec prototype mostra una select duplicata sotto i panels, ma per
+          coerenza con il sistema esistente (LanguageContext + AppHeader)
+          omettiamo questa riga e dell'app: l'utente ha già la select in alto.
+          Se il founder vuole comunque la riga doc-lang sotto i panels, basta
+          aggiungerla qui. */}
+
+      {/* ── Mappa cards ──────────────────────────────────────────────── */}
+      <div className="wireframe-mappa-section">
+        <div className="wireframe-mappa-cards">
+          <button
+            type="button"
+            className="wireframe-mappa-card"
+            data-active={selectedCard === 'locali'}
+            onClick={() =>
+              setSelectedCard((cur) => (cur === 'locali' ? null : 'locali'))
+            }
+            data-testid="wireframe-card-locali"
+          >
+            <div className="wireframe-mappa-card__title">
+              {t('wireframe.mappa.locali.title')}
+            </div>
+            <div className="wireframe-mappa-card__meta">
+              {tokens.length === 1
+                ? t('wireframe.mappa.locali.metaOne')
+                : t('wireframe.mappa.locali.metaMany').replace(
+                    '{n}',
+                    String(tokens.length),
+                  )}
+            </div>
+          </button>
+          <button
+            type="button"
+            className="wireframe-mappa-card"
+            onClick={() => setModalChiaviServerOpen(true)}
+            data-testid="wireframe-card-server"
+            aria-label={t('wireframe.mappa.server.ariaLabel')}
+          >
+            <div className="wireframe-mappa-card__title">
+              {t('wireframe.mappa.server.title')}
+            </div>
+            <div className="wireframe-mappa-card__cta">
+              {t('wireframe.mappa.server.cta')}
+            </div>
+          </button>
+        </div>
+
+        {/* Detail view */}
+        <div className="wireframe-mappa-detail">
+          {selectedCard === 'locali' ? (
+            <MappaPanel />
+          ) : (
+            <div className="wireframe-mappa-detail__placeholder">
+              {t('wireframe.mappa.detail.placeholder')}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Active mapping badge (cross-doc continuity) ──────────────── */}
+      {active && (
+        <div
+          className="wireframe-active-mapping"
+          data-testid="wireframe-active-mapping"
+        >
+          <span>
+            {t('banner.active.label')}{' '}
+            <strong>{active.label}</strong>
+            {' — '}
+            {t('banner.active.hint')}
+          </span>
+          {active.entries.length > 0 && (
+            <button
+              type="button"
+              className="btn btn--secondary btn--small"
+              onClick={() => {
+                if (
+                  active.dirty &&
+                  // eslint-disable-next-line no-alert
+                  !window.confirm(t('banner.active.deleteConfirm'))
+                ) {
+                  return
+                }
+                closeActive()
+              }}
+              data-testid="wireframe-close-active"
+            >
+              {t('banner.active.delete')}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ── Modal "I miei mapping" (Chiavi su server) ────────────────── */}
+      {modalChiaviServerOpen && (
+        <div
+          className="wireframe-modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setModalChiaviServerOpen(false)
+          }}
+          data-testid="wireframe-modal-backdrop"
+        >
+          <div
+            className="wireframe-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="wireframe-modal-title"
+          >
+            <div className="wireframe-modal__header">
+              <h2 id="wireframe-modal-title">
+                {t('wireframe.modal.title')}
+              </h2>
+              <button
+                type="button"
+                className="wireframe-modal__close"
+                onClick={() => setModalChiaviServerOpen(false)}
+                aria-label={t('wireframe.modal.closeAria')}
+                data-testid="wireframe-modal-close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="wireframe-modal__body">
+              <p className="wireframe-modal__lead">
+                {t('wireframe.modal.lead')}
+              </p>
+              <div className="wireframe-modal__upsell">
+                <div className="wireframe-modal__upsell-status">
+                  {t('wireframe.modal.upsell.status')}
+                </div>
+                <div className="wireframe-modal__upsell-cta">
+                  <div className="wireframe-modal__upsell-price">
+                    {t('wireframe.modal.upsell.priceLead')}{' '}
+                    <strong>{t('wireframe.modal.upsell.priceAmount')}</strong>
+                  </div>
+                  <p className="wireframe-modal__upsell-details">
+                    {t('wireframe.modal.upsell.details')}
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btn--primary"
+                    onClick={() => {
+                      // Pro €25 cloud zero-knowledge currently parked
+                      // (post-pivot 2026-05-24/25). Placeholder behavior:
+                      // surfaces a friendly notice — eventually wires to
+                      // a Pro signup endpoint when reactivated.
+                      // eslint-disable-next-line no-alert
+                      window.alert(t('wireframe.modal.upsell.parkedNotice'))
+                    }}
+                    data-testid="wireframe-modal-upsell-btn"
+                  >
+                    {t('wireframe.modal.upsell.cta')}
+                  </button>
+                </div>
+              </div>
+              <p className="wireframe-modal__empty">
+                {t('wireframe.modal.empty')}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Scanned PDF modal ────────────────────────────────────────── */}
+      {scannedPdfModalOpen && (
+        <div
+          className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          data-testid="wireframe-scanned-pdf-modal"
+        >
+          <div className="modal">
+            <h3>{t('wireframe.scannedPdf.title')}</h3>
+            <p>{t('wireframe.scannedPdf.body')}</p>
+            <div className="actions">
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => setScannedPdfModalOpen(false)}
+                autoFocus
+              >
+                {t('wireframe.scannedPdf.ok')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

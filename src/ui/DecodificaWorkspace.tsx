@@ -1,33 +1,36 @@
 /**
- * DecodificaWorkspace.tsx — 2-macro toggle wrapper (post wireframe-first
- * SID-20260526-172143 redesign Phase 2a):
+ * DecodificaWorkspace.tsx — wireframe-first work area shell.
  *
- *   Macro 1 — "Sostituisci con pseudonimo" (= Codifica, gratis) → ClipboardWidget
- *   Macro 2 — "Rimetti a posto gli originali" (= Decodifica, €20 / chiave MHC) → DecodificaPanel
+ * Post SID-20260527 ("cambia tutto, rendilo come il prototype"), questo
+ * componente è un thin wrapper che monta `WireframeWorkArea` — il quale
+ * contiene 2-macro toggle + toolbar centrata + 2 panel side-by-side +
+ * sezione mappa cards + modal "I miei mapping" + Decodifica preview
+ * pattern, tutto in un'unica surface coerente al prototype HTML
+ * (`MHC-Work/notes/research/recode-it/wireframes/prototype/prototype.html`).
  *
- * Sostituisce la precedente 3-tab structure (1. Codifica / 2. Mappa / 3. Decodifica).
- * Decisione founder ratifica SID-20260526-172143: i 2 button macro usano
- * natural-language task descriptions del mental model utente, NON jargon
- * canon-side ("Codifica/Decodifica"). Il nome del bottone descrive cosa
- * l'utente fa col documento, non la funzione interna.
- *
- * Mappa (precedente tab 2) accessibile via "I miei mapping" nel nav top
- * (App.tsx → AccountDashboard). Integrazione in-workflow come sezione card
- * sotto i panel arriverà in Phase 2c/2d.
+ * La precedente architettura 2-macro toggle (ClipboardWidget alternato a
+ * DecodificaPanel) viene superata: `WireframeWorkArea` integra entrambe le
+ * macro come stato interno, con flusso che si inverte (sx=input editabile in
+ * Codifica, dx=input editabile in Decodifica), label dei panel semantici
+ * stabili. ClipboardWidget + DecodificaPanel + PseudonymizePanel restano nel
+ * tree e sono ancora utilizzati da `DecodificaDemoPage.tsx` (dev smoke
+ * surface a /decodifica-demo) per audit/regression del flusso vecchio se
+ * serve.
  *
  * Used by:
- *   - App.tsx (main work view)
- *   - DecodificaDemoPage.tsx (dev-only smoke surface at /decodifica-demo)
+ *   - App.tsx (main work view, route 'work')
+ *   - DecodificaDemoPage.tsx (dev-only smoke surface — usa ancora il vecchio
+ *     flow, non viene tipicamente toccata).
  */
 
-import { useState } from 'react'
-import { ClipboardWidget } from './ClipboardWidget'
-import { DecodificaPanel } from './DecodificaPanel'
-import { useLanguage } from './LanguageContext'
+import { WireframeWorkArea } from './WireframeWorkArea'
 
+/**
+ * Backward-compat type — alcuni file di test / dev possono ancora importare
+ * `WorkspaceTab` / `WorkspaceMacro`. La sostanza ora vive dentro
+ * `WireframeWorkArea` (macro mode interno).
+ */
 export type WorkspaceMacro = 'codifica' | 'decodifica'
-
-/** Backward-compat alias for legacy code that may still import WorkspaceTab. */
 export type WorkspaceTab = WorkspaceMacro
 
 type Props = {
@@ -38,70 +41,9 @@ type Props = {
 export function DecodificaWorkspace({
   initialMacro = 'codifica',
 }: Props): JSX.Element {
-  const [activeMacro, setActiveMacro] = useState<WorkspaceMacro>(initialMacro)
-  const { t } = useLanguage()
-
   return (
-    <div className="decodifica-workspace">
-      {/* ── 2-macro toggle (replaces 3-tab nav) ──────────────────────────── */}
-      <div
-        className="macro-toggle"
-        role="tablist"
-        aria-label={t('macro.ariaLabel')}
-      >
-        <button
-          type="button"
-          role="tab"
-          id="tab-codifica"
-          aria-controls="tabpanel-codifica"
-          aria-selected={activeMacro === 'codifica'}
-          className={`macro-toggle__btn${activeMacro === 'codifica' ? ' is-active' : ''}`}
-          onClick={() => setActiveMacro('codifica')}
-          title={t('macro.codifica.title')}
-          data-testid="tab-codifica"
-        >
-          {t('macro.codifica')}
-        </button>
-
-        <button
-          type="button"
-          role="tab"
-          id="tab-decodifica"
-          aria-controls="tabpanel-decodifica"
-          aria-selected={activeMacro === 'decodifica'}
-          className={`macro-toggle__btn${activeMacro === 'decodifica' ? ' is-active' : ''}`}
-          onClick={() => setActiveMacro('decodifica')}
-          title={t('macro.decodifica.title')}
-          data-testid="tab-decodifica"
-        >
-          {t('macro.decodifica')}
-        </button>
-      </div>
-
-      {/* ── Macro panels ──────────────────────────────────────────────────── */}
-
-      {/* Macro 1: Codifica — kept always mounted so NER model stays warm */}
-      <div
-        role="tabpanel"
-        id="tabpanel-codifica"
-        aria-labelledby="tab-codifica"
-        hidden={activeMacro !== 'codifica'}
-        data-testid="tabpanel-codifica"
-      >
-        <ClipboardWidget />
-      </div>
-
-      {/* Macro 2: Decodifica */}
-      {activeMacro === 'decodifica' && (
-        <div
-          role="tabpanel"
-          id="tabpanel-decodifica"
-          aria-labelledby="tab-decodifica"
-          data-testid="tabpanel-decodifica"
-        >
-          <DecodificaPanel />
-        </div>
-      )}
+    <div className="decodifica-workspace" data-testid="decodifica-workspace">
+      <WireframeWorkArea initialMode={initialMacro} />
     </div>
   )
 }
