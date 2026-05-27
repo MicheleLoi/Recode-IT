@@ -28,6 +28,19 @@
   --regia-blue-light: #dbeafe;
   --regia-blue-soft: #eff6ff;
 
+  /* ─── RegIA green palette (bundle banner inline variant, SID-20260527-181552) ───
+   * Founder direttiva: inline BundleBanner mounted in WireframeWorkArea
+   * toolbar decodifica slot — visual matches ".wireframe-modifier-btn"
+   * structure (bar centered) but verde RegIA instead of grey. Tokens
+   * symmetric to --regia-blue* (Tailwind emerald-500/600/100 baseline,
+   * brand-grade not acidulo). Usage: .bundle-banner--inline (text bg) +
+   * .bundle-banner__cta--inline (CTA pill).
+   */
+  --regia-green: #10b981;
+  --regia-green-dark: #059669;
+  --regia-green-light: #d1fae5;
+  --regia-green-soft: #ecfdf5;
+
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 15px;
   color: var(--ink);
@@ -141,6 +154,16 @@ code {
   color: var(--ink);
   line-height: 1.1;
   margin: 0;
+}
+
+/* Hero brand text — founder direttiva SID-20260527-181552:
+   "Recode IT (e altre lingue) in hero sempre in Blu".
+   Span wrapping the brand label inside the h1, colored BLU RegIA
+   (--regia-blue-dark) for all 4 UI languages (IT: Recode IT, EN: ENcode,
+   DE: DEcode, FR: ChiFRer). Heading semantics (h1) preserved; only the
+   inner brand text gets the brand-blu treatment. */
+.app__hero-brand-text {
+  color: var(--regia-blue-dark);
 }
 
 .app__hero-lang-chip {
@@ -2677,7 +2700,15 @@ code {
   min-height: 280px;
   width: 100%;
   border: none;
-  padding: 16px;
+  /* padding-top elevated (was 16px) → 44px per founder direttiva
+     SID-20260527-181552: il button assoluto ".wireframe-new-doc-btn"
+     (top: 8px, ~26px alto) ed eventuali warning banner sovrapposti al
+     top edge non devono più collidere col testo. 44px = 8px button top
+     + ~26px button height + ~10px breathing room. Right padding lievemente
+     aumentato per evitare collision col button quando line wrap arriva
+     al margine destro del panel. Simmetria su entrambi i panel (originale +
+     pseudonimizzato) tramite class condivisa. */
+  padding: 44px 90px 16px 16px;
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 14px;
   background: transparent;
@@ -3131,7 +3162,10 @@ code {
 
 .wireframe-panel__body .docview {
   flex: 1;
-  padding: 16px;
+  /* padding-top elevated (was 16px) → 44px per founder direttiva
+     SID-20260527-181552: simmetria col textarea wireframe, evita overlap
+     col ".wireframe-new-doc-btn" floating top-right + warning banner. */
+  padding: 44px 90px 16px 16px;
   background: transparent;
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 14px;
@@ -3172,7 +3206,24 @@ code {
  *   4. .wireframe-modal__bundle-cta — modal upsell callout box
  * ════════════════════════════════════════════════════════════════════ */
 
-/* ─── Touchpoint 1: bundle banner ──────────────────────────────── */
+/* ─── Touchpoint 1: bundle banner ────────────────────────────────
+ * Two variants:
+ *
+ *   - .bundle-banner--inline  → default, mounted inside WireframeWorkArea
+ *     toolbar decodifica slot (symmetric to ".wireframe-modifier-btn" of
+ *     codifica side). Founder direttiva SID-20260527-181552. RegIA-green
+ *     palette, bar visual matches modifier-btn structure.
+ *   - .bundle-banner--header  → legacy gradient banner above AppHeader
+ *     (not currently mounted; kept for backward-compat / re-mount option).
+ *
+ * .bundle-banner (bare class) inherits header styling for backward-compat
+ * (any test/css selector using just .bundle-banner still gets the header
+ * look). The --header / --inline modifier classes pick the variant.
+ */
+
+/* Shared bare-class baseline (header look, legacy default) — kept as the
+   fallback for any external selector or test that references just
+   ".bundle-banner". The new inline variant overrides via --inline modifier. */
 .bundle-banner {
   background: linear-gradient(90deg, var(--regia-blue-light) 0%, var(--regia-blue-soft) 100%);
   border-bottom: 1px solid var(--regia-blue);
@@ -3232,6 +3283,88 @@ code {
   .bundle-banner {
     flex-wrap: wrap;
     font-size: 0.85rem;
+  }
+}
+
+/* ─── Inline variant ── mounted inside WireframeWorkArea toolbar
+   decodifica slot, exactly where ".wireframe-modifier-row" sits on the
+   codifica side. Visual: bar centered, RegIA-green palette, ✕ discreto.
+   Founder direttiva SID-20260527-181552 — position locked, NON si muove. */
+.bundle-banner.bundle-banner--inline {
+  /* Override the header look for the inline variant. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  background: var(--regia-green);
+  border: none;
+  border-bottom: none;
+  border-radius: var(--wf-radius);
+  box-shadow: var(--wf-shadow-sm);
+  color: white;
+  width: 100%;
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+.bundle-banner.bundle-banner--inline:hover {
+  background: var(--regia-green-dark);
+}
+
+.bundle-banner__text--inline {
+  color: white;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-weight: 500;
+}
+
+.bundle-banner__cta--inline {
+  color: var(--regia-green-dark);
+  text-decoration: none;
+  font-weight: 700;
+  padding: 4px 14px;
+  border: none;
+  border-radius: 999px;
+  background: white;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.bundle-banner__cta--inline:hover,
+.bundle-banner__cta--inline:focus-visible {
+  background: var(--regia-green-light);
+  color: var(--regia-green-dark);
+}
+
+.bundle-banner__close--inline {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-left: 0;
+  padding: 4px 8px;
+  line-height: 1;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.bundle-banner__close--inline:hover,
+.bundle-banner__close--inline:focus-visible {
+  color: white;
+}
+
+@media (max-width: 640px) {
+  .bundle-banner.bundle-banner--inline {
+    flex-wrap: wrap;
+    font-size: 14px;
+    padding: 12px 36px 12px 16px;
   }
 }
 

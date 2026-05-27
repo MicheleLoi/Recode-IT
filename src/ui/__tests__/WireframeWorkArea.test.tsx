@@ -198,6 +198,29 @@ describe('WireframeWorkArea — Codifica flow', () => {
     expect(screen.queryByTestId('wireframe-modifier-btn')).not.toBeInTheDocument()
   })
 
+  it('BundleBanner inline mounts in Decodifica toolbar slot (symmetric to "sostituisci anche")', () => {
+    // Founder direttiva SID-20260527-181552: bar BundleBanner mounted in
+    // the decodifica side of the toolbar, ESATTAMENTE simmetrico a
+    // ".wireframe-modifier-btn" che vive nel lato codifica. Position locked.
+    renderWithProviders()
+    // In codifica (default) the inline BundleBanner is NOT mounted (the
+    // slot is occupied by "sostituisci anche"). Note: the legacy 'header'
+    // variant above AppHeader has been removed (App.tsx no longer mounts it).
+    expect(screen.queryByTestId('bundle-banner')).not.toBeInTheDocument()
+    expect(screen.getByTestId('wireframe-modifier-btn')).toBeInTheDocument()
+    // Switch to decodifica → the inline BundleBanner appears in the slot;
+    // "sostituisci anche" disappears (mutually exclusive).
+    fireEvent.click(screen.getByTestId('wireframe-macro-decodifica'))
+    expect(screen.queryByTestId('wireframe-modifier-btn')).not.toBeInTheDocument()
+    const banner = screen.getByTestId('bundle-banner')
+    expect(banner).toBeInTheDocument()
+    expect(banner.getAttribute('data-variant')).toBe('inline')
+    expect(banner.className).toContain('bundle-banner--inline')
+    // CTA still wired to MHC-L landing.
+    const cta = screen.getByTestId('bundle-banner-cta') as HTMLAnchorElement
+    expect(cta.href).toContain('micheleloi.pro/mhc-l/')
+  })
+
   it('"Nuovo documento" button clears the originale panel', () => {
     renderWithProviders()
     const sx = screen.getByTestId(

@@ -31,7 +31,6 @@ import {
   type Language,
 } from './ui/LanguageContext'
 import { VerifiedBanner } from './ui/VerifiedBanner'
-import { BundleBanner } from './ui/BundleBanner'
 import { LoginPage } from './ui/auth/LoginPage'
 import { SignupPage } from './ui/auth/SignupPage'
 import { RecoveryPage } from './ui/auth/RecoveryPage'
@@ -73,7 +72,17 @@ function AppHeader({
           />
           <div className="app__hero-overlay" />
           <div className="app__hero-text">
-            <h1 className="app__hero-brand">{BRAND_BY_LANG[uiLanguage]}</h1>
+            {/* Hero brand — founder direttiva SID-20260527-181552:
+                "Recode IT (e altre lingue) in hero sempre in Blu".
+                Brand wrapped in ".app__hero-brand-text" span so the blu
+                RegIA color (--regia-blue-dark) is applied uniformly per
+                all 4 UI languages (IT/EN/DE/FR), independent of the
+                outer h1 default ink color. */}
+            <h1 className="app__hero-brand">
+              <span className="app__hero-brand-text">
+                {BRAND_BY_LANG[uiLanguage]}
+              </span>
+            </h1>
           </div>
           <select
             id="app-ui-lang-select"
@@ -305,7 +314,11 @@ function AppInner(): JSX.Element {
 
   return (
     <div className="app">
-      <BundleBanner />
+      {/* BundleBanner — was mounted here as 'header' variant (above AppHeader).
+          Founder direttiva SID-20260527-181552: moved to WireframeWorkArea
+          toolbar decodifica slot (variant 'inline') — exact symmetric position
+          to ".wireframe-modifier-btn" of codifica side. Component preserved
+          (legacy 'header' variant still available for future re-mount). */}
       <VerifiedBanner />
       <AppHeader view={view} onNavigate={setView} />
       {showUpgrade ? (

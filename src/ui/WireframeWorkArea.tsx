@@ -68,6 +68,7 @@ import { NerRunner, type NerProgressEvent } from '../engine/ner_runner'
 import { PseudonymMapper } from '../engine/pseudonym_mapper'
 import { extractText, SUPPORTED_EXTENSIONS } from '../extraction/extract'
 import type { MappingEntry, NerDetection } from '../types/engine'
+import { BundleBanner } from './BundleBanner'
 import { applyReverseSubstitution } from './DecodificaPanel'
 import { DocumentView } from './DocumentView'
 import { EntityReviewList } from './EntityReviewList'
@@ -971,6 +972,16 @@ export function WireframeWorkArea({
             {mode === 'codifica' ? '→' : '←'}
           </span>
         </button>
+
+        {mode === 'decodifica' && (
+          /* BundleBanner inline — slot ESATTAMENTE simmetrico a
+             ".wireframe-modifier-row"/".wireframe-modifier-btn" (codifica side).
+             Founder direttiva SID-20260527-181552: position locked here, NON
+             si muove. Visual: bar sottile centered, palette RegIA verde
+             (mirror del modifier-btn grigio del lato codifica). Sostituisce
+             il mount precedente sopra AppHeader (src/App.tsx, ora rimosso). */
+          <BundleBanner variant="inline" />
+        )}
 
         {mode === 'codifica' && (
           <div className="wireframe-modifier-row">
