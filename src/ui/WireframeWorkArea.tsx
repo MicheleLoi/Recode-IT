@@ -82,6 +82,10 @@ type MacroMode = 'codifica' | 'decodifica'
 const DECODIFICA_PREVIEW_LIMIT = 150
 const ACCEPTED_EXTENSIONS = SUPPORTED_EXTENSIONS
 
+// SID-20260528-manual: founder-ratified restore di luoghi/organizzazioni/tribunali
+// (NER categories silenziosamente droppate nel redesign wireframe-first 2026-05-26).
+// Le 6 regex categories restano prime; le 3 NER seguono. Order semantico:
+// regex-deterministiche prima, NER-probabilistiche dopo.
 const SOSTITUISCI_ANCHE_CATEGORIES = [
   { key: 'cf', labelKey: 'wireframe.modifier.cf' },
   { key: 'iban', labelKey: 'wireframe.modifier.iban' },
@@ -89,6 +93,9 @@ const SOSTITUISCI_ANCHE_CATEGORIES = [
   { key: 'cap', labelKey: 'wireframe.modifier.cap' },
   { key: 'phone', labelKey: 'wireframe.modifier.phone' },
   { key: 'booking', labelKey: 'wireframe.modifier.booking' },
+  { key: 'places', labelKey: 'wireframe.modifier.places' },
+  { key: 'organizations', labelKey: 'wireframe.modifier.organizations' },
+  { key: 'courts', labelKey: 'wireframe.modifier.courts' },
 ] as const
 
 /* ────────────────────────────────────────────────────────────────────────── */
@@ -1029,6 +1036,23 @@ export function WireframeWorkArea({
                     {t(labelKey)}
                   </label>
                 ))}
+                {/* SID-20260528-manual: bottone Applica per risolvere discoverability
+                    flow di applicazione. Click chiude dropdown + triggera rerun
+                    pseudonimizzazione con i nuovi flag (`sostituisciAnche` viene
+                    letto da handlePseudonimizza come `includeCategoriesPass2`). */}
+                <div className="wireframe-modifier-actions">
+                  <button
+                    type="button"
+                    className="wireframe-modifier-apply-btn"
+                    onClick={() => {
+                      setSostituisciAncheOpen(false)
+                      void handlePseudonimizza()
+                    }}
+                    data-testid="wireframe-modifier-apply-btn"
+                  >
+                    {t('wireframe.modifier.applyBtn')}
+                  </button>
+                </div>
               </div>
             )}
           </div>

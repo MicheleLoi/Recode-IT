@@ -2618,6 +2618,35 @@ code {
   accent-color: var(--wf-brand-blue);
 }
 
+/* SID-20260528-manual: bottone Applica nel dropdown sostituisci-anche.
+   Risolve discoverability flow di applicazione: utente seleziona checkbox →
+   bottone Applica chiude dropdown + triggera rerun pseudonimizzazione. */
+.wireframe-modifier-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 12px 4px;
+  border-top: 1px solid var(--wf-border, #e5e7eb);
+  margin-top: 4px;
+}
+
+.wireframe-modifier-apply-btn {
+  background: var(--wf-brand-blue, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 7px 18px;
+  border-radius: var(--wf-radius, 6px);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.wireframe-modifier-apply-btn:hover,
+.wireframe-modifier-apply-btn:focus-visible {
+  background: var(--wf-brand-blue-dark, #1e40af);
+}
+
 /* Save (Codifica) — discreet secondary action below toolbar primary button */
 .wireframe-save-btn {
   align-self: center;
@@ -3409,6 +3438,213 @@ code {
   font-size: 1.05em;
   line-height: 1;
   display: inline-block;
+}
+
+/* ────────────────────────────────────────────────────────────────────
+   Bundle banner — Sblocca secondary pill + Expandable bearer form
+   (SID-20260528-manual founder-ratified design — wireframe canon:
+   MHC-Work/notes/research/recode-it/wireframes/bearer_unlock_inline_banner_20260528.html)
+
+   3 affordance distinte sullo stesso banner verde (in collapsed state):
+   - click superficie verde → expand inline campo bearer
+   - pill .bundle-banner__cta--inline ("Scopri →") → link a MHC-L
+   - pill .bundle-banner__cta--secondary ("Sblocca →") → expand inline
+
+   In expanded state: card bianca con bordo verde 2px, form bearer,
+   close button.
+   ──────────────────────────────────────────────────────────────────── */
+
+/* Container per i 2 pill nel collapsed state */
+.bundle-banner__ctas {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+/* Pill secondary "Sblocca →" — outline trasparente, bordo bianco */
+.bundle-banner__cta--secondary {
+  color: white;
+  background: transparent;
+  border: 1.5px solid white;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.bundle-banner__cta--secondary:hover,
+.bundle-banner__cta--secondary:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+}
+
+/* Expanded state — banner diventa card bianca con bordo verde */
+.bundle-banner.bundle-banner--expanded {
+  background: white;
+  color: var(--regia-green-dark, #15803d);
+  border: 2px solid var(--regia-green, #16a34a);
+  cursor: default;
+  padding: 0;
+  display: block;
+  /* override hover effect del banner collapsed */
+  transition: none;
+}
+
+.bundle-banner.bundle-banner--expanded:hover {
+  background: white;
+}
+
+.bundle-banner__expanded {
+  padding: 22px 26px;
+}
+
+.bundle-banner__expanded-title {
+  color: var(--regia-green-dark, #15803d);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.bundle-banner__expanded-lead {
+  color: var(--text-muted, #6b7280);
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin: 0 0 16px;
+}
+
+.bundle-banner__code {
+  background: #f3f4f6;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  font-size: 12px;
+  color: var(--regia-green-dark, #15803d);
+}
+
+.bundle-banner__expanded-notice {
+  background: #fef9c3;
+  color: #854d0e;
+  border-left: 4px solid #ca8a04;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.bundle-banner__bearer-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.bundle-banner__bearer-input {
+  flex: 1;
+  padding: 11px 14px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  background: #f9fafb;
+  color: inherit;
+}
+
+.bundle-banner__bearer-input:focus {
+  outline: none;
+  border-color: var(--regia-green, #16a34a);
+  background: white;
+  box-shadow: 0 0 0 3px var(--regia-green-light, #dcfce7);
+}
+
+.bundle-banner__bearer-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.bundle-banner__bearer-btn {
+  background: var(--regia-green, #16a34a);
+  color: white;
+  border: none;
+  padding: 11px 22px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.bundle-banner__bearer-btn:hover:not(:disabled),
+.bundle-banner__bearer-btn:focus-visible:not(:disabled) {
+  background: var(--regia-green-dark, #15803d);
+}
+
+.bundle-banner__bearer-btn:disabled {
+  background: var(--regia-green, #16a34a);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bundle-banner__bearer-error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-left: 4px solid #ef4444;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  margin: -8px 0 16px;
+  line-height: 1.5;
+}
+
+.bundle-banner__expanded-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid var(--border, #e5e7eb);
+  font-size: 13px;
+  gap: 12px;
+}
+
+.bundle-banner__signup-link {
+  color: var(--regia-blue, #1d4ed8);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.bundle-banner__signup-link:hover,
+.bundle-banner__signup-link:focus-visible {
+  text-decoration: underline;
+}
+
+.bundle-banner__close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted, #6b7280);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-family: inherit;
+}
+
+.bundle-banner__close-btn:hover,
+.bundle-banner__close-btn:focus-visible {
+  color: var(--text, #1f2937);
+}
+
+/* Mobile expand layout — stack form vertically */
+@media (max-width: 640px) {
+  .bundle-banner__expanded { padding: 18px 18px; }
+  .bundle-banner__bearer-form { flex-direction: column; }
+  .bundle-banner__expanded-footer { flex-direction: column-reverse; align-items: stretch; gap: 8px; }
+  .bundle-banner__close-btn { text-align: right; }
 }
 
 /* ─── Touchpoint 2: Decodifica lock screen — Polo E flip ────────── */
