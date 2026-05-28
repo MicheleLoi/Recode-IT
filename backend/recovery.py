@@ -127,9 +127,20 @@ async def verify_recovery(request: Request):
     try:
         validate_password_strength(new_password)
     except WeakPasswordError as exc:
+        # Forward structured attributes so the frontend can pick an
+        # i18n-localized message (auth.password.weak_length /
+        # weak_classes / weak_generic) instead of rendering the English
+        # `str(exc)` prose. `got_classes` is included only when present.
+        extra: dict[str, object] = {
+            "reason": exc.reason,
+            "min_length": exc.min_length,
+            "min_classes": exc.min_classes,
+        }
+        if exc.got_classes is not None:
+            extra["got_classes"] = exc.got_classes
         return error_response("weak_password", str(exc),
                               status=400,
-                              extra={"min_length": 12, "min_classes": 3},
+                              extra=extra,
                               request=request)
 
     token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()

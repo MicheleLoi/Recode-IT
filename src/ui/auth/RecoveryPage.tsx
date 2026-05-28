@@ -21,6 +21,7 @@
 import { useEffect, useState } from 'react'
 import { ApiError, requestRecovery, verifyRecovery } from '../../api/client'
 import { useLanguage } from '../LanguageContext'
+import { localizeApiError } from './errors'
 
 type Props = {
   onBackToLogin?: () => void
@@ -68,7 +69,7 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
       // not contain the token as plaintext (security + UX consistency).
       setStage('sent')
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('auth.recovery.error.generic'))
+      setError(err instanceof ApiError ? localizeApiError(err, t) : t('auth.recovery.error.generic'))
     } finally {
       setSubmitting(false)
     }
@@ -94,7 +95,7 @@ export function RecoveryPage({ onBackToLogin }: Props): JSX.Element {
       setSuccess(`${resp.message} ${destroyedNote}`)
       setStage('done')
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('auth.recovery.error.generic'))
+      setError(err instanceof ApiError ? localizeApiError(err, t) : t('auth.recovery.error.generic'))
     } finally {
       setSubmitting(false)
     }

@@ -52,7 +52,40 @@ _RECOVERY_ALPHABET = "ABCDEFGHJKMNPQRSTVWXYZ23456789"
 
 
 class WeakPasswordError(ValueError):
-    """Raised when a user-supplied password violates policy."""
+    """Raised when a user-supplied password violates policy.
+
+    Carries structured attributes so callers can build localized error
+    messages without parsing the English `str(exc)` prose:
+
+      - reason:        "length" | "classes"  — which check failed
+      - min_length:    policy minimum length (always set)
+      - min_classes:   policy minimum class count (always set)
+      - got_classes:   how many classes the input actually had (set only
+                       for reason="classes"; None otherwise)
+
+    The exception message remains English-prose for log readability and
+    backwards compatibility with regex-based tests
+    (`pytest.raises(WeakPasswordError, match="at least 12")`). UI surfaces
+    MUST consume the structured attributes (forwarded via
+    `error_response(extra=...)`) and translate via i18n keys
+    `auth.password.weak_*`. See `src/ui/auth/SignupPage.tsx` +
+    `RecoveryPage.tsx` + `src/i18n/translations.ts`.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        reason: str,
+        min_length: int = MIN_PASSWORD_LENGTH,
+        min_classes: int = MIN_PASSWORD_CLASSES,
+        got_classes: int | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.reason = reason
+        self.min_length = min_length
+        self.min_classes = min_classes
+        self.got_classes = got_classes
 
 
 def _count_character_classes(password: str) -> int:
@@ -84,13 +117,16 @@ def validate_password_strength(password: str) -> None:
     """
     if len(password) < MIN_PASSWORD_LENGTH:
         raise WeakPasswordError(
-            f"password must be at least {MIN_PASSWORD_LENGTH} characters"
+            f"password must be at least {MIN_PASSWORD_LENGTH} characters",
+            reason="length",
         )
     classes = _count_character_classes(password)
     if classes < MIN_PASSWORD_CLASSES:
         raise WeakPasswordError(
             f"password must include at least {MIN_PASSWORD_CLASSES} of: "
-            f"lowercase, uppercase, digit, special (got {classes})"
+            f"lowercase, uppercase, digit, special (got {classes})",
+            reason="classes",
+            got_classes=classes,
         )
 
 

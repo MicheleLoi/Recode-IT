@@ -9,6 +9,7 @@ import { useState } from 'react'
 import { ApiError } from '../../api/client'
 import { useAuth } from '../../auth/auth-context'
 import { useLanguage } from '../LanguageContext'
+import { localizeApiError } from './errors'
 
 type Props = {
   onSignedUp?: (email: string) => void
@@ -59,7 +60,7 @@ export function SignupPage({ onSignedUp, onSwitchToLogin }: Props): JSX.Element 
       setCodes(resp.recovery_codes)
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message)
+        setError(localizeApiError(err, t))
       } else {
         setError('Errore inatteso durante la registrazione.')
       }

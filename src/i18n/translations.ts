@@ -366,6 +366,14 @@ const it: Catalog = {
   'auth.recovery.error.generic': 'Errore inatteso.',
   'auth.recovery.error.weakPassword': 'La nuova password deve avere almeno 12 caratteri.',
 
+  // ────────────────────────── Auth — password policy (weak_password backend errors) ──────────────────────────
+  // Surfaced by SignupPage + RecoveryPage when the backend returns
+  // {error:"weak_password", reason:"length"|"classes", min_length, min_classes, got_classes}.
+  // See backend/password.py::WeakPasswordError + signup.py + recovery.py.
+  'auth.password.weak_length': 'La password deve avere almeno {min_length} caratteri.',
+  'auth.password.weak_classes': 'La password deve combinare almeno {min_classes} categorie tra: minuscole, MAIUSCOLE, numeri, caratteri speciali (al momento ne usi {got}).',
+  'auth.password.weak_generic': 'La password non rispetta i requisiti di sicurezza minimi.',
+
   // ────────────────────────── Auth — signup (recovery codes screen) ──────────────────────────
   'auth.signup.codes.title': 'Account creato',
   'auth.signup.codes.saveNotice': 'Salva subito questi 10 codici di recupero. Non saranno mostrati di nuovo. Ti servono per riavere accesso all’account se dimentichi la password.',
@@ -815,6 +823,11 @@ const en: Catalog = {
   'auth.recovery.done.freePreserved': 'The mappings in your browser were not touched and are still available.',
   'auth.recovery.error.generic': 'Unexpected error.',
   'auth.recovery.error.weakPassword': 'The new password must be at least 12 characters.',
+
+  // ────────────────────────── Auth — password policy (weak_password backend errors) ──────────────────────────
+  'auth.password.weak_length': 'Password must be at least {min_length} characters long.',
+  'auth.password.weak_classes': 'Password must combine at least {min_classes} of: lowercase, UPPERCASE, digits, special characters (currently using {got}).',
+  'auth.password.weak_generic': 'Password does not meet the minimum security requirements.',
 
   // ────────────────────────── Auth — signup (recovery codes screen) ──────────────────────────
   'auth.signup.codes.title': 'Account created',
