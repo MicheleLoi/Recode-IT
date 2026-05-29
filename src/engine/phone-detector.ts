@@ -67,6 +67,11 @@ export function detectPhones(text: string): PhoneSpan[] {
   // bare national runs; the per-candidate gate below enforces that instead.
   const found = findNumbers(text, {
     defaultCountry: 'IT',
+    // v2: true → each match exposes `.number` (a PhoneNumber with `.isValid()`),
+    // `.startsAt`, `.endsAt`. Without it, findNumbers returns the legacy shape
+    // (no `.number`), so the isValid() gate below silently never fires and bare
+    // national IT numbers get dropped. Required for the national surface to work.
+    v2: true,
     // Match the international + national surfaces. 'POSSIBLE' lets findNumbers
     // surface candidates; our gate below decides which to keep. (Stricter
     // 'VALID' leniency would silently drop some E.164 numbers whose country

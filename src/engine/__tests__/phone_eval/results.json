@@ -1,458 +1,288 @@
 {
-  "generatedAt": "2026-05-29T11:31:00.151Z",
+  "generatedAt": "2026-05-29T12:24:12.901Z",
   "corpusSize": 313,
   "global": {
     "total": 313,
-    "hits": 9,
-    "recall": 0.02875399361022364
+    "hits": 221,
+    "recall": 0.7060702875399361
   },
   "byRegion": {
     "EU_EEA": {
       "total": 210,
-      "hits": 9,
-      "recall": 0.04285714285714286
+      "hits": 146,
+      "recall": 0.6952380952380952
     },
     "WORLD_SAMPLE": {
       "total": 103,
-      "hits": 0,
-      "recall": 0
+      "hits": 75,
+      "recall": 0.7281553398058253
     }
   },
   "byFormat": {
     "e164": {
       "total": 45,
-      "hits": 1,
-      "recall": 0.022222222222222223
+      "hits": 45,
+      "recall": 1
     },
     "intl_spaced": {
       "total": 45,
-      "hits": 4,
-      "recall": 0.08888888888888889
+      "hits": 45,
+      "recall": 1
     },
     "intl_00": {
       "total": 45,
-      "hits": 1,
-      "recall": 0.022222222222222223
+      "hits": 45,
+      "recall": 1
     },
     "national": {
       "total": 45,
-      "hits": 1,
-      "recall": 0.022222222222222223
+      "hits": 22,
+      "recall": 0.4888888888888889
     },
     "national_plain": {
       "total": 45,
-      "hits": 0,
-      "recall": 0
+      "hits": 22,
+      "recall": 0.4888888888888889
     },
     "national_dots": {
       "total": 44,
-      "hits": 1,
-      "recall": 0.022727272727272728
+      "hits": 21,
+      "recall": 0.4772727272727273
     },
     "national_dash": {
       "total": 44,
-      "hits": 1,
-      "recall": 0.022727272727272728
+      "hits": 21,
+      "recall": 0.4772727272727273
     }
   },
   "byCountry": {
     "AT": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "BE": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "BG": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "HR": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "CY": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "CZ": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "DK": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "EE": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "FI": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "FR": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "DE": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "GR": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "HU": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "IE": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "IT": {
       "total": 7,
-      "hits": 6,
-      "recall": 0.8571428571428571
+      "hits": 7,
+      "recall": 1
     },
     "LV": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "LT": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "LU": {
       "total": 7,
-      "hits": 1,
-      "recall": 0.14285714285714285
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "MT": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "NL": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "PL": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "PT": {
       "total": 7,
-      "hits": 1,
-      "recall": 0.14285714285714285
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "RO": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "SK": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "SI": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "ES": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "SE": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "IS": {
       "total": 7,
-      "hits": 1,
-      "recall": 0.14285714285714285
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "LI": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "NO": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "GB": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "CH": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "US": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "CA": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "AU": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "JP": {
       "total": 5,
-      "hits": 0,
-      "recall": 0
+      "hits": 5,
+      "recall": 1
     },
     "BR": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "IN": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "CN": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "RU": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "ZA": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "AE": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "MX": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 3,
+      "recall": 0.42857142857142855
     },
     "NG": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     },
     "TR": {
       "total": 7,
-      "hits": 0,
-      "recall": 0
+      "hits": 7,
+      "recall": 1
     }
   },
   "misses": [
-    {
-      "country": "AT",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+43664123456",
-      "sentence": "Recapito del cliente (AT): +43664123456 — confermato in udienza.",
-      "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AT",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+43 664 123456",
-      "sentence": "Recapito del cliente (AT): +43 664 123456 — confermato in udienza.",
-      "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AT",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0043 664 123456",
-      "sentence": "Recapito del cliente (AT): 0043 664 123456 — confermato in udienza.",
-      "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AT",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "0664 123456",
-      "sentence": "Recapito del cliente (AT): 0664 123456 — confermato in udienza.",
-      "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AT",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "0664123456",
-      "sentence": "Recapito del cliente (AT): 0664123456 — confermato in udienza.",
-      "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AT",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "0664.123456",
-      "sentence": "Recapito del cliente (AT): 0664.123456 — confermato in udienza.",
-      "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AT",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "0664-123456",
-      "sentence": "Recapito del cliente (AT): 0664-123456 — confermato in udienza.",
-      "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BE",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+32450001234",
-      "sentence": "Recapito del cliente (BE): +32450001234 — confermato in udienza.",
-      "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BE",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+32 450 00 12 34",
-      "sentence": "Recapito del cliente (BE): +32 450 00 12 34 — confermato in udienza.",
-      "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BE",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0032 450 00 12 34",
-      "sentence": "Recapito del cliente (BE): 0032 450 00 12 34 — confermato in udienza.",
-      "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BE",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "0450 00 12 34",
-      "sentence": "Recapito del cliente (BE): 0450 00 12 34 — confermato in udienza.",
-      "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BE",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "0450001234",
-      "sentence": "Recapito del cliente (BE): 0450001234 — confermato in udienza.",
-      "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BE",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "0450.00.12.34",
-      "sentence": "Recapito del cliente (BE): 0450.00.12.34 — confermato in udienza.",
-      "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BE",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "0450-00-12-34",
-      "sentence": "Recapito del cliente (BE): 0450-00-12-34 — confermato in udienza.",
-      "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BG",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+35943012345",
-      "sentence": "Recapito del cliente (BG): +35943012345 — confermato in udienza.",
-      "e164": "+35943012345",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BG",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+359 43 012 345",
-      "sentence": "Recapito del cliente (BG): +359 43 012 345 — confermato in udienza.",
-      "e164": "+35943012345",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BG",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00359 43 012 345",
-      "sentence": "Recapito del cliente (BG): 00359 43 012 345 — confermato in udienza.",
-      "e164": "+35943012345",
-      "hit": false,
-      "phoneMatches": []
-    },
     {
       "country": "BG",
       "region": "EU_EEA",
@@ -490,106 +320,6 @@
       "phone": "043-012-345",
       "sentence": "Recapito del cliente (BG): 043-012-345 — confermato in udienza.",
       "e164": "+35943012345",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HR",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+385921234567",
-      "sentence": "Recapito del cliente (HR): +385921234567 — confermato in udienza.",
-      "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HR",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+385 92 123 4567",
-      "sentence": "Recapito del cliente (HR): +385 92 123 4567 — confermato in udienza.",
-      "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HR",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00385 92 123 4567",
-      "sentence": "Recapito del cliente (HR): 00385 92 123 4567 — confermato in udienza.",
-      "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HR",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "092 123 4567",
-      "sentence": "Recapito del cliente (HR): 092 123 4567 — confermato in udienza.",
-      "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HR",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "0921234567",
-      "sentence": "Recapito del cliente (HR): 0921234567 — confermato in udienza.",
-      "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HR",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "092.123.4567",
-      "sentence": "Recapito del cliente (HR): 092.123.4567 — confermato in udienza.",
-      "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HR",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "092-123-4567",
-      "sentence": "Recapito del cliente (HR): 092-123-4567 — confermato in udienza.",
-      "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CY",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+35796123456",
-      "sentence": "Recapito del cliente (CY): +35796123456 — confermato in udienza.",
-      "e164": "+35796123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CY",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+357 96 123456",
-      "sentence": "Recapito del cliente (CY): +357 96 123456 — confermato in udienza.",
-      "e164": "+35796123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CY",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00357 96 123456",
-      "sentence": "Recapito del cliente (CY): 00357 96 123456 — confermato in udienza.",
-      "e164": "+35796123456",
       "hit": false,
       "phoneMatches": []
     },
@@ -636,36 +366,6 @@
     {
       "country": "CZ",
       "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+420601123456",
-      "sentence": "Recapito del cliente (CZ): +420601123456 — confermato in udienza.",
-      "e164": "+420601123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CZ",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+420 601 123 456",
-      "sentence": "Recapito del cliente (CZ): +420 601 123 456 — confermato in udienza.",
-      "e164": "+420601123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CZ",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00420 601 123 456",
-      "sentence": "Recapito del cliente (CZ): 00420 601 123 456 — confermato in udienza.",
-      "e164": "+420601123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CZ",
-      "region": "EU_EEA",
       "format": "national",
       "phone": "601 123 456",
       "sentence": "Recapito del cliente (CZ): 601 123 456 — confermato in udienza.",
@@ -700,36 +400,6 @@
       "phone": "601-123-456",
       "sentence": "Recapito del cliente (CZ): 601-123-456 — confermato in udienza.",
       "e164": "+420601123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "DK",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+4534412345",
-      "sentence": "Recapito del cliente (DK): +4534412345 — confermato in udienza.",
-      "e164": "+4534412345",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "DK",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+45 34 41 23 45",
-      "sentence": "Recapito del cliente (DK): +45 34 41 23 45 — confermato in udienza.",
-      "e164": "+4534412345",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "DK",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0045 34 41 23 45",
-      "sentence": "Recapito del cliente (DK): 0045 34 41 23 45 — confermato in udienza.",
-      "e164": "+4534412345",
       "hit": false,
       "phoneMatches": []
     },
@@ -776,36 +446,6 @@
     {
       "country": "EE",
       "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+37251234567",
-      "sentence": "Recapito del cliente (EE): +37251234567 — confermato in udienza.",
-      "e164": "+37251234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "EE",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+372 5123 4567",
-      "sentence": "Recapito del cliente (EE): +372 5123 4567 — confermato in udienza.",
-      "e164": "+37251234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "EE",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00372 5123 4567",
-      "sentence": "Recapito del cliente (EE): 00372 5123 4567 — confermato in udienza.",
-      "e164": "+37251234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "EE",
-      "region": "EU_EEA",
       "format": "national",
       "phone": "5123 4567",
       "sentence": "Recapito del cliente (EE): 5123 4567 — confermato in udienza.",
@@ -840,176 +480,6 @@
       "phone": "5123-4567",
       "sentence": "Recapito del cliente (EE): 5123-4567 — confermato in udienza.",
       "e164": "+37251234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FI",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+358412345678",
-      "sentence": "Recapito del cliente (FI): +358412345678 — confermato in udienza.",
-      "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FI",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+358 41 2345678",
-      "sentence": "Recapito del cliente (FI): +358 41 2345678 — confermato in udienza.",
-      "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FI",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00358 41 2345678",
-      "sentence": "Recapito del cliente (FI): 00358 41 2345678 — confermato in udienza.",
-      "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FI",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "041 2345678",
-      "sentence": "Recapito del cliente (FI): 041 2345678 — confermato in udienza.",
-      "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FI",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "0412345678",
-      "sentence": "Recapito del cliente (FI): 0412345678 — confermato in udienza.",
-      "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FI",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "041.2345678",
-      "sentence": "Recapito del cliente (FI): 041.2345678 — confermato in udienza.",
-      "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FI",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "041-2345678",
-      "sentence": "Recapito del cliente (FI): 041-2345678 — confermato in udienza.",
-      "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FR",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+33612345678",
-      "sentence": "Recapito del cliente (FR): +33612345678 — confermato in udienza.",
-      "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FR",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+33 6 12 34 56 78",
-      "sentence": "Recapito del cliente (FR): +33 6 12 34 56 78 — confermato in udienza.",
-      "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FR",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0033 6 12 34 56 78",
-      "sentence": "Recapito del cliente (FR): 0033 6 12 34 56 78 — confermato in udienza.",
-      "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FR",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "06 12 34 56 78",
-      "sentence": "Recapito del cliente (FR): 06 12 34 56 78 — confermato in udienza.",
-      "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FR",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "0612345678",
-      "sentence": "Recapito del cliente (FR): 0612345678 — confermato in udienza.",
-      "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FR",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "06.12.34.56.78",
-      "sentence": "Recapito del cliente (FR): 06.12.34.56.78 — confermato in udienza.",
-      "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "FR",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "06-12-34-56-78",
-      "sentence": "Recapito del cliente (FR): 06-12-34-56-78 — confermato in udienza.",
-      "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "DE",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+4915123456789",
-      "sentence": "Recapito del cliente (DE): +4915123456789 — confermato in udienza.",
-      "e164": "+4915123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "DE",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+49 1512 3456789",
-      "sentence": "Recapito del cliente (DE): +49 1512 3456789 — confermato in udienza.",
-      "e164": "+4915123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "DE",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0049 1512 3456789",
-      "sentence": "Recapito del cliente (DE): 0049 1512 3456789 — confermato in udienza.",
-      "e164": "+4915123456789",
       "hit": false,
       "phoneMatches": []
     },
@@ -1056,36 +526,6 @@
     {
       "country": "GR",
       "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+306912345678",
-      "sentence": "Recapito del cliente (GR): +306912345678 — confermato in udienza.",
-      "e164": "+306912345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "GR",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+30 691 234 5678",
-      "sentence": "Recapito del cliente (GR): +30 691 234 5678 — confermato in udienza.",
-      "e164": "+306912345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "GR",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0030 691 234 5678",
-      "sentence": "Recapito del cliente (GR): 0030 691 234 5678 — confermato in udienza.",
-      "e164": "+306912345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "GR",
-      "region": "EU_EEA",
       "format": "national",
       "phone": "691 234 5678",
       "sentence": "Recapito del cliente (GR): 691 234 5678 — confermato in udienza.",
@@ -1120,186 +560,6 @@
       "phone": "691-234-5678",
       "sentence": "Recapito del cliente (GR): 691-234-5678 — confermato in udienza.",
       "e164": "+306912345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HU",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+36201234567",
-      "sentence": "Recapito del cliente (HU): +36201234567 — confermato in udienza.",
-      "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HU",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+36 20 123 4567",
-      "sentence": "Recapito del cliente (HU): +36 20 123 4567 — confermato in udienza.",
-      "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HU",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0036 20 123 4567",
-      "sentence": "Recapito del cliente (HU): 0036 20 123 4567 — confermato in udienza.",
-      "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HU",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "06 20 123 4567",
-      "sentence": "Recapito del cliente (HU): 06 20 123 4567 — confermato in udienza.",
-      "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HU",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "06201234567",
-      "sentence": "Recapito del cliente (HU): 06201234567 — confermato in udienza.",
-      "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HU",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "06.20.123.4567",
-      "sentence": "Recapito del cliente (HU): 06.20.123.4567 — confermato in udienza.",
-      "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "HU",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "06-20-123-4567",
-      "sentence": "Recapito del cliente (HU): 06-20-123-4567 — confermato in udienza.",
-      "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IE",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+353850123456",
-      "sentence": "Recapito del cliente (IE): +353850123456 — confermato in udienza.",
-      "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IE",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+353 85 012 3456",
-      "sentence": "Recapito del cliente (IE): +353 85 012 3456 — confermato in udienza.",
-      "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IE",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00353 85 012 3456",
-      "sentence": "Recapito del cliente (IE): 00353 85 012 3456 — confermato in udienza.",
-      "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IE",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "085 012 3456",
-      "sentence": "Recapito del cliente (IE): 085 012 3456 — confermato in udienza.",
-      "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IE",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "0850123456",
-      "sentence": "Recapito del cliente (IE): 0850123456 — confermato in udienza.",
-      "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IE",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "085.012.3456",
-      "sentence": "Recapito del cliente (IE): 085.012.3456 — confermato in udienza.",
-      "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IE",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "085-012-3456",
-      "sentence": "Recapito del cliente (IE): 085-012-3456 — confermato in udienza.",
-      "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IT",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "3123456789",
-      "sentence": "Recapito del cliente (IT): 3123456789 — confermato in udienza.",
-      "e164": "+393123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LV",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+37121234567",
-      "sentence": "Recapito del cliente (LV): +37121234567 — confermato in udienza.",
-      "e164": "+37121234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LV",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+371 21 234 567",
-      "sentence": "Recapito del cliente (LV): +371 21 234 567 — confermato in udienza.",
-      "e164": "+37121234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LV",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00371 21 234 567",
-      "sentence": "Recapito del cliente (LV): 00371 21 234 567 — confermato in udienza.",
-      "e164": "+37121234567",
       "hit": false,
       "phoneMatches": []
     },
@@ -1340,96 +600,6 @@
       "phone": "21-234-567",
       "sentence": "Recapito del cliente (LV): 21-234-567 — confermato in udienza.",
       "e164": "+37121234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LT",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+37061234567",
-      "sentence": "Recapito del cliente (LT): +37061234567 — confermato in udienza.",
-      "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LT",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+370 612 34567",
-      "sentence": "Recapito del cliente (LT): +370 612 34567 — confermato in udienza.",
-      "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LT",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00370 612 34567",
-      "sentence": "Recapito del cliente (LT): 00370 612 34567 — confermato in udienza.",
-      "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LT",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "(0-612) 34567",
-      "sentence": "Recapito del cliente (LT): (0-612) 34567 — confermato in udienza.",
-      "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LT",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "061234567",
-      "sentence": "Recapito del cliente (LT): 061234567 — confermato in udienza.",
-      "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LT",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "(0-612).34567",
-      "sentence": "Recapito del cliente (LT): (0-612).34567 — confermato in udienza.",
-      "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LT",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "(0-612)-34567",
-      "sentence": "Recapito del cliente (LT): (0-612)-34567 — confermato in udienza.",
-      "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LU",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+352628123456",
-      "sentence": "Recapito del cliente (LU): +352628123456 — confermato in udienza.",
-      "e164": "+352628123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LU",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00352 628 123 456",
-      "sentence": "Recapito del cliente (LU): 00352 628 123 456 — confermato in udienza.",
-      "e164": "+352628123456",
       "hit": false,
       "phoneMatches": []
     },
@@ -1476,36 +646,6 @@
     {
       "country": "MT",
       "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+35696961234",
-      "sentence": "Recapito del cliente (MT): +35696961234 — confermato in udienza.",
-      "e164": "+35696961234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "MT",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+356 9696 1234",
-      "sentence": "Recapito del cliente (MT): +356 9696 1234 — confermato in udienza.",
-      "e164": "+35696961234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "MT",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00356 9696 1234",
-      "sentence": "Recapito del cliente (MT): 00356 9696 1234 — confermato in udienza.",
-      "e164": "+35696961234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "MT",
-      "region": "EU_EEA",
       "format": "national",
       "phone": "9696 1234",
       "sentence": "Recapito del cliente (MT): 9696 1234 — confermato in udienza.",
@@ -1540,106 +680,6 @@
       "phone": "9696-1234",
       "sentence": "Recapito del cliente (MT): 9696-1234 — confermato in udienza.",
       "e164": "+35696961234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NL",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+31612345678",
-      "sentence": "Recapito del cliente (NL): +31612345678 — confermato in udienza.",
-      "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NL",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+31 6 12345678",
-      "sentence": "Recapito del cliente (NL): +31 6 12345678 — confermato in udienza.",
-      "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NL",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0031 6 12345678",
-      "sentence": "Recapito del cliente (NL): 0031 6 12345678 — confermato in udienza.",
-      "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NL",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "06 12345678",
-      "sentence": "Recapito del cliente (NL): 06 12345678 — confermato in udienza.",
-      "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NL",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "0612345678",
-      "sentence": "Recapito del cliente (NL): 0612345678 — confermato in udienza.",
-      "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NL",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "06.12345678",
-      "sentence": "Recapito del cliente (NL): 06.12345678 — confermato in udienza.",
-      "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NL",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "06-12345678",
-      "sentence": "Recapito del cliente (NL): 06-12345678 — confermato in udienza.",
-      "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "PL",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+48512345678",
-      "sentence": "Recapito del cliente (PL): +48512345678 — confermato in udienza.",
-      "e164": "+48512345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "PL",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+48 512 345 678",
-      "sentence": "Recapito del cliente (PL): +48 512 345 678 — confermato in udienza.",
-      "e164": "+48512345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "PL",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0048 512 345 678",
-      "sentence": "Recapito del cliente (PL): 0048 512 345 678 — confermato in udienza.",
-      "e164": "+48512345678",
       "hit": false,
       "phoneMatches": []
     },
@@ -1686,26 +726,6 @@
     {
       "country": "PT",
       "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+351912345678",
-      "sentence": "Recapito del cliente (PT): +351912345678 — confermato in udienza.",
-      "e164": "+351912345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "PT",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00351 912 345 678",
-      "sentence": "Recapito del cliente (PT): 00351 912 345 678 — confermato in udienza.",
-      "e164": "+351912345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "PT",
-      "region": "EU_EEA",
       "format": "national",
       "phone": "912 345 678",
       "sentence": "Recapito del cliente (PT): 912 345 678 — confermato in udienza.",
@@ -1740,246 +760,6 @@
       "phone": "912-345-678",
       "sentence": "Recapito del cliente (PT): 912-345-678 — confermato in udienza.",
       "e164": "+351912345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "RO",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+40712034567",
-      "sentence": "Recapito del cliente (RO): +40712034567 — confermato in udienza.",
-      "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "RO",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+40 712 034 567",
-      "sentence": "Recapito del cliente (RO): +40 712 034 567 — confermato in udienza.",
-      "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "RO",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0040 712 034 567",
-      "sentence": "Recapito del cliente (RO): 0040 712 034 567 — confermato in udienza.",
-      "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "RO",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "0712 034 567",
-      "sentence": "Recapito del cliente (RO): 0712 034 567 — confermato in udienza.",
-      "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "RO",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "0712034567",
-      "sentence": "Recapito del cliente (RO): 0712034567 — confermato in udienza.",
-      "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "RO",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "0712.034.567",
-      "sentence": "Recapito del cliente (RO): 0712.034.567 — confermato in udienza.",
-      "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "RO",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "0712-034-567",
-      "sentence": "Recapito del cliente (RO): 0712-034-567 — confermato in udienza.",
-      "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SK",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+421912123456",
-      "sentence": "Recapito del cliente (SK): +421912123456 — confermato in udienza.",
-      "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SK",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+421 912 123 456",
-      "sentence": "Recapito del cliente (SK): +421 912 123 456 — confermato in udienza.",
-      "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SK",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00421 912 123 456",
-      "sentence": "Recapito del cliente (SK): 00421 912 123 456 — confermato in udienza.",
-      "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SK",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "0912 123 456",
-      "sentence": "Recapito del cliente (SK): 0912 123 456 — confermato in udienza.",
-      "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SK",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "0912123456",
-      "sentence": "Recapito del cliente (SK): 0912123456 — confermato in udienza.",
-      "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SK",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "0912.123.456",
-      "sentence": "Recapito del cliente (SK): 0912.123.456 — confermato in udienza.",
-      "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SK",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "0912-123-456",
-      "sentence": "Recapito del cliente (SK): 0912-123-456 — confermato in udienza.",
-      "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SI",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+38631234567",
-      "sentence": "Recapito del cliente (SI): +38631234567 — confermato in udienza.",
-      "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SI",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+386 31 234 567",
-      "sentence": "Recapito del cliente (SI): +386 31 234 567 — confermato in udienza.",
-      "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SI",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00386 31 234 567",
-      "sentence": "Recapito del cliente (SI): 00386 31 234 567 — confermato in udienza.",
-      "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SI",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "031 234 567",
-      "sentence": "Recapito del cliente (SI): 031 234 567 — confermato in udienza.",
-      "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SI",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "031234567",
-      "sentence": "Recapito del cliente (SI): 031234567 — confermato in udienza.",
-      "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SI",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "031.234.567",
-      "sentence": "Recapito del cliente (SI): 031.234.567 — confermato in udienza.",
-      "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SI",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "031-234-567",
-      "sentence": "Recapito del cliente (SI): 031-234-567 — confermato in udienza.",
-      "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "ES",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+34612345678",
-      "sentence": "Recapito del cliente (ES): +34612345678 — confermato in udienza.",
-      "e164": "+34612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "ES",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+34 612 34 56 78",
-      "sentence": "Recapito del cliente (ES): +34 612 34 56 78 — confermato in udienza.",
-      "e164": "+34612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "ES",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0034 612 34 56 78",
-      "sentence": "Recapito del cliente (ES): 0034 612 34 56 78 — confermato in udienza.",
-      "e164": "+34612345678",
       "hit": false,
       "phoneMatches": []
     },
@@ -2020,96 +800,6 @@
       "phone": "612-34-56-78",
       "sentence": "Recapito del cliente (ES): 612-34-56-78 — confermato in udienza.",
       "e164": "+34612345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SE",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+46701234567",
-      "sentence": "Recapito del cliente (SE): +46701234567 — confermato in udienza.",
-      "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SE",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+46 70 123 45 67",
-      "sentence": "Recapito del cliente (SE): +46 70 123 45 67 — confermato in udienza.",
-      "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SE",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0046 70 123 45 67",
-      "sentence": "Recapito del cliente (SE): 0046 70 123 45 67 — confermato in udienza.",
-      "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SE",
-      "region": "EU_EEA",
-      "format": "national",
-      "phone": "070-123 45 67",
-      "sentence": "Recapito del cliente (SE): 070-123 45 67 — confermato in udienza.",
-      "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SE",
-      "region": "EU_EEA",
-      "format": "national_plain",
-      "phone": "0701234567",
-      "sentence": "Recapito del cliente (SE): 0701234567 — confermato in udienza.",
-      "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SE",
-      "region": "EU_EEA",
-      "format": "national_dots",
-      "phone": "070-123.45.67",
-      "sentence": "Recapito del cliente (SE): 070-123.45.67 — confermato in udienza.",
-      "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "SE",
-      "region": "EU_EEA",
-      "format": "national_dash",
-      "phone": "070-123-45-67",
-      "sentence": "Recapito del cliente (SE): 070-123-45-67 — confermato in udienza.",
-      "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IS",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+3546111234",
-      "sentence": "Recapito del cliente (IS): +3546111234 — confermato in udienza.",
-      "e164": "+3546111234",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IS",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00354 611 1234",
-      "sentence": "Recapito del cliente (IS): 00354 611 1234 — confermato in udienza.",
-      "e164": "+3546111234",
       "hit": false,
       "phoneMatches": []
     },
@@ -2156,36 +846,6 @@
     {
       "country": "LI",
       "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+423660234567",
-      "sentence": "Recapito del cliente (LI): +423660234567 — confermato in udienza.",
-      "e164": "+423660234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LI",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+423 660 234 567",
-      "sentence": "Recapito del cliente (LI): +423 660 234 567 — confermato in udienza.",
-      "e164": "+423660234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LI",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "00423 660 234 567",
-      "sentence": "Recapito del cliente (LI): 00423 660 234 567 — confermato in udienza.",
-      "e164": "+423660234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "LI",
-      "region": "EU_EEA",
       "format": "national",
       "phone": "660 234 567",
       "sentence": "Recapito del cliente (LI): 660 234 567 — confermato in udienza.",
@@ -2220,36 +880,6 @@
       "phone": "660-234-567",
       "sentence": "Recapito del cliente (LI): 660-234-567 — confermato in udienza.",
       "e164": "+423660234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NO",
-      "region": "EU_EEA",
-      "format": "e164",
-      "phone": "+4740612345",
-      "sentence": "Recapito del cliente (NO): +4740612345 — confermato in udienza.",
-      "e164": "+4740612345",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NO",
-      "region": "EU_EEA",
-      "format": "intl_spaced",
-      "phone": "+47 40 61 23 45",
-      "sentence": "Recapito del cliente (NO): +47 40 61 23 45 — confermato in udienza.",
-      "e164": "+4740612345",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NO",
-      "region": "EU_EEA",
-      "format": "intl_00",
-      "phone": "0047 40 61 23 45",
-      "sentence": "Recapito del cliente (NO): 0047 40 61 23 45 — confermato in udienza.",
-      "e164": "+4740612345",
       "hit": false,
       "phoneMatches": []
     },
@@ -2296,36 +926,6 @@
     {
       "country": "GB",
       "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+447400123456",
-      "sentence": "Recapito del cliente (GB): +447400123456 — confermato in udienza.",
-      "e164": "+447400123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "GB",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+44 7400 123456",
-      "sentence": "Recapito del cliente (GB): +44 7400 123456 — confermato in udienza.",
-      "e164": "+447400123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "GB",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "0044 7400 123456",
-      "sentence": "Recapito del cliente (GB): 0044 7400 123456 — confermato in udienza.",
-      "e164": "+447400123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "GB",
-      "region": "WORLD_SAMPLE",
       "format": "national",
       "phone": "07400 123456",
       "sentence": "Recapito del cliente (GB): 07400 123456 — confermato in udienza.",
@@ -2360,106 +960,6 @@
       "phone": "07400-123456",
       "sentence": "Recapito del cliente (GB): 07400-123456 — confermato in udienza.",
       "e164": "+447400123456",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CH",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+41781234567",
-      "sentence": "Recapito del cliente (CH): +41781234567 — confermato in udienza.",
-      "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CH",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+41 78 123 45 67",
-      "sentence": "Recapito del cliente (CH): +41 78 123 45 67 — confermato in udienza.",
-      "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CH",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "0041 78 123 45 67",
-      "sentence": "Recapito del cliente (CH): 0041 78 123 45 67 — confermato in udienza.",
-      "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CH",
-      "region": "WORLD_SAMPLE",
-      "format": "national",
-      "phone": "078 123 45 67",
-      "sentence": "Recapito del cliente (CH): 078 123 45 67 — confermato in udienza.",
-      "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CH",
-      "region": "WORLD_SAMPLE",
-      "format": "national_plain",
-      "phone": "0781234567",
-      "sentence": "Recapito del cliente (CH): 0781234567 — confermato in udienza.",
-      "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CH",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dots",
-      "phone": "078.123.45.67",
-      "sentence": "Recapito del cliente (CH): 078.123.45.67 — confermato in udienza.",
-      "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CH",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dash",
-      "phone": "078-123-45-67",
-      "sentence": "Recapito del cliente (CH): 078-123-45-67 — confermato in udienza.",
-      "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "US",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+12015550123",
-      "sentence": "Recapito del cliente (US): +12015550123 — confermato in udienza.",
-      "e164": "+12015550123",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "US",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+1 201 555 0123",
-      "sentence": "Recapito del cliente (US): +1 201 555 0123 — confermato in udienza.",
-      "e164": "+12015550123",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "US",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "001 201 555 0123",
-      "sentence": "Recapito del cliente (US): 001 201 555 0123 — confermato in udienza.",
-      "e164": "+12015550123",
       "hit": false,
       "phoneMatches": []
     },
@@ -2506,36 +1006,6 @@
     {
       "country": "CA",
       "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+15062345678",
-      "sentence": "Recapito del cliente (CA): +15062345678 — confermato in udienza.",
-      "e164": "+15062345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CA",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+1 506 234 5678",
-      "sentence": "Recapito del cliente (CA): +1 506 234 5678 — confermato in udienza.",
-      "e164": "+15062345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CA",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "001 506 234 5678",
-      "sentence": "Recapito del cliente (CA): 001 506 234 5678 — confermato in udienza.",
-      "e164": "+15062345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CA",
-      "region": "WORLD_SAMPLE",
       "format": "national",
       "phone": "(506) 234-5678",
       "sentence": "Recapito del cliente (CA): (506) 234-5678 — confermato in udienza.",
@@ -2570,156 +1040,6 @@
       "phone": "(506)-234-5678",
       "sentence": "Recapito del cliente (CA): (506)-234-5678 — confermato in udienza.",
       "e164": "+15062345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AU",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+61412345678",
-      "sentence": "Recapito del cliente (AU): +61412345678 — confermato in udienza.",
-      "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AU",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+61 412 345 678",
-      "sentence": "Recapito del cliente (AU): +61 412 345 678 — confermato in udienza.",
-      "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AU",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "0061 412 345 678",
-      "sentence": "Recapito del cliente (AU): 0061 412 345 678 — confermato in udienza.",
-      "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AU",
-      "region": "WORLD_SAMPLE",
-      "format": "national",
-      "phone": "0412 345 678",
-      "sentence": "Recapito del cliente (AU): 0412 345 678 — confermato in udienza.",
-      "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AU",
-      "region": "WORLD_SAMPLE",
-      "format": "national_plain",
-      "phone": "0412345678",
-      "sentence": "Recapito del cliente (AU): 0412345678 — confermato in udienza.",
-      "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AU",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dots",
-      "phone": "0412.345.678",
-      "sentence": "Recapito del cliente (AU): 0412.345.678 — confermato in udienza.",
-      "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AU",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dash",
-      "phone": "0412-345-678",
-      "sentence": "Recapito del cliente (AU): 0412-345-678 — confermato in udienza.",
-      "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "JP",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+819012345678",
-      "sentence": "Recapito del cliente (JP): +819012345678 — confermato in udienza.",
-      "e164": "+819012345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "JP",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+81 90 1234 5678",
-      "sentence": "Recapito del cliente (JP): +81 90 1234 5678 — confermato in udienza.",
-      "e164": "+819012345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "JP",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "0081 90 1234 5678",
-      "sentence": "Recapito del cliente (JP): 0081 90 1234 5678 — confermato in udienza.",
-      "e164": "+819012345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "JP",
-      "region": "WORLD_SAMPLE",
-      "format": "national",
-      "phone": "090-1234-5678",
-      "sentence": "Recapito del cliente (JP): 090-1234-5678 — confermato in udienza.",
-      "e164": "+819012345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "JP",
-      "region": "WORLD_SAMPLE",
-      "format": "national_plain",
-      "phone": "09012345678",
-      "sentence": "Recapito del cliente (JP): 09012345678 — confermato in udienza.",
-      "e164": "+819012345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BR",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+5511961234567",
-      "sentence": "Recapito del cliente (BR): +5511961234567 — confermato in udienza.",
-      "e164": "+5511961234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BR",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+55 11 96123 4567",
-      "sentence": "Recapito del cliente (BR): +55 11 96123 4567 — confermato in udienza.",
-      "e164": "+5511961234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "BR",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "0055 11 96123 4567",
-      "sentence": "Recapito del cliente (BR): 0055 11 96123 4567 — confermato in udienza.",
-      "e164": "+5511961234567",
       "hit": false,
       "phoneMatches": []
     },
@@ -2760,106 +1080,6 @@
       "phone": "(11)-96123-4567",
       "sentence": "Recapito del cliente (BR): (11)-96123-4567 — confermato in udienza.",
       "e164": "+5511961234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IN",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+918123456789",
-      "sentence": "Recapito del cliente (IN): +918123456789 — confermato in udienza.",
-      "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IN",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+91 81234 56789",
-      "sentence": "Recapito del cliente (IN): +91 81234 56789 — confermato in udienza.",
-      "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IN",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "0091 81234 56789",
-      "sentence": "Recapito del cliente (IN): 0091 81234 56789 — confermato in udienza.",
-      "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IN",
-      "region": "WORLD_SAMPLE",
-      "format": "national",
-      "phone": "081234 56789",
-      "sentence": "Recapito del cliente (IN): 081234 56789 — confermato in udienza.",
-      "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IN",
-      "region": "WORLD_SAMPLE",
-      "format": "national_plain",
-      "phone": "08123456789",
-      "sentence": "Recapito del cliente (IN): 08123456789 — confermato in udienza.",
-      "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IN",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dots",
-      "phone": "081234.56789",
-      "sentence": "Recapito del cliente (IN): 081234.56789 — confermato in udienza.",
-      "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "IN",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dash",
-      "phone": "081234-56789",
-      "sentence": "Recapito del cliente (IN): 081234-56789 — confermato in udienza.",
-      "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CN",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+8613123456789",
-      "sentence": "Recapito del cliente (CN): +8613123456789 — confermato in udienza.",
-      "e164": "+8613123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CN",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+86 131 2345 6789",
-      "sentence": "Recapito del cliente (CN): +86 131 2345 6789 — confermato in udienza.",
-      "e164": "+8613123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "CN",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "0086 131 2345 6789",
-      "sentence": "Recapito del cliente (CN): 0086 131 2345 6789 — confermato in udienza.",
-      "e164": "+8613123456789",
       "hit": false,
       "phoneMatches": []
     },
@@ -2906,36 +1126,6 @@
     {
       "country": "RU",
       "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+79123456789",
-      "sentence": "Recapito del cliente (RU): +79123456789 — confermato in udienza.",
-      "e164": "+79123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "RU",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+7 912 345 67 89",
-      "sentence": "Recapito del cliente (RU): +7 912 345 67 89 — confermato in udienza.",
-      "e164": "+79123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "RU",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "007 912 345 67 89",
-      "sentence": "Recapito del cliente (RU): 007 912 345 67 89 — confermato in udienza.",
-      "e164": "+79123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "RU",
-      "region": "WORLD_SAMPLE",
       "format": "national",
       "phone": "8 (912) 345-67-89",
       "sentence": "Recapito del cliente (RU): 8 (912) 345-67-89 — confermato in udienza.",
@@ -2970,176 +1160,6 @@
       "phone": "8-(912)-345-67-89",
       "sentence": "Recapito del cliente (RU): 8-(912)-345-67-89 — confermato in udienza.",
       "e164": "+79123456789",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "ZA",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+27711234567",
-      "sentence": "Recapito del cliente (ZA): +27711234567 — confermato in udienza.",
-      "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "ZA",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+27 71 123 4567",
-      "sentence": "Recapito del cliente (ZA): +27 71 123 4567 — confermato in udienza.",
-      "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "ZA",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "0027 71 123 4567",
-      "sentence": "Recapito del cliente (ZA): 0027 71 123 4567 — confermato in udienza.",
-      "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "ZA",
-      "region": "WORLD_SAMPLE",
-      "format": "national",
-      "phone": "071 123 4567",
-      "sentence": "Recapito del cliente (ZA): 071 123 4567 — confermato in udienza.",
-      "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "ZA",
-      "region": "WORLD_SAMPLE",
-      "format": "national_plain",
-      "phone": "0711234567",
-      "sentence": "Recapito del cliente (ZA): 0711234567 — confermato in udienza.",
-      "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "ZA",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dots",
-      "phone": "071.123.4567",
-      "sentence": "Recapito del cliente (ZA): 071.123.4567 — confermato in udienza.",
-      "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "ZA",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dash",
-      "phone": "071-123-4567",
-      "sentence": "Recapito del cliente (ZA): 071-123-4567 — confermato in udienza.",
-      "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AE",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+971501234567",
-      "sentence": "Recapito del cliente (AE): +971501234567 — confermato in udienza.",
-      "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AE",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+971 50 123 4567",
-      "sentence": "Recapito del cliente (AE): +971 50 123 4567 — confermato in udienza.",
-      "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AE",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "00971 50 123 4567",
-      "sentence": "Recapito del cliente (AE): 00971 50 123 4567 — confermato in udienza.",
-      "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AE",
-      "region": "WORLD_SAMPLE",
-      "format": "national",
-      "phone": "050 123 4567",
-      "sentence": "Recapito del cliente (AE): 050 123 4567 — confermato in udienza.",
-      "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AE",
-      "region": "WORLD_SAMPLE",
-      "format": "national_plain",
-      "phone": "0501234567",
-      "sentence": "Recapito del cliente (AE): 0501234567 — confermato in udienza.",
-      "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AE",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dots",
-      "phone": "050.123.4567",
-      "sentence": "Recapito del cliente (AE): 050.123.4567 — confermato in udienza.",
-      "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "AE",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dash",
-      "phone": "050-123-4567",
-      "sentence": "Recapito del cliente (AE): 050-123-4567 — confermato in udienza.",
-      "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "MX",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+522221234567",
-      "sentence": "Recapito del cliente (MX): +522221234567 — confermato in udienza.",
-      "e164": "+522221234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "MX",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+52 222 123 4567",
-      "sentence": "Recapito del cliente (MX): +52 222 123 4567 — confermato in udienza.",
-      "e164": "+522221234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "MX",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "0052 222 123 4567",
-      "sentence": "Recapito del cliente (MX): 0052 222 123 4567 — confermato in udienza.",
-      "e164": "+522221234567",
       "hit": false,
       "phoneMatches": []
     },
@@ -3182,146 +1202,6 @@
       "e164": "+522221234567",
       "hit": false,
       "phoneMatches": []
-    },
-    {
-      "country": "NG",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+2348021234567",
-      "sentence": "Recapito del cliente (NG): +2348021234567 — confermato in udienza.",
-      "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NG",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+234 802 123 4567",
-      "sentence": "Recapito del cliente (NG): +234 802 123 4567 — confermato in udienza.",
-      "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NG",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "00234 802 123 4567",
-      "sentence": "Recapito del cliente (NG): 00234 802 123 4567 — confermato in udienza.",
-      "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NG",
-      "region": "WORLD_SAMPLE",
-      "format": "national",
-      "phone": "0802 123 4567",
-      "sentence": "Recapito del cliente (NG): 0802 123 4567 — confermato in udienza.",
-      "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NG",
-      "region": "WORLD_SAMPLE",
-      "format": "national_plain",
-      "phone": "08021234567",
-      "sentence": "Recapito del cliente (NG): 08021234567 — confermato in udienza.",
-      "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NG",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dots",
-      "phone": "0802.123.4567",
-      "sentence": "Recapito del cliente (NG): 0802.123.4567 — confermato in udienza.",
-      "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "NG",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dash",
-      "phone": "0802-123-4567",
-      "sentence": "Recapito del cliente (NG): 0802-123-4567 — confermato in udienza.",
-      "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "TR",
-      "region": "WORLD_SAMPLE",
-      "format": "e164",
-      "phone": "+905012345678",
-      "sentence": "Recapito del cliente (TR): +905012345678 — confermato in udienza.",
-      "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "TR",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_spaced",
-      "phone": "+90 501 234 56 78",
-      "sentence": "Recapito del cliente (TR): +90 501 234 56 78 — confermato in udienza.",
-      "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "TR",
-      "region": "WORLD_SAMPLE",
-      "format": "intl_00",
-      "phone": "0090 501 234 56 78",
-      "sentence": "Recapito del cliente (TR): 0090 501 234 56 78 — confermato in udienza.",
-      "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "TR",
-      "region": "WORLD_SAMPLE",
-      "format": "national",
-      "phone": "0501 234 56 78",
-      "sentence": "Recapito del cliente (TR): 0501 234 56 78 — confermato in udienza.",
-      "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "TR",
-      "region": "WORLD_SAMPLE",
-      "format": "national_plain",
-      "phone": "05012345678",
-      "sentence": "Recapito del cliente (TR): 05012345678 — confermato in udienza.",
-      "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "TR",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dots",
-      "phone": "0501.234.56.78",
-      "sentence": "Recapito del cliente (TR): 0501.234.56.78 — confermato in udienza.",
-      "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
-    },
-    {
-      "country": "TR",
-      "region": "WORLD_SAMPLE",
-      "format": "national_dash",
-      "phone": "0501-234-56-78",
-      "sentence": "Recapito del cliente (TR): 0501-234-56-78 — confermato in udienza.",
-      "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
     }
   ],
   "cases": [
@@ -3332,8 +1212,10 @@
       "phone": "+43664123456",
       "sentence": "Recapito del cliente (AT): +43664123456 — confermato in udienza.",
       "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+43664123456"
+      ]
     },
     {
       "country": "AT",
@@ -3342,8 +1224,10 @@
       "phone": "+43 664 123456",
       "sentence": "Recapito del cliente (AT): +43 664 123456 — confermato in udienza.",
       "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+43 664 123456"
+      ]
     },
     {
       "country": "AT",
@@ -3352,8 +1236,10 @@
       "phone": "0043 664 123456",
       "sentence": "Recapito del cliente (AT): 0043 664 123456 — confermato in udienza.",
       "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0043 664 123456"
+      ]
     },
     {
       "country": "AT",
@@ -3362,8 +1248,10 @@
       "phone": "0664 123456",
       "sentence": "Recapito del cliente (AT): 0664 123456 — confermato in udienza.",
       "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0664 123456"
+      ]
     },
     {
       "country": "AT",
@@ -3372,8 +1260,10 @@
       "phone": "0664123456",
       "sentence": "Recapito del cliente (AT): 0664123456 — confermato in udienza.",
       "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0664123456"
+      ]
     },
     {
       "country": "AT",
@@ -3382,8 +1272,10 @@
       "phone": "0664.123456",
       "sentence": "Recapito del cliente (AT): 0664.123456 — confermato in udienza.",
       "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0664.123456"
+      ]
     },
     {
       "country": "AT",
@@ -3392,8 +1284,10 @@
       "phone": "0664-123456",
       "sentence": "Recapito del cliente (AT): 0664-123456 — confermato in udienza.",
       "e164": "+43664123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0664-123456"
+      ]
     },
     {
       "country": "BE",
@@ -3402,8 +1296,10 @@
       "phone": "+32450001234",
       "sentence": "Recapito del cliente (BE): +32450001234 — confermato in udienza.",
       "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+32450001234"
+      ]
     },
     {
       "country": "BE",
@@ -3412,8 +1308,10 @@
       "phone": "+32 450 00 12 34",
       "sentence": "Recapito del cliente (BE): +32 450 00 12 34 — confermato in udienza.",
       "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+32 450 00 12 34"
+      ]
     },
     {
       "country": "BE",
@@ -3422,8 +1320,10 @@
       "phone": "0032 450 00 12 34",
       "sentence": "Recapito del cliente (BE): 0032 450 00 12 34 — confermato in udienza.",
       "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0032 450 00 12 34"
+      ]
     },
     {
       "country": "BE",
@@ -3432,8 +1332,10 @@
       "phone": "0450 00 12 34",
       "sentence": "Recapito del cliente (BE): 0450 00 12 34 — confermato in udienza.",
       "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0450 00 12 34"
+      ]
     },
     {
       "country": "BE",
@@ -3442,8 +1344,10 @@
       "phone": "0450001234",
       "sentence": "Recapito del cliente (BE): 0450001234 — confermato in udienza.",
       "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0450001234"
+      ]
     },
     {
       "country": "BE",
@@ -3452,8 +1356,10 @@
       "phone": "0450.00.12.34",
       "sentence": "Recapito del cliente (BE): 0450.00.12.34 — confermato in udienza.",
       "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0450.00.12.34"
+      ]
     },
     {
       "country": "BE",
@@ -3462,8 +1368,10 @@
       "phone": "0450-00-12-34",
       "sentence": "Recapito del cliente (BE): 0450-00-12-34 — confermato in udienza.",
       "e164": "+32450001234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0450-00-12-34"
+      ]
     },
     {
       "country": "BG",
@@ -3472,8 +1380,10 @@
       "phone": "+35943012345",
       "sentence": "Recapito del cliente (BG): +35943012345 — confermato in udienza.",
       "e164": "+35943012345",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+35943012345"
+      ]
     },
     {
       "country": "BG",
@@ -3482,8 +1392,10 @@
       "phone": "+359 43 012 345",
       "sentence": "Recapito del cliente (BG): +359 43 012 345 — confermato in udienza.",
       "e164": "+35943012345",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+359 43 012 345"
+      ]
     },
     {
       "country": "BG",
@@ -3492,8 +1404,10 @@
       "phone": "00359 43 012 345",
       "sentence": "Recapito del cliente (BG): 00359 43 012 345 — confermato in udienza.",
       "e164": "+35943012345",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00359 43 012 345"
+      ]
     },
     {
       "country": "BG",
@@ -3542,8 +1456,10 @@
       "phone": "+385921234567",
       "sentence": "Recapito del cliente (HR): +385921234567 — confermato in udienza.",
       "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+385921234567"
+      ]
     },
     {
       "country": "HR",
@@ -3552,8 +1468,10 @@
       "phone": "+385 92 123 4567",
       "sentence": "Recapito del cliente (HR): +385 92 123 4567 — confermato in udienza.",
       "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+385 92 123 4567"
+      ]
     },
     {
       "country": "HR",
@@ -3562,8 +1480,10 @@
       "phone": "00385 92 123 4567",
       "sentence": "Recapito del cliente (HR): 00385 92 123 4567 — confermato in udienza.",
       "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00385 92 123 4567"
+      ]
     },
     {
       "country": "HR",
@@ -3572,8 +1492,10 @@
       "phone": "092 123 4567",
       "sentence": "Recapito del cliente (HR): 092 123 4567 — confermato in udienza.",
       "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "092 123 4567"
+      ]
     },
     {
       "country": "HR",
@@ -3582,8 +1504,10 @@
       "phone": "0921234567",
       "sentence": "Recapito del cliente (HR): 0921234567 — confermato in udienza.",
       "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0921234567"
+      ]
     },
     {
       "country": "HR",
@@ -3592,8 +1516,10 @@
       "phone": "092.123.4567",
       "sentence": "Recapito del cliente (HR): 092.123.4567 — confermato in udienza.",
       "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "092.123.4567"
+      ]
     },
     {
       "country": "HR",
@@ -3602,8 +1528,10 @@
       "phone": "092-123-4567",
       "sentence": "Recapito del cliente (HR): 092-123-4567 — confermato in udienza.",
       "e164": "+385921234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "092-123-4567"
+      ]
     },
     {
       "country": "CY",
@@ -3612,8 +1540,10 @@
       "phone": "+35796123456",
       "sentence": "Recapito del cliente (CY): +35796123456 — confermato in udienza.",
       "e164": "+35796123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+35796123456"
+      ]
     },
     {
       "country": "CY",
@@ -3622,8 +1552,10 @@
       "phone": "+357 96 123456",
       "sentence": "Recapito del cliente (CY): +357 96 123456 — confermato in udienza.",
       "e164": "+35796123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+357 96 123456"
+      ]
     },
     {
       "country": "CY",
@@ -3632,8 +1564,10 @@
       "phone": "00357 96 123456",
       "sentence": "Recapito del cliente (CY): 00357 96 123456 — confermato in udienza.",
       "e164": "+35796123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00357 96 123456"
+      ]
     },
     {
       "country": "CY",
@@ -3682,8 +1616,10 @@
       "phone": "+420601123456",
       "sentence": "Recapito del cliente (CZ): +420601123456 — confermato in udienza.",
       "e164": "+420601123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+420601123456"
+      ]
     },
     {
       "country": "CZ",
@@ -3692,8 +1628,10 @@
       "phone": "+420 601 123 456",
       "sentence": "Recapito del cliente (CZ): +420 601 123 456 — confermato in udienza.",
       "e164": "+420601123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+420 601 123 456"
+      ]
     },
     {
       "country": "CZ",
@@ -3702,8 +1640,10 @@
       "phone": "00420 601 123 456",
       "sentence": "Recapito del cliente (CZ): 00420 601 123 456 — confermato in udienza.",
       "e164": "+420601123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00420 601 123 456"
+      ]
     },
     {
       "country": "CZ",
@@ -3752,8 +1692,10 @@
       "phone": "+4534412345",
       "sentence": "Recapito del cliente (DK): +4534412345 — confermato in udienza.",
       "e164": "+4534412345",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+4534412345"
+      ]
     },
     {
       "country": "DK",
@@ -3762,8 +1704,10 @@
       "phone": "+45 34 41 23 45",
       "sentence": "Recapito del cliente (DK): +45 34 41 23 45 — confermato in udienza.",
       "e164": "+4534412345",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+45 34 41 23 45"
+      ]
     },
     {
       "country": "DK",
@@ -3772,8 +1716,10 @@
       "phone": "0045 34 41 23 45",
       "sentence": "Recapito del cliente (DK): 0045 34 41 23 45 — confermato in udienza.",
       "e164": "+4534412345",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0045 34 41 23 45"
+      ]
     },
     {
       "country": "DK",
@@ -3822,8 +1768,10 @@
       "phone": "+37251234567",
       "sentence": "Recapito del cliente (EE): +37251234567 — confermato in udienza.",
       "e164": "+37251234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+37251234567"
+      ]
     },
     {
       "country": "EE",
@@ -3832,8 +1780,10 @@
       "phone": "+372 5123 4567",
       "sentence": "Recapito del cliente (EE): +372 5123 4567 — confermato in udienza.",
       "e164": "+37251234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+372 5123 4567"
+      ]
     },
     {
       "country": "EE",
@@ -3842,8 +1792,10 @@
       "phone": "00372 5123 4567",
       "sentence": "Recapito del cliente (EE): 00372 5123 4567 — confermato in udienza.",
       "e164": "+37251234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00372 5123 4567"
+      ]
     },
     {
       "country": "EE",
@@ -3892,8 +1844,10 @@
       "phone": "+358412345678",
       "sentence": "Recapito del cliente (FI): +358412345678 — confermato in udienza.",
       "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+358412345678"
+      ]
     },
     {
       "country": "FI",
@@ -3902,8 +1856,10 @@
       "phone": "+358 41 2345678",
       "sentence": "Recapito del cliente (FI): +358 41 2345678 — confermato in udienza.",
       "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+358 41 2345678"
+      ]
     },
     {
       "country": "FI",
@@ -3912,8 +1868,10 @@
       "phone": "00358 41 2345678",
       "sentence": "Recapito del cliente (FI): 00358 41 2345678 — confermato in udienza.",
       "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00358 41 2345678"
+      ]
     },
     {
       "country": "FI",
@@ -3922,8 +1880,10 @@
       "phone": "041 2345678",
       "sentence": "Recapito del cliente (FI): 041 2345678 — confermato in udienza.",
       "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "041 2345678"
+      ]
     },
     {
       "country": "FI",
@@ -3932,8 +1892,10 @@
       "phone": "0412345678",
       "sentence": "Recapito del cliente (FI): 0412345678 — confermato in udienza.",
       "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0412345678"
+      ]
     },
     {
       "country": "FI",
@@ -3942,8 +1904,10 @@
       "phone": "041.2345678",
       "sentence": "Recapito del cliente (FI): 041.2345678 — confermato in udienza.",
       "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "041.2345678"
+      ]
     },
     {
       "country": "FI",
@@ -3952,8 +1916,10 @@
       "phone": "041-2345678",
       "sentence": "Recapito del cliente (FI): 041-2345678 — confermato in udienza.",
       "e164": "+358412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "041-2345678"
+      ]
     },
     {
       "country": "FR",
@@ -3962,8 +1928,10 @@
       "phone": "+33612345678",
       "sentence": "Recapito del cliente (FR): +33612345678 — confermato in udienza.",
       "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+33612345678"
+      ]
     },
     {
       "country": "FR",
@@ -3972,8 +1940,10 @@
       "phone": "+33 6 12 34 56 78",
       "sentence": "Recapito del cliente (FR): +33 6 12 34 56 78 — confermato in udienza.",
       "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+33 6 12 34 56 78"
+      ]
     },
     {
       "country": "FR",
@@ -3982,8 +1952,10 @@
       "phone": "0033 6 12 34 56 78",
       "sentence": "Recapito del cliente (FR): 0033 6 12 34 56 78 — confermato in udienza.",
       "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0033 6 12 34 56 78"
+      ]
     },
     {
       "country": "FR",
@@ -3992,8 +1964,10 @@
       "phone": "06 12 34 56 78",
       "sentence": "Recapito del cliente (FR): 06 12 34 56 78 — confermato in udienza.",
       "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "06 12 34 56 78"
+      ]
     },
     {
       "country": "FR",
@@ -4002,8 +1976,10 @@
       "phone": "0612345678",
       "sentence": "Recapito del cliente (FR): 0612345678 — confermato in udienza.",
       "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0612345678"
+      ]
     },
     {
       "country": "FR",
@@ -4012,8 +1988,10 @@
       "phone": "06.12.34.56.78",
       "sentence": "Recapito del cliente (FR): 06.12.34.56.78 — confermato in udienza.",
       "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "06.12.34.56.78"
+      ]
     },
     {
       "country": "FR",
@@ -4022,8 +2000,10 @@
       "phone": "06-12-34-56-78",
       "sentence": "Recapito del cliente (FR): 06-12-34-56-78 — confermato in udienza.",
       "e164": "+33612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "06-12-34-56-78"
+      ]
     },
     {
       "country": "DE",
@@ -4032,8 +2012,10 @@
       "phone": "+4915123456789",
       "sentence": "Recapito del cliente (DE): +4915123456789 — confermato in udienza.",
       "e164": "+4915123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+4915123456789"
+      ]
     },
     {
       "country": "DE",
@@ -4042,8 +2024,10 @@
       "phone": "+49 1512 3456789",
       "sentence": "Recapito del cliente (DE): +49 1512 3456789 — confermato in udienza.",
       "e164": "+4915123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+49 1512 3456789"
+      ]
     },
     {
       "country": "DE",
@@ -4052,8 +2036,10 @@
       "phone": "0049 1512 3456789",
       "sentence": "Recapito del cliente (DE): 0049 1512 3456789 — confermato in udienza.",
       "e164": "+4915123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0049 1512 3456789"
+      ]
     },
     {
       "country": "DE",
@@ -4102,8 +2088,10 @@
       "phone": "+306912345678",
       "sentence": "Recapito del cliente (GR): +306912345678 — confermato in udienza.",
       "e164": "+306912345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+306912345678"
+      ]
     },
     {
       "country": "GR",
@@ -4112,8 +2100,10 @@
       "phone": "+30 691 234 5678",
       "sentence": "Recapito del cliente (GR): +30 691 234 5678 — confermato in udienza.",
       "e164": "+306912345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+30 691 234 5678"
+      ]
     },
     {
       "country": "GR",
@@ -4122,8 +2112,10 @@
       "phone": "0030 691 234 5678",
       "sentence": "Recapito del cliente (GR): 0030 691 234 5678 — confermato in udienza.",
       "e164": "+306912345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0030 691 234 5678"
+      ]
     },
     {
       "country": "GR",
@@ -4172,8 +2164,10 @@
       "phone": "+36201234567",
       "sentence": "Recapito del cliente (HU): +36201234567 — confermato in udienza.",
       "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+36201234567"
+      ]
     },
     {
       "country": "HU",
@@ -4182,8 +2176,10 @@
       "phone": "+36 20 123 4567",
       "sentence": "Recapito del cliente (HU): +36 20 123 4567 — confermato in udienza.",
       "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+36 20 123 4567"
+      ]
     },
     {
       "country": "HU",
@@ -4192,8 +2188,10 @@
       "phone": "0036 20 123 4567",
       "sentence": "Recapito del cliente (HU): 0036 20 123 4567 — confermato in udienza.",
       "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0036 20 123 4567"
+      ]
     },
     {
       "country": "HU",
@@ -4202,8 +2200,10 @@
       "phone": "06 20 123 4567",
       "sentence": "Recapito del cliente (HU): 06 20 123 4567 — confermato in udienza.",
       "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "06 20 123 4567"
+      ]
     },
     {
       "country": "HU",
@@ -4212,8 +2212,10 @@
       "phone": "06201234567",
       "sentence": "Recapito del cliente (HU): 06201234567 — confermato in udienza.",
       "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "06201234567"
+      ]
     },
     {
       "country": "HU",
@@ -4222,8 +2224,10 @@
       "phone": "06.20.123.4567",
       "sentence": "Recapito del cliente (HU): 06.20.123.4567 — confermato in udienza.",
       "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "06.20.123.4567"
+      ]
     },
     {
       "country": "HU",
@@ -4232,8 +2236,10 @@
       "phone": "06-20-123-4567",
       "sentence": "Recapito del cliente (HU): 06-20-123-4567 — confermato in udienza.",
       "e164": "+36201234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "06-20-123-4567"
+      ]
     },
     {
       "country": "IE",
@@ -4242,8 +2248,10 @@
       "phone": "+353850123456",
       "sentence": "Recapito del cliente (IE): +353850123456 — confermato in udienza.",
       "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+353850123456"
+      ]
     },
     {
       "country": "IE",
@@ -4252,8 +2260,10 @@
       "phone": "+353 85 012 3456",
       "sentence": "Recapito del cliente (IE): +353 85 012 3456 — confermato in udienza.",
       "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+353 85 012 3456"
+      ]
     },
     {
       "country": "IE",
@@ -4262,8 +2272,10 @@
       "phone": "00353 85 012 3456",
       "sentence": "Recapito del cliente (IE): 00353 85 012 3456 — confermato in udienza.",
       "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00353 85 012 3456"
+      ]
     },
     {
       "country": "IE",
@@ -4272,8 +2284,10 @@
       "phone": "085 012 3456",
       "sentence": "Recapito del cliente (IE): 085 012 3456 — confermato in udienza.",
       "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "085 012 3456"
+      ]
     },
     {
       "country": "IE",
@@ -4282,8 +2296,10 @@
       "phone": "0850123456",
       "sentence": "Recapito del cliente (IE): 0850123456 — confermato in udienza.",
       "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0850123456"
+      ]
     },
     {
       "country": "IE",
@@ -4292,8 +2308,10 @@
       "phone": "085.012.3456",
       "sentence": "Recapito del cliente (IE): 085.012.3456 — confermato in udienza.",
       "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "085.012.3456"
+      ]
     },
     {
       "country": "IE",
@@ -4302,8 +2320,10 @@
       "phone": "085-012-3456",
       "sentence": "Recapito del cliente (IE): 085-012-3456 — confermato in udienza.",
       "e164": "+353850123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "085-012-3456"
+      ]
     },
     {
       "country": "IT",
@@ -4360,8 +2380,10 @@
       "phone": "3123456789",
       "sentence": "Recapito del cliente (IT): 3123456789 — confermato in udienza.",
       "e164": "+393123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "3123456789"
+      ]
     },
     {
       "country": "IT",
@@ -4394,8 +2416,10 @@
       "phone": "+37121234567",
       "sentence": "Recapito del cliente (LV): +37121234567 — confermato in udienza.",
       "e164": "+37121234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+37121234567"
+      ]
     },
     {
       "country": "LV",
@@ -4404,8 +2428,10 @@
       "phone": "+371 21 234 567",
       "sentence": "Recapito del cliente (LV): +371 21 234 567 — confermato in udienza.",
       "e164": "+37121234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+371 21 234 567"
+      ]
     },
     {
       "country": "LV",
@@ -4414,8 +2440,10 @@
       "phone": "00371 21 234 567",
       "sentence": "Recapito del cliente (LV): 00371 21 234 567 — confermato in udienza.",
       "e164": "+37121234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00371 21 234 567"
+      ]
     },
     {
       "country": "LV",
@@ -4464,8 +2492,10 @@
       "phone": "+37061234567",
       "sentence": "Recapito del cliente (LT): +37061234567 — confermato in udienza.",
       "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+37061234567"
+      ]
     },
     {
       "country": "LT",
@@ -4474,8 +2504,10 @@
       "phone": "+370 612 34567",
       "sentence": "Recapito del cliente (LT): +370 612 34567 — confermato in udienza.",
       "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+370 612 34567"
+      ]
     },
     {
       "country": "LT",
@@ -4484,8 +2516,10 @@
       "phone": "00370 612 34567",
       "sentence": "Recapito del cliente (LT): 00370 612 34567 — confermato in udienza.",
       "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00370 612 34567"
+      ]
     },
     {
       "country": "LT",
@@ -4494,8 +2528,10 @@
       "phone": "(0-612) 34567",
       "sentence": "Recapito del cliente (LT): (0-612) 34567 — confermato in udienza.",
       "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "(0-612) 34567"
+      ]
     },
     {
       "country": "LT",
@@ -4504,8 +2540,10 @@
       "phone": "061234567",
       "sentence": "Recapito del cliente (LT): 061234567 — confermato in udienza.",
       "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "061234567"
+      ]
     },
     {
       "country": "LT",
@@ -4514,8 +2552,10 @@
       "phone": "(0-612).34567",
       "sentence": "Recapito del cliente (LT): (0-612).34567 — confermato in udienza.",
       "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "(0-612).34567"
+      ]
     },
     {
       "country": "LT",
@@ -4524,8 +2564,10 @@
       "phone": "(0-612)-34567",
       "sentence": "Recapito del cliente (LT): (0-612)-34567 — confermato in udienza.",
       "e164": "+37061234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "(0-612)-34567"
+      ]
     },
     {
       "country": "LU",
@@ -4534,8 +2576,10 @@
       "phone": "+352628123456",
       "sentence": "Recapito del cliente (LU): +352628123456 — confermato in udienza.",
       "e164": "+352628123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+352628123456"
+      ]
     },
     {
       "country": "LU",
@@ -4546,7 +2590,7 @@
       "e164": "+352628123456",
       "hit": true,
       "phoneMatches": [
-        "352 628 123"
+        "+352 628 123 456"
       ]
     },
     {
@@ -4556,8 +2600,10 @@
       "phone": "00352 628 123 456",
       "sentence": "Recapito del cliente (LU): 00352 628 123 456 — confermato in udienza.",
       "e164": "+352628123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00352 628 123 456"
+      ]
     },
     {
       "country": "LU",
@@ -4606,8 +2652,10 @@
       "phone": "+35696961234",
       "sentence": "Recapito del cliente (MT): +35696961234 — confermato in udienza.",
       "e164": "+35696961234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+35696961234"
+      ]
     },
     {
       "country": "MT",
@@ -4616,8 +2664,10 @@
       "phone": "+356 9696 1234",
       "sentence": "Recapito del cliente (MT): +356 9696 1234 — confermato in udienza.",
       "e164": "+35696961234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+356 9696 1234"
+      ]
     },
     {
       "country": "MT",
@@ -4626,8 +2676,10 @@
       "phone": "00356 9696 1234",
       "sentence": "Recapito del cliente (MT): 00356 9696 1234 — confermato in udienza.",
       "e164": "+35696961234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00356 9696 1234"
+      ]
     },
     {
       "country": "MT",
@@ -4676,8 +2728,10 @@
       "phone": "+31612345678",
       "sentence": "Recapito del cliente (NL): +31612345678 — confermato in udienza.",
       "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+31612345678"
+      ]
     },
     {
       "country": "NL",
@@ -4686,8 +2740,10 @@
       "phone": "+31 6 12345678",
       "sentence": "Recapito del cliente (NL): +31 6 12345678 — confermato in udienza.",
       "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+31 6 12345678"
+      ]
     },
     {
       "country": "NL",
@@ -4696,8 +2752,10 @@
       "phone": "0031 6 12345678",
       "sentence": "Recapito del cliente (NL): 0031 6 12345678 — confermato in udienza.",
       "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0031 6 12345678"
+      ]
     },
     {
       "country": "NL",
@@ -4706,8 +2764,10 @@
       "phone": "06 12345678",
       "sentence": "Recapito del cliente (NL): 06 12345678 — confermato in udienza.",
       "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "06 12345678"
+      ]
     },
     {
       "country": "NL",
@@ -4716,8 +2776,10 @@
       "phone": "0612345678",
       "sentence": "Recapito del cliente (NL): 0612345678 — confermato in udienza.",
       "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0612345678"
+      ]
     },
     {
       "country": "NL",
@@ -4726,8 +2788,10 @@
       "phone": "06.12345678",
       "sentence": "Recapito del cliente (NL): 06.12345678 — confermato in udienza.",
       "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "06.12345678"
+      ]
     },
     {
       "country": "NL",
@@ -4736,8 +2800,10 @@
       "phone": "06-12345678",
       "sentence": "Recapito del cliente (NL): 06-12345678 — confermato in udienza.",
       "e164": "+31612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "06-12345678"
+      ]
     },
     {
       "country": "PL",
@@ -4746,8 +2812,10 @@
       "phone": "+48512345678",
       "sentence": "Recapito del cliente (PL): +48512345678 — confermato in udienza.",
       "e164": "+48512345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+48512345678"
+      ]
     },
     {
       "country": "PL",
@@ -4756,8 +2824,10 @@
       "phone": "+48 512 345 678",
       "sentence": "Recapito del cliente (PL): +48 512 345 678 — confermato in udienza.",
       "e164": "+48512345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+48 512 345 678"
+      ]
     },
     {
       "country": "PL",
@@ -4766,8 +2836,10 @@
       "phone": "0048 512 345 678",
       "sentence": "Recapito del cliente (PL): 0048 512 345 678 — confermato in udienza.",
       "e164": "+48512345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0048 512 345 678"
+      ]
     },
     {
       "country": "PL",
@@ -4816,8 +2888,10 @@
       "phone": "+351912345678",
       "sentence": "Recapito del cliente (PT): +351912345678 — confermato in udienza.",
       "e164": "+351912345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+351912345678"
+      ]
     },
     {
       "country": "PT",
@@ -4828,7 +2902,7 @@
       "e164": "+351912345678",
       "hit": true,
       "phoneMatches": [
-        "351 912 345"
+        "+351 912 345 678"
       ]
     },
     {
@@ -4838,8 +2912,10 @@
       "phone": "00351 912 345 678",
       "sentence": "Recapito del cliente (PT): 00351 912 345 678 — confermato in udienza.",
       "e164": "+351912345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00351 912 345 678"
+      ]
     },
     {
       "country": "PT",
@@ -4888,8 +2964,10 @@
       "phone": "+40712034567",
       "sentence": "Recapito del cliente (RO): +40712034567 — confermato in udienza.",
       "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+40712034567"
+      ]
     },
     {
       "country": "RO",
@@ -4898,8 +2976,10 @@
       "phone": "+40 712 034 567",
       "sentence": "Recapito del cliente (RO): +40 712 034 567 — confermato in udienza.",
       "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+40 712 034 567"
+      ]
     },
     {
       "country": "RO",
@@ -4908,8 +2988,10 @@
       "phone": "0040 712 034 567",
       "sentence": "Recapito del cliente (RO): 0040 712 034 567 — confermato in udienza.",
       "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0040 712 034 567"
+      ]
     },
     {
       "country": "RO",
@@ -4918,8 +3000,10 @@
       "phone": "0712 034 567",
       "sentence": "Recapito del cliente (RO): 0712 034 567 — confermato in udienza.",
       "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0712 034 567"
+      ]
     },
     {
       "country": "RO",
@@ -4928,8 +3012,10 @@
       "phone": "0712034567",
       "sentence": "Recapito del cliente (RO): 0712034567 — confermato in udienza.",
       "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0712034567"
+      ]
     },
     {
       "country": "RO",
@@ -4938,8 +3024,10 @@
       "phone": "0712.034.567",
       "sentence": "Recapito del cliente (RO): 0712.034.567 — confermato in udienza.",
       "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0712.034.567"
+      ]
     },
     {
       "country": "RO",
@@ -4948,8 +3036,10 @@
       "phone": "0712-034-567",
       "sentence": "Recapito del cliente (RO): 0712-034-567 — confermato in udienza.",
       "e164": "+40712034567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0712-034-567"
+      ]
     },
     {
       "country": "SK",
@@ -4958,8 +3048,10 @@
       "phone": "+421912123456",
       "sentence": "Recapito del cliente (SK): +421912123456 — confermato in udienza.",
       "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+421912123456"
+      ]
     },
     {
       "country": "SK",
@@ -4968,8 +3060,10 @@
       "phone": "+421 912 123 456",
       "sentence": "Recapito del cliente (SK): +421 912 123 456 — confermato in udienza.",
       "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+421 912 123 456"
+      ]
     },
     {
       "country": "SK",
@@ -4978,8 +3072,10 @@
       "phone": "00421 912 123 456",
       "sentence": "Recapito del cliente (SK): 00421 912 123 456 — confermato in udienza.",
       "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00421 912 123 456"
+      ]
     },
     {
       "country": "SK",
@@ -4988,8 +3084,10 @@
       "phone": "0912 123 456",
       "sentence": "Recapito del cliente (SK): 0912 123 456 — confermato in udienza.",
       "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0912 123 456"
+      ]
     },
     {
       "country": "SK",
@@ -4998,8 +3096,10 @@
       "phone": "0912123456",
       "sentence": "Recapito del cliente (SK): 0912123456 — confermato in udienza.",
       "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0912123456"
+      ]
     },
     {
       "country": "SK",
@@ -5008,8 +3108,10 @@
       "phone": "0912.123.456",
       "sentence": "Recapito del cliente (SK): 0912.123.456 — confermato in udienza.",
       "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0912.123.456"
+      ]
     },
     {
       "country": "SK",
@@ -5018,8 +3120,10 @@
       "phone": "0912-123-456",
       "sentence": "Recapito del cliente (SK): 0912-123-456 — confermato in udienza.",
       "e164": "+421912123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0912-123-456"
+      ]
     },
     {
       "country": "SI",
@@ -5028,8 +3132,10 @@
       "phone": "+38631234567",
       "sentence": "Recapito del cliente (SI): +38631234567 — confermato in udienza.",
       "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+38631234567"
+      ]
     },
     {
       "country": "SI",
@@ -5038,8 +3144,10 @@
       "phone": "+386 31 234 567",
       "sentence": "Recapito del cliente (SI): +386 31 234 567 — confermato in udienza.",
       "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+386 31 234 567"
+      ]
     },
     {
       "country": "SI",
@@ -5048,8 +3156,10 @@
       "phone": "00386 31 234 567",
       "sentence": "Recapito del cliente (SI): 00386 31 234 567 — confermato in udienza.",
       "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00386 31 234 567"
+      ]
     },
     {
       "country": "SI",
@@ -5058,8 +3168,10 @@
       "phone": "031 234 567",
       "sentence": "Recapito del cliente (SI): 031 234 567 — confermato in udienza.",
       "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "031 234 567"
+      ]
     },
     {
       "country": "SI",
@@ -5068,8 +3180,10 @@
       "phone": "031234567",
       "sentence": "Recapito del cliente (SI): 031234567 — confermato in udienza.",
       "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "031234567"
+      ]
     },
     {
       "country": "SI",
@@ -5078,8 +3192,10 @@
       "phone": "031.234.567",
       "sentence": "Recapito del cliente (SI): 031.234.567 — confermato in udienza.",
       "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "031.234.567"
+      ]
     },
     {
       "country": "SI",
@@ -5088,8 +3204,10 @@
       "phone": "031-234-567",
       "sentence": "Recapito del cliente (SI): 031-234-567 — confermato in udienza.",
       "e164": "+38631234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "031-234-567"
+      ]
     },
     {
       "country": "ES",
@@ -5098,8 +3216,10 @@
       "phone": "+34612345678",
       "sentence": "Recapito del cliente (ES): +34612345678 — confermato in udienza.",
       "e164": "+34612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+34612345678"
+      ]
     },
     {
       "country": "ES",
@@ -5108,8 +3228,10 @@
       "phone": "+34 612 34 56 78",
       "sentence": "Recapito del cliente (ES): +34 612 34 56 78 — confermato in udienza.",
       "e164": "+34612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+34 612 34 56 78"
+      ]
     },
     {
       "country": "ES",
@@ -5118,8 +3240,10 @@
       "phone": "0034 612 34 56 78",
       "sentence": "Recapito del cliente (ES): 0034 612 34 56 78 — confermato in udienza.",
       "e164": "+34612345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0034 612 34 56 78"
+      ]
     },
     {
       "country": "ES",
@@ -5168,8 +3292,10 @@
       "phone": "+46701234567",
       "sentence": "Recapito del cliente (SE): +46701234567 — confermato in udienza.",
       "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+46701234567"
+      ]
     },
     {
       "country": "SE",
@@ -5178,8 +3304,10 @@
       "phone": "+46 70 123 45 67",
       "sentence": "Recapito del cliente (SE): +46 70 123 45 67 — confermato in udienza.",
       "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+46 70 123 45 67"
+      ]
     },
     {
       "country": "SE",
@@ -5188,8 +3316,10 @@
       "phone": "0046 70 123 45 67",
       "sentence": "Recapito del cliente (SE): 0046 70 123 45 67 — confermato in udienza.",
       "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0046 70 123 45 67"
+      ]
     },
     {
       "country": "SE",
@@ -5198,8 +3328,10 @@
       "phone": "070-123 45 67",
       "sentence": "Recapito del cliente (SE): 070-123 45 67 — confermato in udienza.",
       "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "070-123 45 67"
+      ]
     },
     {
       "country": "SE",
@@ -5208,8 +3340,10 @@
       "phone": "0701234567",
       "sentence": "Recapito del cliente (SE): 0701234567 — confermato in udienza.",
       "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0701234567"
+      ]
     },
     {
       "country": "SE",
@@ -5218,8 +3352,10 @@
       "phone": "070-123.45.67",
       "sentence": "Recapito del cliente (SE): 070-123.45.67 — confermato in udienza.",
       "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "070-123.45.67"
+      ]
     },
     {
       "country": "SE",
@@ -5228,8 +3364,10 @@
       "phone": "070-123-45-67",
       "sentence": "Recapito del cliente (SE): 070-123-45-67 — confermato in udienza.",
       "e164": "+46701234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "070-123-45-67"
+      ]
     },
     {
       "country": "IS",
@@ -5238,8 +3376,10 @@
       "phone": "+3546111234",
       "sentence": "Recapito del cliente (IS): +3546111234 — confermato in udienza.",
       "e164": "+3546111234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+3546111234"
+      ]
     },
     {
       "country": "IS",
@@ -5250,7 +3390,7 @@
       "e164": "+3546111234",
       "hit": true,
       "phoneMatches": [
-        "354 611 1234"
+        "+354 611 1234"
       ]
     },
     {
@@ -5260,8 +3400,10 @@
       "phone": "00354 611 1234",
       "sentence": "Recapito del cliente (IS): 00354 611 1234 — confermato in udienza.",
       "e164": "+3546111234",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00354 611 1234"
+      ]
     },
     {
       "country": "IS",
@@ -5310,8 +3452,10 @@
       "phone": "+423660234567",
       "sentence": "Recapito del cliente (LI): +423660234567 — confermato in udienza.",
       "e164": "+423660234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+423660234567"
+      ]
     },
     {
       "country": "LI",
@@ -5320,8 +3464,10 @@
       "phone": "+423 660 234 567",
       "sentence": "Recapito del cliente (LI): +423 660 234 567 — confermato in udienza.",
       "e164": "+423660234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+423 660 234 567"
+      ]
     },
     {
       "country": "LI",
@@ -5330,8 +3476,10 @@
       "phone": "00423 660 234 567",
       "sentence": "Recapito del cliente (LI): 00423 660 234 567 — confermato in udienza.",
       "e164": "+423660234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00423 660 234 567"
+      ]
     },
     {
       "country": "LI",
@@ -5380,8 +3528,10 @@
       "phone": "+4740612345",
       "sentence": "Recapito del cliente (NO): +4740612345 — confermato in udienza.",
       "e164": "+4740612345",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+4740612345"
+      ]
     },
     {
       "country": "NO",
@@ -5390,8 +3540,10 @@
       "phone": "+47 40 61 23 45",
       "sentence": "Recapito del cliente (NO): +47 40 61 23 45 — confermato in udienza.",
       "e164": "+4740612345",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+47 40 61 23 45"
+      ]
     },
     {
       "country": "NO",
@@ -5400,8 +3552,10 @@
       "phone": "0047 40 61 23 45",
       "sentence": "Recapito del cliente (NO): 0047 40 61 23 45 — confermato in udienza.",
       "e164": "+4740612345",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0047 40 61 23 45"
+      ]
     },
     {
       "country": "NO",
@@ -5450,8 +3604,10 @@
       "phone": "+447400123456",
       "sentence": "Recapito del cliente (GB): +447400123456 — confermato in udienza.",
       "e164": "+447400123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+447400123456"
+      ]
     },
     {
       "country": "GB",
@@ -5460,8 +3616,10 @@
       "phone": "+44 7400 123456",
       "sentence": "Recapito del cliente (GB): +44 7400 123456 — confermato in udienza.",
       "e164": "+447400123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+44 7400 123456"
+      ]
     },
     {
       "country": "GB",
@@ -5470,8 +3628,10 @@
       "phone": "0044 7400 123456",
       "sentence": "Recapito del cliente (GB): 0044 7400 123456 — confermato in udienza.",
       "e164": "+447400123456",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0044 7400 123456"
+      ]
     },
     {
       "country": "GB",
@@ -5520,8 +3680,10 @@
       "phone": "+41781234567",
       "sentence": "Recapito del cliente (CH): +41781234567 — confermato in udienza.",
       "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+41781234567"
+      ]
     },
     {
       "country": "CH",
@@ -5530,8 +3692,10 @@
       "phone": "+41 78 123 45 67",
       "sentence": "Recapito del cliente (CH): +41 78 123 45 67 — confermato in udienza.",
       "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+41 78 123 45 67"
+      ]
     },
     {
       "country": "CH",
@@ -5540,8 +3704,10 @@
       "phone": "0041 78 123 45 67",
       "sentence": "Recapito del cliente (CH): 0041 78 123 45 67 — confermato in udienza.",
       "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0041 78 123 45 67"
+      ]
     },
     {
       "country": "CH",
@@ -5550,8 +3716,10 @@
       "phone": "078 123 45 67",
       "sentence": "Recapito del cliente (CH): 078 123 45 67 — confermato in udienza.",
       "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "078 123 45 67"
+      ]
     },
     {
       "country": "CH",
@@ -5560,8 +3728,10 @@
       "phone": "0781234567",
       "sentence": "Recapito del cliente (CH): 0781234567 — confermato in udienza.",
       "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0781234567"
+      ]
     },
     {
       "country": "CH",
@@ -5570,8 +3740,10 @@
       "phone": "078.123.45.67",
       "sentence": "Recapito del cliente (CH): 078.123.45.67 — confermato in udienza.",
       "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "078.123.45.67"
+      ]
     },
     {
       "country": "CH",
@@ -5580,8 +3752,10 @@
       "phone": "078-123-45-67",
       "sentence": "Recapito del cliente (CH): 078-123-45-67 — confermato in udienza.",
       "e164": "+41781234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "078-123-45-67"
+      ]
     },
     {
       "country": "US",
@@ -5590,8 +3764,10 @@
       "phone": "+12015550123",
       "sentence": "Recapito del cliente (US): +12015550123 — confermato in udienza.",
       "e164": "+12015550123",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+12015550123"
+      ]
     },
     {
       "country": "US",
@@ -5600,8 +3776,10 @@
       "phone": "+1 201 555 0123",
       "sentence": "Recapito del cliente (US): +1 201 555 0123 — confermato in udienza.",
       "e164": "+12015550123",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+1 201 555 0123"
+      ]
     },
     {
       "country": "US",
@@ -5610,8 +3788,10 @@
       "phone": "001 201 555 0123",
       "sentence": "Recapito del cliente (US): 001 201 555 0123 — confermato in udienza.",
       "e164": "+12015550123",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "001 201 555 0123"
+      ]
     },
     {
       "country": "US",
@@ -5660,8 +3840,10 @@
       "phone": "+15062345678",
       "sentence": "Recapito del cliente (CA): +15062345678 — confermato in udienza.",
       "e164": "+15062345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+15062345678"
+      ]
     },
     {
       "country": "CA",
@@ -5670,8 +3852,10 @@
       "phone": "+1 506 234 5678",
       "sentence": "Recapito del cliente (CA): +1 506 234 5678 — confermato in udienza.",
       "e164": "+15062345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+1 506 234 5678"
+      ]
     },
     {
       "country": "CA",
@@ -5680,8 +3864,10 @@
       "phone": "001 506 234 5678",
       "sentence": "Recapito del cliente (CA): 001 506 234 5678 — confermato in udienza.",
       "e164": "+15062345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "001 506 234 5678"
+      ]
     },
     {
       "country": "CA",
@@ -5730,8 +3916,10 @@
       "phone": "+61412345678",
       "sentence": "Recapito del cliente (AU): +61412345678 — confermato in udienza.",
       "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+61412345678"
+      ]
     },
     {
       "country": "AU",
@@ -5740,8 +3928,10 @@
       "phone": "+61 412 345 678",
       "sentence": "Recapito del cliente (AU): +61 412 345 678 — confermato in udienza.",
       "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+61 412 345 678"
+      ]
     },
     {
       "country": "AU",
@@ -5750,8 +3940,10 @@
       "phone": "0061 412 345 678",
       "sentence": "Recapito del cliente (AU): 0061 412 345 678 — confermato in udienza.",
       "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0061 412 345 678"
+      ]
     },
     {
       "country": "AU",
@@ -5760,8 +3952,10 @@
       "phone": "0412 345 678",
       "sentence": "Recapito del cliente (AU): 0412 345 678 — confermato in udienza.",
       "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0412 345 678"
+      ]
     },
     {
       "country": "AU",
@@ -5770,8 +3964,10 @@
       "phone": "0412345678",
       "sentence": "Recapito del cliente (AU): 0412345678 — confermato in udienza.",
       "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0412345678"
+      ]
     },
     {
       "country": "AU",
@@ -5780,8 +3976,10 @@
       "phone": "0412.345.678",
       "sentence": "Recapito del cliente (AU): 0412.345.678 — confermato in udienza.",
       "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0412.345.678"
+      ]
     },
     {
       "country": "AU",
@@ -5790,8 +3988,10 @@
       "phone": "0412-345-678",
       "sentence": "Recapito del cliente (AU): 0412-345-678 — confermato in udienza.",
       "e164": "+61412345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0412-345-678"
+      ]
     },
     {
       "country": "JP",
@@ -5800,8 +4000,10 @@
       "phone": "+819012345678",
       "sentence": "Recapito del cliente (JP): +819012345678 — confermato in udienza.",
       "e164": "+819012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+819012345678"
+      ]
     },
     {
       "country": "JP",
@@ -5810,8 +4012,10 @@
       "phone": "+81 90 1234 5678",
       "sentence": "Recapito del cliente (JP): +81 90 1234 5678 — confermato in udienza.",
       "e164": "+819012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+81 90 1234 5678"
+      ]
     },
     {
       "country": "JP",
@@ -5820,8 +4024,10 @@
       "phone": "0081 90 1234 5678",
       "sentence": "Recapito del cliente (JP): 0081 90 1234 5678 — confermato in udienza.",
       "e164": "+819012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0081 90 1234 5678"
+      ]
     },
     {
       "country": "JP",
@@ -5830,8 +4036,10 @@
       "phone": "090-1234-5678",
       "sentence": "Recapito del cliente (JP): 090-1234-5678 — confermato in udienza.",
       "e164": "+819012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "090-1234-5678"
+      ]
     },
     {
       "country": "JP",
@@ -5840,8 +4048,10 @@
       "phone": "09012345678",
       "sentence": "Recapito del cliente (JP): 09012345678 — confermato in udienza.",
       "e164": "+819012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "09012345678"
+      ]
     },
     {
       "country": "BR",
@@ -5850,8 +4060,10 @@
       "phone": "+5511961234567",
       "sentence": "Recapito del cliente (BR): +5511961234567 — confermato in udienza.",
       "e164": "+5511961234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+5511961234567"
+      ]
     },
     {
       "country": "BR",
@@ -5860,8 +4072,10 @@
       "phone": "+55 11 96123 4567",
       "sentence": "Recapito del cliente (BR): +55 11 96123 4567 — confermato in udienza.",
       "e164": "+5511961234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+55 11 96123 4567"
+      ]
     },
     {
       "country": "BR",
@@ -5870,8 +4084,10 @@
       "phone": "0055 11 96123 4567",
       "sentence": "Recapito del cliente (BR): 0055 11 96123 4567 — confermato in udienza.",
       "e164": "+5511961234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0055 11 96123 4567"
+      ]
     },
     {
       "country": "BR",
@@ -5920,8 +4136,10 @@
       "phone": "+918123456789",
       "sentence": "Recapito del cliente (IN): +918123456789 — confermato in udienza.",
       "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+918123456789"
+      ]
     },
     {
       "country": "IN",
@@ -5930,8 +4148,10 @@
       "phone": "+91 81234 56789",
       "sentence": "Recapito del cliente (IN): +91 81234 56789 — confermato in udienza.",
       "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+91 81234 56789"
+      ]
     },
     {
       "country": "IN",
@@ -5940,8 +4160,10 @@
       "phone": "0091 81234 56789",
       "sentence": "Recapito del cliente (IN): 0091 81234 56789 — confermato in udienza.",
       "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0091 81234 56789"
+      ]
     },
     {
       "country": "IN",
@@ -5950,8 +4172,10 @@
       "phone": "081234 56789",
       "sentence": "Recapito del cliente (IN): 081234 56789 — confermato in udienza.",
       "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "081234 56789"
+      ]
     },
     {
       "country": "IN",
@@ -5960,8 +4184,10 @@
       "phone": "08123456789",
       "sentence": "Recapito del cliente (IN): 08123456789 — confermato in udienza.",
       "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "08123456789"
+      ]
     },
     {
       "country": "IN",
@@ -5970,8 +4196,10 @@
       "phone": "081234.56789",
       "sentence": "Recapito del cliente (IN): 081234.56789 — confermato in udienza.",
       "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "081234.56789"
+      ]
     },
     {
       "country": "IN",
@@ -5980,8 +4208,10 @@
       "phone": "081234-56789",
       "sentence": "Recapito del cliente (IN): 081234-56789 — confermato in udienza.",
       "e164": "+918123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "081234-56789"
+      ]
     },
     {
       "country": "CN",
@@ -5990,8 +4220,10 @@
       "phone": "+8613123456789",
       "sentence": "Recapito del cliente (CN): +8613123456789 — confermato in udienza.",
       "e164": "+8613123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+8613123456789"
+      ]
     },
     {
       "country": "CN",
@@ -6000,8 +4232,10 @@
       "phone": "+86 131 2345 6789",
       "sentence": "Recapito del cliente (CN): +86 131 2345 6789 — confermato in udienza.",
       "e164": "+8613123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+86 131 2345 6789"
+      ]
     },
     {
       "country": "CN",
@@ -6010,8 +4244,10 @@
       "phone": "0086 131 2345 6789",
       "sentence": "Recapito del cliente (CN): 0086 131 2345 6789 — confermato in udienza.",
       "e164": "+8613123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0086 131 2345 6789"
+      ]
     },
     {
       "country": "CN",
@@ -6060,8 +4296,10 @@
       "phone": "+79123456789",
       "sentence": "Recapito del cliente (RU): +79123456789 — confermato in udienza.",
       "e164": "+79123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+79123456789"
+      ]
     },
     {
       "country": "RU",
@@ -6070,8 +4308,10 @@
       "phone": "+7 912 345 67 89",
       "sentence": "Recapito del cliente (RU): +7 912 345 67 89 — confermato in udienza.",
       "e164": "+79123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+7 912 345 67 89"
+      ]
     },
     {
       "country": "RU",
@@ -6080,8 +4320,10 @@
       "phone": "007 912 345 67 89",
       "sentence": "Recapito del cliente (RU): 007 912 345 67 89 — confermato in udienza.",
       "e164": "+79123456789",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "007 912 345 67 89"
+      ]
     },
     {
       "country": "RU",
@@ -6130,8 +4372,10 @@
       "phone": "+27711234567",
       "sentence": "Recapito del cliente (ZA): +27711234567 — confermato in udienza.",
       "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+27711234567"
+      ]
     },
     {
       "country": "ZA",
@@ -6140,8 +4384,10 @@
       "phone": "+27 71 123 4567",
       "sentence": "Recapito del cliente (ZA): +27 71 123 4567 — confermato in udienza.",
       "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+27 71 123 4567"
+      ]
     },
     {
       "country": "ZA",
@@ -6150,8 +4396,10 @@
       "phone": "0027 71 123 4567",
       "sentence": "Recapito del cliente (ZA): 0027 71 123 4567 — confermato in udienza.",
       "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0027 71 123 4567"
+      ]
     },
     {
       "country": "ZA",
@@ -6160,8 +4408,10 @@
       "phone": "071 123 4567",
       "sentence": "Recapito del cliente (ZA): 071 123 4567 — confermato in udienza.",
       "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "071 123 4567"
+      ]
     },
     {
       "country": "ZA",
@@ -6170,8 +4420,10 @@
       "phone": "0711234567",
       "sentence": "Recapito del cliente (ZA): 0711234567 — confermato in udienza.",
       "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0711234567"
+      ]
     },
     {
       "country": "ZA",
@@ -6180,8 +4432,10 @@
       "phone": "071.123.4567",
       "sentence": "Recapito del cliente (ZA): 071.123.4567 — confermato in udienza.",
       "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "071.123.4567"
+      ]
     },
     {
       "country": "ZA",
@@ -6190,8 +4444,10 @@
       "phone": "071-123-4567",
       "sentence": "Recapito del cliente (ZA): 071-123-4567 — confermato in udienza.",
       "e164": "+27711234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "071-123-4567"
+      ]
     },
     {
       "country": "AE",
@@ -6200,8 +4456,10 @@
       "phone": "+971501234567",
       "sentence": "Recapito del cliente (AE): +971501234567 — confermato in udienza.",
       "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+971501234567"
+      ]
     },
     {
       "country": "AE",
@@ -6210,8 +4468,10 @@
       "phone": "+971 50 123 4567",
       "sentence": "Recapito del cliente (AE): +971 50 123 4567 — confermato in udienza.",
       "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+971 50 123 4567"
+      ]
     },
     {
       "country": "AE",
@@ -6220,8 +4480,10 @@
       "phone": "00971 50 123 4567",
       "sentence": "Recapito del cliente (AE): 00971 50 123 4567 — confermato in udienza.",
       "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00971 50 123 4567"
+      ]
     },
     {
       "country": "AE",
@@ -6230,8 +4492,10 @@
       "phone": "050 123 4567",
       "sentence": "Recapito del cliente (AE): 050 123 4567 — confermato in udienza.",
       "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "050 123 4567"
+      ]
     },
     {
       "country": "AE",
@@ -6240,8 +4504,10 @@
       "phone": "0501234567",
       "sentence": "Recapito del cliente (AE): 0501234567 — confermato in udienza.",
       "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0501234567"
+      ]
     },
     {
       "country": "AE",
@@ -6250,8 +4516,10 @@
       "phone": "050.123.4567",
       "sentence": "Recapito del cliente (AE): 050.123.4567 — confermato in udienza.",
       "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "050.123.4567"
+      ]
     },
     {
       "country": "AE",
@@ -6260,8 +4528,10 @@
       "phone": "050-123-4567",
       "sentence": "Recapito del cliente (AE): 050-123-4567 — confermato in udienza.",
       "e164": "+971501234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "050-123-4567"
+      ]
     },
     {
       "country": "MX",
@@ -6270,8 +4540,10 @@
       "phone": "+522221234567",
       "sentence": "Recapito del cliente (MX): +522221234567 — confermato in udienza.",
       "e164": "+522221234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+522221234567"
+      ]
     },
     {
       "country": "MX",
@@ -6280,8 +4552,10 @@
       "phone": "+52 222 123 4567",
       "sentence": "Recapito del cliente (MX): +52 222 123 4567 — confermato in udienza.",
       "e164": "+522221234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+52 222 123 4567"
+      ]
     },
     {
       "country": "MX",
@@ -6290,8 +4564,10 @@
       "phone": "0052 222 123 4567",
       "sentence": "Recapito del cliente (MX): 0052 222 123 4567 — confermato in udienza.",
       "e164": "+522221234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0052 222 123 4567"
+      ]
     },
     {
       "country": "MX",
@@ -6340,8 +4616,10 @@
       "phone": "+2348021234567",
       "sentence": "Recapito del cliente (NG): +2348021234567 — confermato in udienza.",
       "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+2348021234567"
+      ]
     },
     {
       "country": "NG",
@@ -6350,8 +4628,10 @@
       "phone": "+234 802 123 4567",
       "sentence": "Recapito del cliente (NG): +234 802 123 4567 — confermato in udienza.",
       "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+234 802 123 4567"
+      ]
     },
     {
       "country": "NG",
@@ -6360,8 +4640,10 @@
       "phone": "00234 802 123 4567",
       "sentence": "Recapito del cliente (NG): 00234 802 123 4567 — confermato in udienza.",
       "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "00234 802 123 4567"
+      ]
     },
     {
       "country": "NG",
@@ -6370,8 +4652,10 @@
       "phone": "0802 123 4567",
       "sentence": "Recapito del cliente (NG): 0802 123 4567 — confermato in udienza.",
       "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0802 123 4567"
+      ]
     },
     {
       "country": "NG",
@@ -6380,8 +4664,10 @@
       "phone": "08021234567",
       "sentence": "Recapito del cliente (NG): 08021234567 — confermato in udienza.",
       "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "08021234567"
+      ]
     },
     {
       "country": "NG",
@@ -6390,8 +4676,10 @@
       "phone": "0802.123.4567",
       "sentence": "Recapito del cliente (NG): 0802.123.4567 — confermato in udienza.",
       "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0802.123.4567"
+      ]
     },
     {
       "country": "NG",
@@ -6400,8 +4688,10 @@
       "phone": "0802-123-4567",
       "sentence": "Recapito del cliente (NG): 0802-123-4567 — confermato in udienza.",
       "e164": "+2348021234567",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0802-123-4567"
+      ]
     },
     {
       "country": "TR",
@@ -6410,8 +4700,10 @@
       "phone": "+905012345678",
       "sentence": "Recapito del cliente (TR): +905012345678 — confermato in udienza.",
       "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+905012345678"
+      ]
     },
     {
       "country": "TR",
@@ -6420,8 +4712,10 @@
       "phone": "+90 501 234 56 78",
       "sentence": "Recapito del cliente (TR): +90 501 234 56 78 — confermato in udienza.",
       "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "+90 501 234 56 78"
+      ]
     },
     {
       "country": "TR",
@@ -6430,8 +4724,10 @@
       "phone": "0090 501 234 56 78",
       "sentence": "Recapito del cliente (TR): 0090 501 234 56 78 — confermato in udienza.",
       "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0090 501 234 56 78"
+      ]
     },
     {
       "country": "TR",
@@ -6440,8 +4736,10 @@
       "phone": "0501 234 56 78",
       "sentence": "Recapito del cliente (TR): 0501 234 56 78 — confermato in udienza.",
       "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0501 234 56 78"
+      ]
     },
     {
       "country": "TR",
@@ -6450,8 +4748,10 @@
       "phone": "05012345678",
       "sentence": "Recapito del cliente (TR): 05012345678 — confermato in udienza.",
       "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "05012345678"
+      ]
     },
     {
       "country": "TR",
@@ -6460,8 +4760,10 @@
       "phone": "0501.234.56.78",
       "sentence": "Recapito del cliente (TR): 0501.234.56.78 — confermato in udienza.",
       "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0501.234.56.78"
+      ]
     },
     {
       "country": "TR",
@@ -6470,23 +4772,15 @@
       "phone": "0501-234-56-78",
       "sentence": "Recapito del cliente (TR): 0501-234-56-78 — confermato in udienza.",
       "e164": "+905012345678",
-      "hit": false,
-      "phoneMatches": []
+      "hit": true,
+      "phoneMatches": [
+        "0501-234-56-78"
+      ]
     }
   ],
   "fp": {
     "total": 12,
-    "clean": 11,
-    "falsePositives": [
-      {
-        "label": "order_code",
-        "text": "Ordine n. 300-123-4567 evaso (codice articolo interno).",
-        "rationale": "CRITICAL: matches PHONE_IT_MOBILE_RE shape 3xx-ddd-dddd exactly — an internal order code starting 300 is indistinguishable from a mobile",
-        "falseMatches": [
-          "300-123-4567"
-        ],
-        "clean": false
-      }
-    ]
+    "clean": 12,
+    "falsePositives": []
   }
 }
