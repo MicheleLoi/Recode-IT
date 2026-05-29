@@ -20,6 +20,7 @@
 import type { RegexDetection } from '../types/engine'
 import { validateCF } from './cf-validator'
 import { validateIBAN } from './iban-validator'
+import { detectPhones } from './phone-detector'
 
 type ReplacementFn = (match: RegExpExecArray) => string
 type Replacement = string | ReplacementFn
@@ -117,18 +118,25 @@ export const PROT_RE =
 export const EMAIL_RE = /\b[\w.+-]+@[\w.-]+\.\w{2,}\b/g
 
 /**
- * Telefono italiano con prefisso internazionale esplicito (+39 o 0039).
- * High precision: il prefisso è il segnale univoco. Accetta separatori
- * comuni (spazio, punto, dash) fra i gruppi di cifre. 9-15 cifre totali
- * post-prefisso (copre mobile + fisso italiano).
+ * LEGACY — Telefono italiano con prefisso internazionale esplicito (+39/0039).
+ *
+ * NO LONGER IN `REGEX_RULES`. Phone detection moved to libphonenumber-js
+ * (`detectPhones`, wired into `applyRegexRules`) for real EU + worldwide
+ * coverage — recall went from ~2.9% global / ~0% world to library-grade.
+ * This const is retained ONLY as a documented fast-path reference / for any
+ * external importer; it does not drive the pipeline. See `phone-detector.ts`.
  */
 export const PHONE_IT_PREFIX_RE =
   /(?:\+39|0039)\s?\d[\d\s.-]{7,13}\d\b/g
 
 /**
- * Telefono mobile italiano formattato (3xx prefisso + separatore). Il
- * separatore obbligatorio (spazio/punto/dash) controlla i falsi positivi:
- * "3001234567" come stringa nuda non matcha; "300 123 4567" sì.
+ * LEGACY — Telefono mobile italiano formattato (3xx + separatore).
+ *
+ * NO LONGER IN `REGEX_RULES`. This pattern was the source of the documented
+ * cross-locale false positive: it matched the bare shape `3xx-ddd-dddd`, so an
+ * internal order code "300-123-4567" was indistinguishable from a real mobile
+ * (eval FP `order_code`). libphonenumber's number-plan validity gate replaces
+ * it. Retained as a documented reference only. See `phone-detector.ts`.
  */
 export const PHONE_IT_MOBILE_RE =
   /\b3\d{2}[\s.-]\d{3}[\s.-]\d{3,4}\b/g
@@ -192,8 +200,10 @@ export const REGEX_RULES: RegexRule[] = [
     replacement: (m) => `${m[1] ?? ''}<PROT>`,
   },
   { category: 'EMAIL', pattern: EMAIL_RE, replacement: '<EMAIL>' },
-  { category: 'PHONE', pattern: PHONE_IT_PREFIX_RE, replacement: '<PHONE>' },
-  { category: 'PHONE', pattern: PHONE_IT_MOBILE_RE, replacement: '<PHONE>' },
+  // PHONE detection is no longer regex-driven: it runs as a libphonenumber-js
+  // pass inside `applyRegexRules` (see `detectPhones` import + the phone block
+  // appended after the regex loop). The two legacy `PHONE_IT_*` consts above
+  // are retained for reference but intentionally absent from this list.
   {
     category: 'NUM_PRENOT',
     pattern: NUM_PRENOT_RE,
@@ -279,6 +289,33 @@ export function applyRegexRules(text: string): {
         return replacementFn(fauxMatch)
       })
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // PHONE pass (libphonenumber-js, not regex).
+  //
+  // Runs LAST, against the already-substituted `current` text, so phone parsing
+  // never re-scans a span the structured rules already masked (a CF/IBAN/CRO
+  // digit run can no longer be mis-parsed as a phone — it's now `<DS>`/`<IBAN>`
+  // /`<CRO>`). Detections are recorded against `current` offsets — identical
+  // convention to the rules above (each layer sees the previous layer's output)
+  // — and matches are spliced right-to-left so earlier offsets stay valid.
+  // Category stays 'PHONE' so the downstream `REGEX_CATEGORY_TO_MASK` fallback
+  // in engine.ts emits `<PHONE>` exactly as the legacy rules did.
+  // ---------------------------------------------------------------------------
+  const phoneSpans = detectPhones(current)
+  for (const span of phoneSpans) {
+    detections.push({
+      pattern: 'PHONE',
+      category: 'PHONE',
+      start: span.start,
+      end: span.end,
+      match: span.match,
+    })
+  }
+  // Splice replacements descending by start offset (right-to-left).
+  for (const span of [...phoneSpans].sort((a, b) => b.start - a.start)) {
+    current = current.slice(0, span.start) + '<PHONE>' + current.slice(span.end)
   }
 
   return { text: current, detections }
