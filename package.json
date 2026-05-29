@@ -49,6 +49,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^25.0.1",
+    "libphonenumber-js": "^1.13.3",
     "prettier": "^3.3.3",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",
