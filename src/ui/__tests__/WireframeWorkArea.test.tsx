@@ -16,11 +16,25 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { useEffect } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { WireframeWorkArea } from '../WireframeWorkArea'
 import { AuthProvider } from '../../auth/auth-context'
 import { ActiveMappingProvider } from '../../auth/active-mapping-context'
-import { LanguageProvider } from '../LanguageContext'
+import { LanguageProvider, useLanguage } from '../LanguageContext'
+
+// Mock browser-side export pipeline. The DOCX/PDF libraries are not the
+// subject of these tests (vendor responsibility): we only assert that the
+// app wires the buttons to the export functions with the expected args.
+vi.mock('../exportDocument', () => ({
+  exportToWord: vi.fn().mockResolvedValue(undefined),
+  exportToPdf: vi.fn(),
+  formatExportFilename: (
+    context: 'codifica' | 'decodifica',
+    extension: 'docx' | 'pdf',
+  ) => `recode-${context}-TEST.${extension}`,
+}))
+import { exportToWord, exportToPdf } from '../exportDocument'
 
 const FIXTURE = `Il sig. Mario Rossi (CF: RSSMRA80A01H501U) ha contattato l'avvocato via mario.rossi@example.com.`
 
@@ -395,5 +409,156 @@ describe('WireframeWorkArea — visual stability', () => {
     renderWithProviders()
     const wa = screen.getByTestId('wireframe-workarea')
     expect(wa.getAttribute('data-decodifica-truncated')).toBe('false')
+  })
+})
+
+describe('WireframeWorkArea — export Word / PDF (SID-20260530)', () => {
+  beforeEach(() => {
+    ;(exportToWord as ReturnType<typeof vi.fn>).mockClear()
+    ;(exportToPdf as ReturnType<typeof vi.fn>).mockClear()
+  })
+
+  it('export buttons are HIDDEN on the pseudonimizzato panel before any run', () => {
+    // Pre-run: niente output → nessun bottone export (stessa regola di "Copia").
+    renderWithProviders()
+    expect(
+      screen.queryByTestId('wireframe-export-pseudonimizzato-word-btn'),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('wireframe-export-pseudonimizzato-pdf-btn'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('export buttons appear on the pseudonimizzato panel after a Codifica run', () => {
+    renderWithProviders()
+    const sx = screen.getByTestId(
+      'wireframe-textarea-originale',
+    ) as HTMLTextAreaElement
+    fireEvent.change(sx, { target: { value: FIXTURE } })
+    fireEvent.click(screen.getByTestId('wireframe-action-btn'))
+    // Bottoni present + accanto al bottone Copia.
+    expect(
+      screen.getByTestId('wireframe-copy-pseudonimizzato-btn'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByTestId('wireframe-export-pseudonimizzato-word-btn'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByTestId('wireframe-export-pseudonimizzato-pdf-btn'),
+    ).toBeInTheDocument()
+  })
+
+  it('clicking Word button on Codifica triggers exportToWord with pseudo text', () => {
+    renderWithProviders()
+    const sx = screen.getByTestId(
+      'wireframe-textarea-originale',
+    ) as HTMLTextAreaElement
+    fireEvent.change(sx, { target: { value: FIXTURE } })
+    fireEvent.click(screen.getByTestId('wireframe-action-btn'))
+    fireEvent.click(
+      screen.getByTestId('wireframe-export-pseudonimizzato-word-btn'),
+    )
+    const mock = exportToWord as ReturnType<typeof vi.fn>
+    expect(mock).toHaveBeenCalledTimes(1)
+    const call = mock.mock.calls[0]
+    expect(call).toBeDefined()
+    const [text, filename] = call as [string, string]
+    // Il testo passato è quello pseudonimizzato (CF/email mascherati).
+    expect(text).not.toContain('RSSMRA80A01H501U')
+    expect(text).not.toContain('mario.rossi@example.com')
+    expect(text).toContain('<DS>')
+    expect(text).toContain('<EMAIL>')
+    // Filename: prefix canonico + estensione .docx.
+    expect(filename).toMatch(/^recode-codifica-.*\.docx$/)
+  })
+
+  it('clicking PDF button on Codifica triggers exportToPdf with pseudo text', () => {
+    renderWithProviders()
+    const sx = screen.getByTestId(
+      'wireframe-textarea-originale',
+    ) as HTMLTextAreaElement
+    fireEvent.change(sx, { target: { value: FIXTURE } })
+    fireEvent.click(screen.getByTestId('wireframe-action-btn'))
+    fireEvent.click(
+      screen.getByTestId('wireframe-export-pseudonimizzato-pdf-btn'),
+    )
+    const mock = exportToPdf as ReturnType<typeof vi.fn>
+    expect(mock).toHaveBeenCalledTimes(1)
+    const call = mock.mock.calls[0]
+    expect(call).toBeDefined()
+    const [text, filename] = call as [string, string]
+    expect(text).toContain('<DS>')
+    expect(filename).toMatch(/^recode-codifica-.*\.pdf$/)
+  })
+
+  it('export buttons render correct IT label by default', () => {
+    renderWithProviders()
+    const sx = screen.getByTestId(
+      'wireframe-textarea-originale',
+    ) as HTMLTextAreaElement
+    fireEvent.change(sx, { target: { value: FIXTURE } })
+    fireEvent.click(screen.getByTestId('wireframe-action-btn'))
+    const wordBtn = screen.getByTestId(
+      'wireframe-export-pseudonimizzato-word-btn',
+    )
+    const pdfBtn = screen.getByTestId(
+      'wireframe-export-pseudonimizzato-pdf-btn',
+    )
+    expect(wordBtn.textContent).toMatch(/Word/)
+    expect(pdfBtn.textContent).toMatch(/PDF/)
+    // Title IT: contiene "pseudonimizzato".
+    expect(wordBtn.getAttribute('title')).toMatch(/pseudonimizzato/i)
+    expect(pdfBtn.getAttribute('title')).toMatch(/pseudonimizzato/i)
+  })
+
+  it('export buttons render in 4 languages (IT/EN/DE/FR) with matching titles', () => {
+    // Helper component che switcha lingua via context — i bottoni "Word"/"PDF"
+    // hanno label identica in tutte le 4 lingue (sono unità lessicali invarianti),
+    // ma il title cambia.
+    type Lang = 'it' | 'en' | 'de' | 'fr'
+    function Switcher({ lang }: { lang: Lang }): JSX.Element {
+      const { setUiLanguage } = useLanguage()
+      useEffect(() => {
+        setUiLanguage(lang)
+      }, [lang, setUiLanguage])
+      return <></>
+    }
+
+    const expectations: Record<Lang, RegExp> = {
+      it: /pseudonimizzato/i,
+      en: /pseudonymized/i,
+      de: /pseudonymisierten/i,
+      fr: /pseudonymisé/i,
+    }
+
+    for (const lang of ['it', 'en', 'de', 'fr'] as Lang[]) {
+      const { unmount } = render(
+        <LanguageProvider>
+          <AuthProvider>
+            <ActiveMappingProvider>
+              <Switcher lang={lang} />
+              <WireframeWorkArea />
+            </ActiveMappingProvider>
+          </AuthProvider>
+        </LanguageProvider>,
+      )
+      const sx = screen.getByTestId(
+        'wireframe-textarea-originale',
+      ) as HTMLTextAreaElement
+      fireEvent.change(sx, { target: { value: FIXTURE } })
+      fireEvent.click(screen.getByTestId('wireframe-action-btn'))
+      const wordBtn = screen.getByTestId(
+        'wireframe-export-pseudonimizzato-word-btn',
+      )
+      const pdfBtn = screen.getByTestId(
+        'wireframe-export-pseudonimizzato-pdf-btn',
+      )
+      expect(wordBtn.textContent).toMatch(/Word/)
+      expect(pdfBtn.textContent).toMatch(/PDF/)
+      // Le title strings sono localizzate.
+      expect(wordBtn.getAttribute('title')).toMatch(expectations[lang])
+      expect(pdfBtn.getAttribute('title')).toMatch(expectations[lang])
+      unmount()
+    }
   })
 })

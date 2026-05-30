@@ -2802,18 +2802,25 @@ code {
   color: var(--wf-brand-blue);
 }
 
-/* ── Copia output a un click (Fix 1, regressione post-wireframe) ─────────
-   Bottone floating top-LEFT del corpo pannello (specchio del
+/* ── Output actions row: Copia + Esporta Word + Esporta PDF ─────────────
+   Wrapper floating top-LEFT del corpo pannello (specchio del
    ".wireframe-new-doc-btn" che vive top-RIGHT nel pannello originale in
-   Codifica), così i due non collidono mai. Palette accent blu: è l'azione
-   "porta via l'output", primaria per l'utente che ha finito. Sul pannello
-   originale (Decodifica) il top-right è libero (new-doc è codifica-only),
-   ma teniamo top-left per coerenza visiva su entrambi i pannelli. */
-.wireframe-copy-btn {
+   Codifica), così i due non collidono mai. SID-20260530: aggiunti bottoni
+   "📄 Word" / "📕 PDF" affiancati a "Copia" (founder direttiva). I 3
+   bottoni vivono in un flex-row condiviso; il copy resta accent blu
+   (azione primaria), gli export sono secondary outline (azioni alternative
+   complementari). */
+.wireframe-output-actions {
   position: absolute;
   top: 8px;
   left: 8px;
   z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wireframe-copy-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -2836,6 +2843,36 @@ code {
 }
 
 .wireframe-copy-btn:focus-visible {
+  outline: 2px solid var(--wf-brand-blue);
+  outline-offset: 2px;
+}
+
+/* Export buttons (Word / PDF): outline secondary — l'azione di esportazione
+   è alternativa a "Copia" (stessa funzione semantica, "porta via l'output"),
+   ma con peso visivo minore per non competere con la primaria. */
+.wireframe-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid var(--wf-brand-blue);
+  color: var(--wf-brand-blue);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: var(--wf-shadow-sm);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.wireframe-export-btn:hover {
+  background: var(--wf-brand-blue);
+  color: #ffffff;
+}
+
+.wireframe-export-btn:focus-visible {
   outline: 2px solid var(--wf-brand-blue);
   outline-offset: 2px;
 }

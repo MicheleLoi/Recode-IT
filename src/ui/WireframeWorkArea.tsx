@@ -72,6 +72,11 @@ import { BundleBanner } from './BundleBanner'
 import { applyReverseSubstitution } from './DecodificaPanel'
 import { DocumentView } from './DocumentView'
 import { EntityReviewList } from './EntityReviewList'
+import {
+  exportToPdf,
+  exportToWord,
+  formatExportFilename,
+} from './exportDocument'
 import { type Language, SUPPORTED_LANGUAGES, useLanguage } from './LanguageContext'
 import { MappaPanel } from './MappaPanel'
 import { ModelLoadingState, type ModelLoadPhase } from './ModelLoadingState'
@@ -309,6 +314,55 @@ export function WireframeWorkArea({
       )
     } catch {
       /* clipboard unavailable — silent */
+    }
+  }, [originaleText])
+
+  /* ── export Word / PDF (SID-20260530) ───────────────────────────────────
+     Bottoni "📄 Word" / "📕 PDF" affiancati a "Copia" su entrambi i pannelli
+     output (pseudonimizzato in Codifica, originale ricostruito in Decodifica).
+     Generazione lato-browser via `docx` + `jspdf`, download via blob anchor.
+     Privacy: no metadati identificativi, filename timestamped. */
+  const handleExportPseudoWord = useCallback(async () => {
+    if (!pseudonimizzatoText) return
+    try {
+      await exportToWord(
+        pseudonimizzatoText,
+        formatExportFilename('codifica', 'docx'),
+      )
+    } catch {
+      /* export failed (e.g. blob/anchor not supported) — silent: lo
+         clipboard pattern adottato sopra è coerente, non vogliamo
+         interrompere il workflow con un alert. */
+    }
+  }, [pseudonimizzatoText])
+
+  const handleExportPseudoPdf = useCallback(() => {
+    if (!pseudonimizzatoText) return
+    try {
+      exportToPdf(pseudonimizzatoText, formatExportFilename('codifica', 'pdf'))
+    } catch {
+      /* silent — see handleExportPseudoWord */
+    }
+  }, [pseudonimizzatoText])
+
+  const handleExportDecodedWord = useCallback(async () => {
+    if (!originaleText) return
+    try {
+      await exportToWord(
+        originaleText,
+        formatExportFilename('decodifica', 'docx'),
+      )
+    } catch {
+      /* silent */
+    }
+  }, [originaleText])
+
+  const handleExportDecodedPdf = useCallback(() => {
+    if (!originaleText) return
+    try {
+      exportToPdf(originaleText, formatExportFilename('decodifica', 'pdf'))
+    } catch {
+      /* silent */
     }
   }, [originaleText])
 
@@ -1282,17 +1336,37 @@ export function WireframeWorkArea({
               ma è codifica-only → nessuna collisione), mostrato solo in
               Decodifica quando c'è output e l'utente ha eseguito la decodifica. */}
           {mode === 'decodifica' && hasRunDecodifica && originaleText && (
-            <button
-              type="button"
-              className="wireframe-copy-btn"
-              onClick={() => void handleCopyDecoded()}
-              data-testid="wireframe-copy-decodificato-btn"
-              title={t('wireframe.copy.titleDecoded')}
-            >
-              {copyDecodedState === 'copied'
-                ? t('wireframe.copy.done')
-                : t('wireframe.copy.button')}
-            </button>
+            <div className="wireframe-output-actions">
+              <button
+                type="button"
+                className="wireframe-copy-btn"
+                onClick={() => void handleCopyDecoded()}
+                data-testid="wireframe-copy-decodificato-btn"
+                title={t('wireframe.copy.titleDecoded')}
+              >
+                {copyDecodedState === 'copied'
+                  ? t('wireframe.copy.done')
+                  : t('wireframe.copy.button')}
+              </button>
+              <button
+                type="button"
+                className="wireframe-export-btn"
+                onClick={() => void handleExportDecodedWord()}
+                data-testid="wireframe-export-decodificato-word-btn"
+                title={t('wireframe.export.word.titleDecoded')}
+              >
+                {t('wireframe.export.word.button')}
+              </button>
+              <button
+                type="button"
+                className="wireframe-export-btn"
+                onClick={() => handleExportDecodedPdf()}
+                data-testid="wireframe-export-decodificato-pdf-btn"
+                title={t('wireframe.export.pdf.titleDecoded')}
+              >
+                {t('wireframe.export.pdf.button')}
+              </button>
+            </div>
           )}
           {showDecodificaFreeAffordance && (
             <div
@@ -1438,17 +1512,37 @@ export function WireframeWorkArea({
                 top-right entrambi liberi, scegliamo top-left per coerenza col
                 pannello originale in Decodifica. */}
             {mode === 'codifica' && pseudonimizzatoText && (
-              <button
-                type="button"
-                className="wireframe-copy-btn"
-                onClick={() => void handleCopyPseudo()}
-                data-testid="wireframe-copy-pseudonimizzato-btn"
-                title={t('wireframe.copy.titlePseudo')}
-              >
-                {copyPseudoState === 'copied'
-                  ? t('wireframe.copy.done')
-                  : t('wireframe.copy.button')}
-              </button>
+              <div className="wireframe-output-actions">
+                <button
+                  type="button"
+                  className="wireframe-copy-btn"
+                  onClick={() => void handleCopyPseudo()}
+                  data-testid="wireframe-copy-pseudonimizzato-btn"
+                  title={t('wireframe.copy.titlePseudo')}
+                >
+                  {copyPseudoState === 'copied'
+                    ? t('wireframe.copy.done')
+                    : t('wireframe.copy.button')}
+                </button>
+                <button
+                  type="button"
+                  className="wireframe-export-btn"
+                  onClick={() => void handleExportPseudoWord()}
+                  data-testid="wireframe-export-pseudonimizzato-word-btn"
+                  title={t('wireframe.export.word.titlePseudo')}
+                >
+                  {t('wireframe.export.word.button')}
+                </button>
+                <button
+                  type="button"
+                  className="wireframe-export-btn"
+                  onClick={() => handleExportPseudoPdf()}
+                  data-testid="wireframe-export-pseudonimizzato-pdf-btn"
+                  title={t('wireframe.export.pdf.titlePseudo')}
+                >
+                  {t('wireframe.export.pdf.button')}
+                </button>
+              </div>
             )}
             {/* In codifica mode after run, show DocumentView (pseudo). In
                 decodifica mode, plain editable textarea (user paste AI response). */}
