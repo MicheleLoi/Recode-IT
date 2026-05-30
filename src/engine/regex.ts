@@ -300,22 +300,46 @@ export function applyRegexRules(text: string): {
   // /`<CRO>`). Detections are recorded against `current` offsets — identical
   // convention to the rules above (each layer sees the previous layer's output)
   // — and matches are spliced right-to-left so earlier offsets stay valid.
-  // Category stays 'PHONE' so the downstream `REGEX_CATEGORY_TO_MASK` fallback
-  // in engine.ts emits `<PHONE>` exactly as the legacy rules did.
+  // Each DISTINCT phone number gets a NUMBERED token (`<PHONE_1>`, `<PHONE_2>`,
+  // …) — same value-distinct numbering the gated Date/CAP detectors use
+  // (gated_detectors.ts `detectGated`: tokenByKey map + per-category counter).
+  // This replaces the legacy constant `<PHONE>`, which made every number share
+  // one token and collapse to a single value on Decodifica (silent data loss).
+  //
+  // The dedup key is the libphonenumber E.164 `canonical`, not the raw match,
+  // so the same physical number in different formats ("+39 333 111 2222" vs
+  // "333 111 2222") shares one `<PHONE_n>`, while genuinely distinct numbers
+  // get distinct tokens (injective pseudonym→original mapping for the reverse
+  // pass). The numbered token is carried on the detection via `pseudonym`, so
+  // engine.ts maps it verbatim rather than falling back to the constant mask.
   // ---------------------------------------------------------------------------
   const phoneSpans = detectPhones(current)
+  const phoneTokenByCanonical = new Map<string, string>()
+  let phoneCounter = 0
+  // Assign tokens in source order (ascending start) so numbering is stable and
+  // reads left-to-right, independent of the right-to-left splice order below.
+  const phoneTokenForSpan = new Map<(typeof phoneSpans)[number], string>()
   for (const span of phoneSpans) {
+    let token = phoneTokenByCanonical.get(span.canonical)
+    if (token === undefined) {
+      phoneCounter += 1
+      token = `<PHONE_${phoneCounter}>`
+      phoneTokenByCanonical.set(span.canonical, token)
+    }
+    phoneTokenForSpan.set(span, token)
     detections.push({
       pattern: 'PHONE',
       category: 'PHONE',
       start: span.start,
       end: span.end,
       match: span.match,
+      pseudonym: token,
     })
   }
   // Splice replacements descending by start offset (right-to-left).
   for (const span of [...phoneSpans].sort((a, b) => b.start - a.start)) {
-    current = current.slice(0, span.start) + '<PHONE>' + current.slice(span.end)
+    const token = phoneTokenForSpan.get(span) ?? '<PHONE>'
+    current = current.slice(0, span.start) + token + current.slice(span.end)
   }
 
   return { text: current, detections }

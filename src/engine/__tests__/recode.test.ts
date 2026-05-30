@@ -125,3 +125,83 @@ describe('drift smoke — anonymize → recode (regex-only, Phase 1)', () => {
     })
   }
 })
+
+// ---------------------------------------------------------------------------
+// PHONE reversibility — value-distinct numbered tokens (bug fix 2026-05-30).
+//
+// Before the fix every detected number collapsed to a single constant
+// `<PHONE>`, so on Decodifica the first realValue overwrote ALL occurrences and
+// distinct numbers came back identical (silent data loss). The fix numbers
+// tokens per DISTINCT canonical (E.164) value — `<PHONE_1>`, `<PHONE_2>`, … —
+// mirroring the gated Date/CAP detectors. This locks the round-trip contract:
+//   - same physical number, ANY format  → same token (canonical collapse)
+//   - genuinely distinct numbers         → distinct tokens (injective map)
+//   - Decodifica reconstructs each number to its own original value
+// ---------------------------------------------------------------------------
+
+describe('phone reversibility — value-distinct numbered tokens', () => {
+  // Four valid IT mobiles. #1 appears TWICE, the second time in a different
+  // surface format (+39 prefix + grouping) to prove canonical collapse. #2/#3/#4
+  // are distinct. (libphonenumber must validate each as an IT number, else the
+  // gate in phone-detector.ts drops it.)
+  const PHONE_1_BARE = '333 111 2222'
+  const PHONE_1_INTL = '+39 333 111 2222' // same number as PHONE_1_BARE
+  const PHONE_2 = '340 555 6677'
+  const PHONE_3 = '348 999 0011'
+
+  const original =
+    `Chiamare il sig. Rossi al ${PHONE_1_BARE} oppure al ${PHONE_2}. ` +
+    `Per la pratica usare ${PHONE_3}; in alternativa lo stesso numero ${PHONE_1_INTL}.`
+
+  it('encode: 3 distinct numbers → <PHONE_1..3>, repeated number shares its token', () => {
+    const result = anonymize(original)
+
+    const phoneEntries = result.mappingEntries.filter(
+      (e) => e.category === 'PHONE',
+    )
+    const tokens = phoneEntries.map((e) => e.pseudonym)
+
+    // Exactly three distinct tokens (PHONE_1 appears twice in text but is one
+    // mapping entry; PHONE_2, PHONE_3 are the others).
+    expect(new Set(tokens)).toEqual(
+      new Set(['<PHONE_1>', '<PHONE_2>', '<PHONE_3>']),
+    )
+    expect(phoneEntries).toHaveLength(3)
+
+    // The old constant token must be gone.
+    expect(result.pseudonymizedText).not.toMatch(/<PHONE>/)
+    // No raw IT mobile shape survives in the pseudonymized text.
+    expect(result.pseudonymizedText).not.toMatch(/\b3\d{2}[ .]?\d{3}[ .]?\d{4}\b/)
+
+    // The repeated number (both formats) collapses to a SINGLE token, which
+    // therefore appears twice in the output.
+    const token1 = phoneEntries.find((e) =>
+      e.realValue.replace(/\D/g, '').endsWith('3331112222'),
+    )?.pseudonym
+    expect(token1).toBeDefined()
+    const occurrences = result.pseudonymizedText.split(token1 as string).length - 1
+    expect(occurrences).toBe(2)
+  })
+
+  it('decode: each distinct number is reconstructed to its own value', () => {
+    const result = anonymize(original)
+
+    // Decodifica reverse pass: feed the pseudonymized text + mapping back
+    // through recodeText (exactly what DecodificaPanel does).
+    const recoded = recodeText(result.pseudonymizedText, result.mappingEntries)
+
+    // Every distinct number is back, each restored to its OWN value — the
+    // bug would have produced three identical numbers here.
+    expect(recoded).toContain(PHONE_2)
+    expect(recoded).toContain(PHONE_3)
+    // PHONE_1: both surfaces collapsed to one token → both decode to the
+    // first-seen original surface (the bare form). The number is preserved;
+    // the surface format of the second mention canonicalises to the first.
+    const digitsOnly = recoded.replace(/\D/g, '')
+    expect((digitsOnly.match(/3331112222/g) ?? []).length).toBe(2)
+
+    // No pseudonym token survives the reverse pass.
+    expect(recoded).not.toMatch(/<PHONE_\d+>/)
+    expect(recoded).not.toMatch(/<PHONE>/)
+  })
+})

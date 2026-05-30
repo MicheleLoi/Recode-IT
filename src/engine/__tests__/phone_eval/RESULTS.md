@@ -5,7 +5,7 @@
 > Measures PRODUCTION phone detection (`detectPhones`, backed by libphonenumber-js,
 > wired into `applyRegexRules` in `src/engine/regex.ts`). This drives the live pipeline.
 
-- Generated: 2026-05-29T12:24:12.901Z
+- Generated: 2026-05-30T13:14:27.556Z
 - Corpus size: 313 rendered phone strings
 - Countries: 45 (EU/EEA + world sample)
 

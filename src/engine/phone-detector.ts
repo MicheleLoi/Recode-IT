@@ -38,6 +38,16 @@ export interface PhoneSpan {
   end: number
   /** The matched substring exactly as it appears in the source text. */
   match: string
+  /**
+   * Canonical, format-independent identity of the number (E.164, e.g.
+   * "+393331112222"). Same physical number written "+39 333 111 2222" and
+   * "333 111 2222" (IT default region) shares one canonical key, so the caller
+   * collapses both onto a single numbered token. Falls back to the raw match
+   * when libphonenumber cannot format the parsed number (defensive — should not
+   * happen for a gate-passing span, which is always either intl-prefixed or
+   * plan-valid).
+   */
+  canonical: string
 }
 
 /**
@@ -99,7 +109,12 @@ export function detectPhones(text: string): PhoneSpan[] {
     const key = `${start}:${end}`
     if (seen.has(key)) continue
     seen.add(key)
-    spans.push({ start, end, match: raw })
+    // Canonical E.164 identity for value-distinct token numbering by the
+    // caller. `match.number` is present (v2 + the gate above implies a parsed
+    // PhoneNumber for valid/intl spans); format('E.164') normalises away
+    // spacing/prefix variants of the same physical number.
+    const canonical = match.number?.format('E.164') ?? raw
+    spans.push({ start, end, match: raw, canonical })
   }
 
   return spans

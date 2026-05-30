@@ -18,6 +18,16 @@ export type RegexDetection = {
   match: string
   /** Mirrors `category` for downstream consumers that key off "category". */
   category: string
+  /**
+   * Pre-resolved pseudonym token, set by detectors that number their tokens by
+   * distinct value (e.g. PHONE → `<PHONE_1>`, `<PHONE_2>`). When present, the
+   * mapping builder in `engine.ts` uses it verbatim instead of the constant
+   * `REGEX_CATEGORY_TO_MASK` fallback — this is what lets repeated/distinct
+   * phone numbers round-trip through Decodifica without all collapsing onto a
+   * single shared `<PHONE>`. Optional; categories with a stable constant mask
+   * (CF/IBAN/EMAIL/…) leave it unset.
+   */
+  pseudonym?: string
 }
 
 /**

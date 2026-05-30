@@ -244,7 +244,9 @@ describe('regression — standard-flow identifiers always masked', () => {
     expect(result.pseudonymizedText).toContain('<DS>')
     expect(result.pseudonymizedText).toContain('<IBAN>')
     expect(result.pseudonymizedText).toContain('<EMAIL>')
-    expect(result.pseudonymizedText).toContain('<PHONE>')
+    // Phone now uses value-distinct numbered tokens (fix 2026-05-30): one
+    // number → <PHONE_1>, not the legacy constant <PHONE>.
+    expect(result.pseudonymizedText).toMatch(/<PHONE_\d+>/)
     expect(result.pseudonymizedText).toContain('<RES_NUM>')
   })
 

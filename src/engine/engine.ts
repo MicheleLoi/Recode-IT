@@ -452,8 +452,17 @@ export function anonymize(
   const seenRegex = new Set<string>()
   const mappingEntries: MappingEntry[] = []
   for (const det of detections) {
-    const pseudonym = REGEX_CATEGORY_TO_MASK[det.category] ?? `<${det.category}>`
-    const dedupeKey = `${pseudonym}::${det.match}`
+    // A detector that numbers its own tokens per distinct value (PHONE →
+    // `<PHONE_1>`, see regex.ts) sets `det.pseudonym`; use it verbatim. Else
+    // fall back to the per-category constant mask (CF/IBAN/EMAIL/…).
+    const pseudonym =
+      det.pseudonym ?? REGEX_CATEGORY_TO_MASK[det.category] ?? `<${det.category}>`
+    // For self-numbered tokens (PHONE) the token IS the canonical identity, so
+    // dedup on the token alone — two surface formats of the same number share
+    // `<PHONE_1>` and must yield ONE mapping entry (first-seen realValue), else
+    // the reverse pass sees two `<PHONE_1>→…` rows. For constant-mask categories
+    // the legacy `pseudonym::match` key still distinguishes distinct values.
+    const dedupeKey = det.pseudonym ? pseudonym : `${pseudonym}::${det.match}`
     if (seenRegex.has(dedupeKey)) continue
     seenRegex.add(dedupeKey)
     mappingEntries.push({

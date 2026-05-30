@@ -172,9 +172,11 @@ describe('Regression: substitution offset alignment (founder fixture 2026-05-18)
     expect(emailCount).toBe(4)
 
     // No partial mask shapes: substrings like "<D" or "DS>" should appear ONLY
-    // as part of a clean "<DS>" / "<EMAIL>". The simplest invariant: there
-    // are no opening "<" without matching ">" in the same line.
-    const stray = out.match(/<[A-Z.]+(?![A-Z.]*>)/g)
+    // as part of a clean "<DS>" / "<EMAIL>" / "<PHONE_1>". The simplest
+    // invariant: there are no opening "<" without matching ">" in the same line.
+    // Token charset includes "_" + digits so numbered tokens (<PHONE_1>,
+    // <DATA_1>, <CAP_1>) are recognised as complete, not as bisected fragments.
+    const stray = out.match(/<[A-Z._\d]+(?![A-Z._\d]*>)/g)
     expect(stray, `stray bisected mask fragments: ${stray}`).toBeNull()
 
     // None of the allocated pseudonyms should appear inside the mask windows.
@@ -219,7 +221,7 @@ describe('Regression: substitution offset alignment (founder fixture 2026-05-18)
     }
   })
 
-  it('telephone numbers are pseudonymized to <PHONE> mask (Item 7 C, doctrine SID-20260526-011753)', () => {
+  it('telephone numbers are pseudonymized to numbered <PHONE_n> tokens (Item 7 C, doctrine SID-20260526-011753; value-distinct numbering 2026-05-30)', () => {
     const text = loadFixture()
     const detections = buildDetections(text)
     const result = anonymize(text, {
@@ -229,15 +231,18 @@ describe('Regression: substitution offset alignment (founder fixture 2026-05-18)
     const out = result.pseudonymizedText
 
     // Item 7 C (decision_log MHC-Work 2026-05-26 SID-20260526-011753): telefoni
-    // con prefisso +39/0039 sono coperti da `PHONE_IT_PREFIX_RE` e sostituiti
-    // con `<PHONE>`. Doctrine: telefono = privacy reale, prefisso esplicito =
-    // basso FP. Date/importi/CAP esplicitamente NON inclusi (contenuto
-    // semantico del documento, non metadati personali).
+    // con prefisso +39/0039 sono rilevati e sostituiti. Doctrine: telefono =
+    // privacy reale, prefisso esplicito = basso FP. Date/importi/CAP
+    // esplicitamente NON inclusi (contenuto semantico del documento, non
+    // metadati personali).
     //
     // Pre-Item 7 C il test asseriva `.toContain(phone)` perché i telefoni
-    // passavano intatti (`regex doesn't cover phones in Recode-IT today` —
-    // commento storico ora obsoleto). Post-Item 7 C i telefoni devono NON
-    // apparire nel testo finale, sostituiti dalla maschera `<PHONE>`.
+    // passavano intatti. Post-Item 7 C i telefoni NON appaiono nel testo finale.
+    // Fix reversibilità 2026-05-30: la maschera costante `<PHONE>` è stata
+    // sostituita da token NUMERATI per valore distinto (`<PHONE_1>`, … —
+    // mirror dei rilevatori Date/CAP), così la Decodifica ricostruisce ogni
+    // numero senza collassarli tutti sul primo. Qui i 4 numeri sono distinti →
+    // 4 token distinti.
     for (const phone of [
       '+39 340 123 4567',
       '+39 347 551 2093',
@@ -249,8 +254,11 @@ describe('Regression: substitution offset alignment (founder fixture 2026-05-18)
         `phone "${phone}" should have been masked but appeared verbatim`,
       ).not.toContain(phone)
     }
-    // All four phones → 4 <PHONE> masks via regex pass.
-    const phoneCount = (out.match(/<PHONE>/g) ?? []).length
-    expect(phoneCount).toBe(4)
+    // All four DISTINCT phones → 4 distinct numbered tokens via the phone pass.
+    const phoneTokens = out.match(/<PHONE_\d+>/g) ?? []
+    expect(phoneTokens).toHaveLength(4)
+    expect(new Set(phoneTokens).size).toBe(4)
+    // The legacy constant token must no longer appear.
+    expect(out).not.toMatch(/<PHONE>/)
   })
 })
