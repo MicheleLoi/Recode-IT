@@ -1698,15 +1698,15 @@ export function WireframeWorkArea({
           </button>
         </div>
 
-        {/* Detail view */}
+        {/* Detail view — MappaPanel sempre visibile (trick width SID-20260530).
+            Il founder cercava un gestalt verticale che il max-width:1400 da solo
+            non dava. Il pannello mappa è la "spina" verticale di default; il
+            click su "Chiavi locali" / "Chiavi su server" resta funzionale ma
+            non condiziona più la presenza/assenza del pannello in fondo.
+            Stato "tabella vuota" è gestito internamente da MappaPanel
+            (mappa-panel__empty), quindi non serve più un placeholder esterno. */}
         <div className="wireframe-mappa-detail">
-          {selectedCard === 'locali' ? (
-            <MappaPanel />
-          ) : (
-            <div className="wireframe-mappa-detail__placeholder">
-              {t('wireframe.mappa.detail.placeholder')}
-            </div>
-          )}
+          <MappaPanel />
         </div>
       </div>
 
