@@ -280,6 +280,18 @@ export function WireframeWorkArea({
   const [flashPseudoPanel, setFlashPseudoPanel] = useState(false)
   const flashPseudoTimerRef = useRef<number | null>(null)
 
+  /* ── suggerimento "luoghi preservati" (founder SID-20260530) ──────────────
+     Quando la pseudonimizzazione preserva entità Pass-2 (citta/via/azienda/
+     organizzazione/tribunale) PERCHÉ la corrispondente category nel dropdown
+     "sostituisci anche" è OFF, l'utente le vede evidenziate sulla mappa MA
+     non sostituite — UX-confusione (sembra un bug). Affordance inline:
+     suggerimento sotto il pannello pseudonimizzato che conta e propone di
+     accendere il toggle + rilanciare in un click. Dismiss ephemeral
+     (sessione corrente, no localStorage): set di keys dismessi dall'utente. */
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(
+    () => new Set(),
+  )
+
   /* ── upload affordance ─────────────────────────────────────────────────── */
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -1144,6 +1156,54 @@ export function WireframeWorkArea({
     (e) => e.status === 'pending',
   ).length
 
+  /* Conteggio entità preserved per category Pass-2 (founder SID-20260530).
+     Solo categorie NON già attive nel dropdown "sostituisci anche". Mapping
+     entity category → dropdown key: citta/via → places; azienda/organizzazione
+     → organizations; tribunale → courts. Esclude falsePositive. Il risultato
+     guida sia il rendering del suggerimento inline sia la disabilitazione
+     quando l'utente attiva manualmente la category dal dropdown (in tal caso
+     il key sparisce dalle preservedCounts perché il filtro `sostituisciAnche.has(key)`
+     lo rimuove). */
+  const preservedSuggestions = useMemo(() => {
+    const counts: Record<'places' | 'organizations' | 'courts', number> = {
+      places: 0,
+      organizations: 0,
+      courts: 0,
+    }
+    for (const e of entities) {
+      if (e.isPreserved !== true || e.status === 'falsePositive') continue
+      const cat = e.category.toLowerCase()
+      let key: 'places' | 'organizations' | 'courts' | null = null
+      if (cat === 'citta' || cat === 'città' || cat === 'via' || cat === 'luogo') {
+        key = 'places'
+      } else if (cat === 'azienda' || cat === 'organizzazione') {
+        key = 'organizations'
+      } else if (cat === 'tribunale') {
+        key = 'courts'
+      }
+      if (key === null) continue
+      if (sostituisciAnche.has(key)) continue
+      counts[key]++
+    }
+    const entries: Array<{
+      key: 'places' | 'organizations' | 'courts'
+      count: number
+    }> = []
+    if (counts.places > 0 && !dismissedSuggestions.has('places')) {
+      entries.push({ key: 'places', count: counts.places })
+    }
+    if (
+      counts.organizations > 0 &&
+      !dismissedSuggestions.has('organizations')
+    ) {
+      entries.push({ key: 'organizations', count: counts.organizations })
+    }
+    if (counts.courts > 0 && !dismissedSuggestions.has('courts')) {
+      entries.push({ key: 'courts', count: counts.courts })
+    }
+    return entries
+  }, [entities, sostituisciAnche, dismissedSuggestions])
+
   const tokens = useMemo(() => {
     const set = new Set<string>()
     for (const e of entities) {
@@ -1584,6 +1644,134 @@ export function WireframeWorkArea({
               </button>
             )}
           </div>
+
+          {/* Suggerimento "luoghi preservati" (founder SID-20260530).
+              Visibile in Codifica dopo un run, quando ci sono entità Pass-2
+              preserved per categorie OFF nel dropdown "sostituisci anche".
+              Posizione: tra il pannello originale (sx) e la review-list
+              expandable — l'utente vede sulla mappa le entità evidenziate
+              ma non sostituite, scrolla un filo e trova il suggerimento.
+              Click su "Sì, includi X" → adds key al Set + chiama
+              handlePseudonimizza() (stesso path di Applica del dropdown,
+              incluso spinner + flash verde feedback). Dismiss ephemeral. */}
+          {mode === 'codifica' &&
+            hasRunOnCurrentDoc &&
+            preservedSuggestions.length > 0 && (
+              <div
+                className="wireframe-preserved-suggestion"
+                role="region"
+                aria-label={t('wireframe.suggestion.aria')}
+                data-testid="wireframe-preserved-suggestion"
+              >
+                <div className="wireframe-preserved-suggestion__text">
+                  {preservedSuggestions.length === 1 ? (
+                    <>
+                      <strong>
+                        {t('wireframe.suggestion.singleLead')
+                          .replace('{count}', String(preservedSuggestions[0].count))
+                          .replace(
+                            '{label}',
+                            t(
+                              `wireframe.suggestion.label.${preservedSuggestions[0].key}`,
+                            ),
+                          )}
+                      </strong>{' '}
+                      {t('wireframe.suggestion.singleTail').replace(
+                        '{label}',
+                        t(
+                          `wireframe.suggestion.toggleLabel.${preservedSuggestions[0].key}`,
+                        ),
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <strong>{t('wireframe.suggestion.multiLead')}</strong>{' '}
+                      {preservedSuggestions
+                        .map(
+                          (s) =>
+                            `${s.count} ${t(
+                              `wireframe.suggestion.label.${s.key}`,
+                            )}`,
+                        )
+                        .join(' · ')}
+                      . {t('wireframe.suggestion.multiTail')}
+                    </>
+                  )}
+                </div>
+                <div className="wireframe-preserved-suggestion__actions">
+                  {preservedSuggestions.map((s) => (
+                    <button
+                      key={s.key}
+                      type="button"
+                      className="wireframe-preserved-suggestion__btn"
+                      disabled={isApplyingModifiers}
+                      aria-busy={isApplyingModifiers}
+                      data-testid={`wireframe-preserved-suggestion-include-${s.key}`}
+                      onClick={async () => {
+                        if (isApplyingModifiers) return
+                        setSostituisciAnche((prev) => {
+                          const next = new Set(prev)
+                          next.add(s.key)
+                          return next
+                        })
+                        setIsApplyingModifiers(true)
+                        try {
+                          await handlePseudonimizza()
+                        } finally {
+                          setIsApplyingModifiers(false)
+                          if (flashPseudoTimerRef.current !== null) {
+                            window.clearTimeout(flashPseudoTimerRef.current)
+                          }
+                          setFlashPseudoPanel(true)
+                          flashPseudoTimerRef.current = window.setTimeout(
+                            () => setFlashPseudoPanel(false),
+                            1000,
+                          )
+                        }
+                      }}
+                    >
+                      {isApplyingModifiers && (
+                        <span
+                          className="wireframe-preserved-suggestion__spinner"
+                          aria-hidden
+                        />
+                      )}
+                      <span>
+                        {preservedSuggestions.length === 1
+                          ? t('wireframe.suggestion.includeBtnSingle').replace(
+                              '{label}',
+                              t(`wireframe.suggestion.articled.${s.key}`),
+                            )
+                          : t('wireframe.suggestion.includeBtnMulti').replace(
+                              '{label}',
+                              t(
+                                `wireframe.suggestion.toggleLabel.${s.key}`,
+                              ),
+                            )}
+                      </span>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="wireframe-preserved-suggestion__dismiss"
+                    aria-label={t('wireframe.suggestion.dismissAria')}
+                    title={t('wireframe.suggestion.dismissAria')}
+                    data-testid="wireframe-preserved-suggestion-dismiss"
+                    onClick={() => {
+                      setDismissedSuggestions((prev) => {
+                        const next = new Set(prev)
+                        for (const s of preservedSuggestions) {
+                          next.add(s.key)
+                        }
+                        return next
+                      })
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            )}
 
           {/* Entity review expandable (Codifica only, after run) */}
           {mode === 'codifica' && hasRunOnCurrentDoc && entities.length > 0 && (

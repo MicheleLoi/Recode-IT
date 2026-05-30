@@ -430,6 +430,37 @@ const it: Catalog = {
   // (EN/DE/FR fall back a IT via t() finché non viene tradotto in un secondo
   // round). Label durante l'esecuzione di handlePseudonimizza().
   'wireframe.modifier.applyingBtn': 'Applicazione in corso…',
+  // SID-20260530 founder UX-affordance: suggerimento inline quando il NER
+  // detecta entità Pass-2 (luogo/organizzazione/tribunale) che restano
+  // preserved perché la corrispondente category nel dropdown "sostituisci
+  // anche" è OFF. L'utente le vede evidenziate sulla mappa ma non
+  // sostituite — sembra un bug. Il suggerimento conta + propone include+
+  // rerun in un click. IT only per vincolo (EN/DE/FR fallback IT canonical).
+  'wireframe.suggestion.aria':
+    'Suggerimento: entità rilevate ma non sostituite',
+  'wireframe.suggestion.singleLead': 'Hai {count} {label} non sostituite',
+  'wireframe.suggestion.singleTail':
+    'perché "{label}" non è attivo nelle sostituzioni.',
+  'wireframe.suggestion.multiLead': 'Hai entità rilevate ma non sostituite:',
+  'wireframe.suggestion.multiTail': 'Vuoi includerle nelle sostituzioni?',
+  // label.* = nome categoria al plurale per il conteggio (es. "3 città/vie")
+  'wireframe.suggestion.label.places': 'città/vie',
+  'wireframe.suggestion.label.organizations': 'organizzazioni',
+  'wireframe.suggestion.label.courts': 'tribunali',
+  // toggleLabel.* = riferimento al toggle dropdown (titlecase, singolare)
+  'wireframe.suggestion.toggleLabel.places': 'Luoghi',
+  'wireframe.suggestion.toggleLabel.organizations': 'Organizzazioni',
+  'wireframe.suggestion.toggleLabel.courts': 'Tribunali',
+  // Bottone primario quando c'è una sola category preserved. Genere "i/le"
+  // dipende dalla category — usiamo la forma neutra "Sì, includi {label}"
+  // dove {label} è "i luoghi" / "le organizzazioni" / "i tribunali".
+  'wireframe.suggestion.includeBtnSingle': 'Sì, includi {label}',
+  'wireframe.suggestion.includeBtnMulti': 'Includi {label}',
+  // Article+plural form per il bottone include (single case).
+  'wireframe.suggestion.articled.places': 'i luoghi',
+  'wireframe.suggestion.articled.organizations': 'le organizzazioni',
+  'wireframe.suggestion.articled.courts': 'i tribunali',
+  'wireframe.suggestion.dismissAria': 'Ignora suggerimento per questa sessione',
   'wireframe.panel.originale': 'originale',
   'wireframe.panel.pseudonimizzato': 'pseudonimizzato',
   'wireframe.placeholder.originale.codifica': 'Trascina il documento qui, o incolla il testo',
