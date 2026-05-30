@@ -1485,28 +1485,29 @@ export function WireframeWorkArea({
           <div className="wireframe-panel__label">
             {t('wireframe.panel.pseudonimizzato')}
           </div>
+          {/* Copia output — Codifica: riga dedicata sopra il body (mirror
+              Decodifica), NON floating sopra il testo (founder direttiva
+              2026-05-30: uniformare verso GRANDE su entrambi i pannelli;
+              regressione f3120ac corretta in senso opposto). Bottone Copia
+              soltanto: niente Word/PDF su Codifica (scope-reduction f3120ac
+              resta — output Codifica è intermedio per AI esterna, non
+              deliverable archiviabile). */}
+          {mode === 'codifica' && pseudonimizzatoText && (
+            <div className="wireframe-output-actions">
+              <button
+                type="button"
+                className="wireframe-copy-btn"
+                onClick={() => void handleCopyPseudo()}
+                data-testid="wireframe-copy-pseudonimizzato-btn"
+                title={t('wireframe.copy.titlePseudo')}
+              >
+                {copyPseudoState === 'copied'
+                  ? t('wireframe.copy.done')
+                  : t('wireframe.copy.button')}
+              </button>
+            </div>
+          )}
           <div className="wireframe-panel__body">
-            {/* Copia output a un click (Fix 1) — Codifica: il pannello
-                pseudonimizzato è l'output. Bottone floating top-left, sopra
-                DocumentView/textarea (il padding-top:44px riserva la fascia).
-                Il pannello pseudonimizzato non ha new-doc-btn → top-left e
-                top-right entrambi liberi, scegliamo top-left per coerenza col
-                pannello originale in Decodifica. */}
-            {mode === 'codifica' && pseudonimizzatoText && (
-              <div className="wireframe-output-actions">
-                <button
-                  type="button"
-                  className="wireframe-copy-btn"
-                  onClick={() => void handleCopyPseudo()}
-                  data-testid="wireframe-copy-pseudonimizzato-btn"
-                  title={t('wireframe.copy.titlePseudo')}
-                >
-                  {copyPseudoState === 'copied'
-                    ? t('wireframe.copy.done')
-                    : t('wireframe.copy.button')}
-                </button>
-              </div>
-            )}
             {/* In codifica mode after run, show DocumentView (pseudo). In
                 decodifica mode, plain editable textarea (user paste AI response). */}
             {mode === 'codifica' && pseudonimizzatoText && hasRunOnCurrentDoc ? (
