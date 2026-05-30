@@ -85,18 +85,28 @@ function mergeEntries(
   for (const e of fresh) {
     const k = `${e.category}::${e.realValue.toLowerCase()}`
     if (seen.has(k)) {
-      // Keep the cumulative entry (preserves its isFalsePositive flag) but
-      // make sure the pseudonym stays in sync with what the mapper used —
-      // shouldn't drift in extend mode but defensive.
+      // Substitution-wins-over-preservation (founder criterio 2026-05-30,
+      // bug "Firenze→Firenze identity dopo run 2"): se il run precedente ha
+      // PRESERVATO (toggle categoria spento → isPreserved:true) e il run
+      // corrente la SOSTITUISCE (toggle ora acceso → isPreserved:false), la
+      // sostituzione fresh deve VINCERE. Edge case: ENTRAMBE preserved →
+      // manteniamo prev (può essere "Falso positivo" esplicito dell'utente).
+      // Sync con `WireframeWorkArea::mergeEntries`.
       const prev = seen.get(k)!
-      seen.set(k, {
-        ...prev,
-        pseudonym: prev.pseudonym,
-        category: prev.category,
-        isFalsePositive: prev.isFalsePositive,
-        isPreserved: prev.isPreserved,
-        pass: prev.pass,
-      })
+      const prevPreserved = prev.isPreserved === true
+      const freshPreserved = e.isPreserved === true
+      if (prevPreserved && !freshPreserved) {
+        seen.set(k, e)
+      } else {
+        seen.set(k, {
+          ...prev,
+          pseudonym: prev.pseudonym,
+          category: prev.category,
+          isFalsePositive: prev.isFalsePositive,
+          isPreserved: prev.isPreserved,
+          pass: prev.pass,
+        })
+      }
     } else {
       seen.set(k, e)
     }

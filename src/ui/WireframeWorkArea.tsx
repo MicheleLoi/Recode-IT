@@ -159,7 +159,10 @@ function applyAllSubstitutions(
   return out
 }
 
-function mergeEntries(
+// Exported for tests — see `__tests__/mergeEntries.test.ts`. The function is
+// part of the run-2 toggle-flip discipline (substitution-wins-over-preservation)
+// and deserves a unit test surface independent of the React component.
+export function mergeEntries(
   cumulative: MappingEntry[],
   fresh: MappingEntry[],
 ): MappingEntry[] {
@@ -172,14 +175,30 @@ function mergeEntries(
     const k = `${e.category}::${e.realValue.toLowerCase()}`
     if (seen.has(k)) {
       const prev = seen.get(k)!
-      seen.set(k, {
-        ...prev,
-        pseudonym: prev.pseudonym,
-        category: prev.category,
-        isFalsePositive: prev.isFalsePositive,
-        isPreserved: prev.isPreserved,
-        pass: prev.pass,
-      })
+      // Substitution-wins-over-preservation (founder criterio 2026-05-30,
+      // bug "Firenze→Firenze identity dopo run 2"): se il run precedente ha
+      // PRESERVATO l'entità (toggle categoria spento → isPreserved:true) e
+      // il run corrente la SOSTITUISCE (toggle ora acceso → isPreserved:false),
+      // la sostituzione fresh deve VINCERE. Senza questo, il pseudonimizzatoText
+      // mostra il nuovo pseudonimo ma la mappa UI resta identity (Firenze→Firenze).
+      //
+      // Edge case: se ENTRAMBE le entry sono preserved, manteniamo prev — può
+      // essere una decisione esplicita dell'utente ("Falso positivo / lascia
+      // originale") e non va silenziosamente sovrascritta da un re-run.
+      const prevPreserved = prev.isPreserved === true
+      const freshPreserved = e.isPreserved === true
+      if (prevPreserved && !freshPreserved) {
+        seen.set(k, e)
+      } else {
+        seen.set(k, {
+          ...prev,
+          pseudonym: prev.pseudonym,
+          category: prev.category,
+          isFalsePositive: prev.isFalsePositive,
+          isPreserved: prev.isPreserved,
+          pass: prev.pass,
+        })
+      }
     } else {
       seen.set(k, e)
     }

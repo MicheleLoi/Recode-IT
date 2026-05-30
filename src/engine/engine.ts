@@ -13,6 +13,7 @@
 
 import { applyRegexRules } from './regex'
 import { applyGatedSpans, detectGated } from './gated_detectors'
+import { detectItalianCities, mergeWhitelistWithNer } from './city_whitelist'
 import { findDeCuiusNames, isStoplist } from './stoplist'
 import { PseudonymMapper } from './pseudonym_mapper'
 import type {
@@ -505,11 +506,31 @@ export function anonymize(
     return () => all
   })()
 
+  // Deterministic city-whitelist augmentation (founder criterio 2026-05-30,
+  // bug NER recall variabile su città IT in liste). Runs SOLO quando il
+  // toggle "Luoghi" è attivo (`luogo` ∈ enabledPass2Labels) — rispetta il
+  // canone per-label del 2026-05-30. Le hit sono calcolate sul TESTO
+  // ORIGINALE (stessa convenzione del NER, che il reanchor riallinea sul
+  // post-regex) e mergiate con `options.nerDetections` senza sovrapporsi a
+  // span NER esistenti. Effetto netto: copertura deterministica su
+  // capoluoghi (Firenze/Palermo/...) anche quando il NER li manca; nessuna
+  // regressione quando li cattura (overlap-dedup le scarta).
+  let augmentedNer: NerDetection[] | undefined = options.nerDetections
+  if (isPass2Enabled('luogo')) {
+    const cityHits = detectItalianCities(text)
+    if (cityHits.length > 0) {
+      augmentedNer = mergeWhitelistWithNer(
+        options.nerDetections ?? [],
+        cityHits,
+      )
+    }
+  }
+
   let pseudonymizedText = afterRegex
-  if (options.nerDetections && options.nerDetections.length > 0) {
+  if (augmentedNer && augmentedNer.length > 0) {
     const fp = options.userFalsePositives ?? new Set<string>()
     const reanchored = reanchorNerDetections(
-      options.nerDetections,
+      augmentedNer,
       detections,
       text,
       afterRegex,
