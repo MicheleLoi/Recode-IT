@@ -2803,32 +2803,33 @@ code {
 }
 
 /* ── Output actions row: Copia + Esporta Word + Esporta PDF ─────────────
-   Riga dedicata sopra il pannello (rendered tra .wireframe-panel__label e
-   .wireframe-panel__body), NON floating sopra il testo. Architettura
-   uniformata su Codifica + Decodifica (founder direttiva 2026-05-30,
-   regressione f3120ac ripristinata in senso opposto: target = GRANDE su
-   entrambi). I bottoni sono "grandi" (padding 8px 16px, font-size 14px):
-   il copy resta accent blu (azione primaria), gli export sono secondary
-   outline (azioni alternative complementari). */
+   Wrapper floating top-LEFT del corpo pannello (specchio del
+   ".wireframe-new-doc-btn" che vive top-RIGHT nel pannello originale in
+   Codifica), così i due non collidono mai. SID-20260530: aggiunti bottoni
+   "📄 Word" / "📕 PDF" affiancati a "Copia" (founder direttiva). I 3
+   bottoni vivono in un flex-row condiviso; il copy resta accent blu
+   (azione primaria), gli export sono secondary outline (azioni alternative
+   complementari). */
 .wireframe-output-actions {
-  display: flex;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--wf-panel-bg);
-  border-bottom: 1px solid var(--wf-border);
+  gap: 6px;
 }
 
 .wireframe-copy-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: var(--wf-brand-blue);
   border: 1px solid var(--wf-brand-blue);
   color: #ffffff;
   border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 5px 12px;
+  font-size: 12px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -2848,18 +2849,17 @@ code {
 
 /* Export buttons (Word / PDF): outline secondary — l'azione di esportazione
    è alternativa a "Copia" (stessa funzione semantica, "porta via l'output"),
-   ma con peso visivo minore per non competere con la primaria. Stessa
-   altezza/padding del .wireframe-copy-btn per parità visiva sulla riga. */
+   ma con peso visivo minore per non competere con la primaria. */
 .wireframe-export-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: #ffffff;
   border: 1px solid var(--wf-brand-blue);
   color: var(--wf-brand-blue);
   border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 5px 10px;
+  font-size: 12px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
