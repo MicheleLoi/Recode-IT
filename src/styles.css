@@ -2182,6 +2182,35 @@ code {
   font-weight: 600;
 }
 
+/* ── Auto-save toggle (PseudonymizePanel) ──────────────────────────
+   SID-20260530-095254 — toggle inline accanto al bottone Salva.
+   Default OFF: bottone Salva mostrato grande; ON: bottone nascosto e
+   ogni modifica persiste automaticamente. */
+
+.autosave-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.autosave-toggle input[type='checkbox'] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
+}
+
+.autosave-hint {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
 /* ══════════════════════════════════════════════════════════════════
    MappaPanel (§9.10 — tab 2)
    ══════════════════════════════════════════════════════════════════ */

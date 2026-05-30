@@ -119,6 +119,41 @@ export function ClipboardWidget(): JSX.Element {
   const [labelInputOpen, setLabelInputOpen] = useState(false)
   const [labelInput, setLabelInput] = useState('')
 
+  // Auto-save toggle — founder direttiva SID-20260530-095254:
+  //   default OFF → bottone "Salva mapping" è la CTA primaria (visivamente
+  //                 più grande via .btn--large nel JSX di PseudonymizePanel).
+  //   ON          → ogni modifica di entries persiste subito in IndexedDB
+  //                 (tier=free) o sul server (tier=pro) via saveActive,
+  //                 bottone Salva nascosto. Funziona SOLO una volta che esiste
+  //                 un mapping attivo con label (per tier=pro) o un userId
+  //                 (per tier=free): il primo salvataggio resta esplicito.
+  // Persistence: localStorage 'recodeit:autoSaveMapping' (coerente con altre
+  // chiavi tipo 'recode-it:include-places-default'), default false.
+  const AUTO_SAVE_LS_KEY = 'recodeit:autoSaveMapping'
+  const readAutoSavePref = (): boolean => {
+    try {
+      if (typeof localStorage === 'undefined') return false
+      return localStorage.getItem(AUTO_SAVE_LS_KEY) === 'true'
+    } catch {
+      return false
+    }
+  }
+  const writeAutoSavePref = (v: boolean): void => {
+    try {
+      if (typeof localStorage === 'undefined') return
+      localStorage.setItem(AUTO_SAVE_LS_KEY, v ? 'true' : 'false')
+    } catch {
+      /* private mode / quota — silent */
+    }
+  }
+  const [autoSaveEnabled, setAutoSaveEnabledState] = useState<boolean>(() =>
+    readAutoSavePref(),
+  )
+  const setAutoSaveEnabled = useCallback((v: boolean) => {
+    setAutoSaveEnabledState(v)
+    writeAutoSavePref(v)
+  }, [])
+
   // When an active mapping is opened, hydrate the review list from its
   // stored entries so the user immediately sees what's already in the case
   // dossier — and FP markers survive across the open/close cycle. We do this
@@ -244,9 +279,27 @@ export function ClipboardWidget(): JSX.Element {
             (prev.isFalsePositive ?? false) === (m.isFalsePositive ?? false)
           )
         })
-      if (!same) updateEntries(merged)
+      if (!same) {
+        updateEntries(merged)
+        // Auto-save hook (SID-20260530-095254): se il toggle è ON e abbiamo
+        // già un mapping attivo con label (tier=pro) o un userId (tier=free),
+        // persisti subito. Il primo save (label da scegliere) resta sempre
+        // esplicito: evitiamo di far apparire dialoghi a sorpresa.
+        if (autoSaveEnabled && active && user) {
+          const canAutoSave =
+            user.tier === 'free' || (user.tier === 'pro' && masterKey !== null)
+          const label = active.label // sempre presente quando active esiste
+          if (canAutoSave && label) {
+            void saveActive(label, merged).catch(() => {
+              // Silenzioso: l'errore si vedrà al prossimo Salva manuale.
+              // (Niente toast invasivi su auto-save: cosa contraria allo
+              // spirito "set-and-forget" di un autosave.)
+            })
+          }
+        }
+      }
     },
-    [active, updateEntries],
+    [active, updateEntries, autoSaveEnabled, user, masterKey, saveActive],
   )
 
   const handleResult = ({
@@ -649,6 +702,8 @@ export function ClipboardWidget(): JSX.Element {
         onCloseActive={closeActive}
         onOpenRecode={() => setRecodeOpen((v) => !v)}
         recodeOpen={recodeOpen}
+        autoSaveEnabled={autoSaveEnabled}
+        onAutoSaveChange={setAutoSaveEnabled}
       />
       {/*
         Recode panel — slide-in when open, hidden when closed. We always

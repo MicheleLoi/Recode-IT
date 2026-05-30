@@ -111,6 +111,14 @@ type Props = {
   onOpenRecode?: () => void
   /** Whether the recode panel is currently open (affects toolbar button state). */
   recodeOpen?: boolean
+  /**
+   * Auto-save toggle (founder direttiva SID-20260530-095254). Quando true,
+   * il bottone "Salva mapping" è nascosto e le modifiche vanno in IDB ad
+   * ogni evento. Quando false (default), il bottone è in evidenza
+   * (.btn--large) come CTA primaria.
+   */
+  autoSaveEnabled?: boolean
+  onAutoSaveChange?: (v: boolean) => void
 }
 
 const ACCEPTED_EXTENSIONS = SUPPORTED_EXTENSIONS
@@ -144,6 +152,8 @@ export function PseudonymizePanel({
   onCloseActive,
   onOpenRecode,
   recodeOpen = false,
+  autoSaveEnabled = false,
+  onAutoSaveChange,
 }: Props): JSX.Element {
   const { docLanguage: language, t } = useLanguage()
   const [dragOver, setDragOver] = useState(false)
@@ -684,35 +694,78 @@ export function PseudonymizePanel({
               ? t('pseudo.button.running')
               : t('pseudo.button.pseudonimize')}
         </button>
-        <button
-          type="button"
-          className="btn btn--secondary"
-          onClick={onSaveClick}
-          disabled={!canSave || saveStatus === 'saving'}
-          title={
-            !loggedIn
-              ? 'Accedi o crea un account per salvare il mapping.'
-              : tier === 'pro' && !masterKeyAvailable
-                ? 'Master key non in memoria — esci e riaccedi.'
-                : entities.length === 0
-                  ? 'Pseudonimizza un documento prima di salvare.'
-                  : tier === 'free'
-                    ? 'Salva il mapping nel browser di questo computer.'
-                    : 'Salva il mapping cifrato sul server.'
-          }
-          data-testid="save-mapping-btn"
-        >
-          {saveStatus === 'saving'
-            ? t('pseudo.save.saving')
-            : saveStatus === 'saved'
-              ? t('pseudo.save.saved')
-              : activeLabel
-                ? t('pseudo.save.update')
-                : t('pseudo.button.save')}
-        </button>
+        {/* Bottone Salva — visibile solo in modalità manuale (autoSaveEnabled=false).
+            CTA primaria ingrandita (.btn--large + .btn--primary) per dare
+            evidenza visiva alla disciplina "salva esplicito" voluta dal
+            founder (SID-20260530-095254). */}
+        {!autoSaveEnabled && (
+          <button
+            type="button"
+            className="btn btn--primary btn--large"
+            onClick={onSaveClick}
+            disabled={!canSave || saveStatus === 'saving'}
+            title={
+              !loggedIn
+                ? 'Accedi o crea un account per salvare il mapping.'
+                : tier === 'pro' && !masterKeyAvailable
+                  ? 'Master key non in memoria — esci e riaccedi.'
+                  : entities.length === 0
+                    ? 'Pseudonimizza un documento prima di salvare.'
+                    : tier === 'free'
+                      ? 'Salva il mapping nel browser di questo computer.'
+                      : 'Salva il mapping cifrato sul server.'
+            }
+            data-testid="save-mapping-btn"
+          >
+            {saveStatus === 'saving'
+              ? t('pseudo.save.saving')
+              : saveStatus === 'saved'
+                ? t('pseudo.save.saved')
+                : activeLabel
+                  ? t('pseudo.save.update')
+                  : t('pseudo.button.save')}
+          </button>
+        )}
+        {/* Auto-save toggle — inline accanto al bottone Salva (placement:
+            visibile sotto gli occhi al momento del primo save, l'avvocato
+            non-tech non deve cercare in Impostazioni). Persistenza
+            localStorage 'recodeit:autoSaveMapping' gestita dal parent. */}
+        {loggedIn && onAutoSaveChange && (
+          <label
+            className="autosave-toggle"
+            data-testid="autosave-toggle-label"
+            title={
+              autoSaveEnabled
+                ? t('pseudo.autosave.titleOn')
+                : t('pseudo.autosave.titleOff')
+            }
+          >
+            <input
+              type="checkbox"
+              checked={autoSaveEnabled}
+              onChange={(e) => onAutoSaveChange(e.target.checked)}
+              data-testid="autosave-toggle"
+            />
+            <span>{t('pseudo.autosave.label')}</span>
+          </label>
+        )}
         {/* Mappa + Decodifica tabs live in DecodificaWorkspace (parent) — no
             separate CTA button needed here post-pivot (§9.10). */}
       </div>
+
+      {/* Micro-istruzione sotto la barra azioni — adatta in base alla modalità.
+          OFF: ricorda che la lista vive in finestra finché non clicchi.
+          ON:  conferma che il salvataggio è automatico. */}
+      {loggedIn && entities.length > 0 && (
+        <p
+          className="autosave-hint muted"
+          data-testid="autosave-hint"
+        >
+          {autoSaveEnabled
+            ? t('pseudo.autosave.hintAuto')
+            : t('pseudo.autosave.hintManual')}
+        </p>
+      )}
 
       {activeLabel && (
         <div className="active-badge" data-testid="active-badge-inline">
