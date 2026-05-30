@@ -82,21 +82,36 @@ type MacroMode = 'codifica' | 'decodifica'
 const DECODIFICA_PREVIEW_LIMIT = 150
 const ACCEPTED_EXTENSIONS = SUPPORTED_EXTENSIONS
 
-// SID-20260528-manual: founder-ratified restore di luoghi/organizzazioni/tribunali
-// (NER categories silenziosamente droppate nel redesign wireframe-first 2026-05-26).
-// Le 6 regex categories restano prime; le 3 NER seguono. Order semantico:
-// regex-deterministiche prima, NER-probabilistiche dopo.
+// Dropdown "Sostituisci anche" — esattamente 5 interruttori VERI e
+// INDIPENDENTI, default OFF (founder criterio canonico `_org/decision_log.md`
+// MHC-Work 2026-05-30 SID-20260530-095254). Il flusso standard (sempre attivo
+// nel motore: CF, P.IVA, IBAN, CRO, PROT, EMAIL, PHONE, NUM_PRENOT) maschera
+// gli identificativi di persona senza trade-off giuridico — quelle voci NON
+// sono più nel dropdown (smettevano di fingersi opzionali). Qui restano solo
+// le categorie con trade-off giuridico, ciascuna indipendente:
+//   - 3 NER-label (luogo/organizzazione/tribunale) → `enabledPass2Labels`
+//   - 2 regex-detector gated (date/cap), nuovi      → `enabledGatedDetectors`
+// Supersede la lista 9-voci pre-2026-05-30 (cf/iban/phone/booking erano finte).
 const SOSTITUISCI_ANCHE_CATEGORIES = [
-  { key: 'cf', labelKey: 'wireframe.modifier.cf' },
-  { key: 'iban', labelKey: 'wireframe.modifier.iban' },
-  { key: 'date', labelKey: 'wireframe.modifier.date' },
-  { key: 'cap', labelKey: 'wireframe.modifier.cap' },
-  { key: 'phone', labelKey: 'wireframe.modifier.phone' },
-  { key: 'booking', labelKey: 'wireframe.modifier.booking' },
   { key: 'places', labelKey: 'wireframe.modifier.places' },
   { key: 'organizations', labelKey: 'wireframe.modifier.organizations' },
   { key: 'courts', labelKey: 'wireframe.modifier.courts' },
+  { key: 'cap', labelKey: 'wireframe.modifier.cap' },
+  { key: 'date', labelKey: 'wireframe.modifier.date' },
 ] as const
+
+// Dropdown key → NER Pass-2 label (engine `enabledPass2Labels`).
+const KEY_TO_NER_LABEL: Record<string, string> = {
+  places: 'luogo',
+  organizations: 'organizzazione',
+  courts: 'tribunale',
+}
+
+// Dropdown key → gated regex-detector key (engine `enabledGatedDetectors`).
+const KEY_TO_GATED_DETECTOR: Record<string, string> = {
+  cap: 'cap',
+  date: 'date',
+}
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /* Helper — entity rebuild                                                     */
@@ -412,11 +427,24 @@ export function WireframeWorkArea({
 
   const runRegexOnly = useCallback(
     (userFalsePositives: Set<string>, nerDetections?: NerDetection[]) => {
+      // Translate the dropdown selection (UI keys) into the two granular
+      // engine option sets: NER Pass-2 labels + gated regex detectors. Each
+      // toggle is independent — spuntare "Luoghi" maschera SOLO `luogo`
+      // (founder criterio 2026-05-30, fix bug all-or-nothing).
+      const enabledPass2Labels = new Set<string>()
+      const enabledGatedDetectors = new Set<string>()
+      for (const key of sostituisciAnche) {
+        const nerLabel = KEY_TO_NER_LABEL[key]
+        if (nerLabel) enabledPass2Labels.add(nerLabel)
+        const gated = KEY_TO_GATED_DETECTOR[key]
+        if (gated) enabledGatedDetectors.add(gated)
+      }
       const result = anonymize(originaleText, {
         userFalsePositives,
         nerDetections,
         seedMapper: seedMapper ?? undefined,
-        includeCategoriesPass2: sostituisciAnche.size > 0,
+        enabledPass2Labels,
+        enabledGatedDetectors,
         language,
       })
       setPseudonimizzatoText(result.pseudonymizedText)

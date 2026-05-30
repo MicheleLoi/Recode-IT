@@ -174,7 +174,10 @@ describe('WireframeWorkArea — Codifica flow', () => {
     expect(actionBtn.disabled).toBe(true)
   })
 
-  it('"sostituisci anche" toggle reveals categories and tracks count', () => {
+  it('"sostituisci anche" dropdown = exactly 5 independent toggles, default OFF', () => {
+    // Founder criterio 2026-05-30 SID-20260530-095254: il dropdown contiene
+    // ESATTAMENTE 5 interruttori veri (luoghi/organizzazioni/tribunali/CAP/
+    // date), tutti default OFF. cf/iban/phone/booking rimossi (flusso standard).
     renderWithProviders()
     const modBtn = screen.getByTestId('wireframe-modifier-btn')
     // Closed initially
@@ -183,10 +186,25 @@ describe('WireframeWorkArea — Codifica flow', () => {
     ).not.toBeInTheDocument()
     fireEvent.click(modBtn)
     expect(screen.getByTestId('wireframe-modifier-dropdown')).toBeInTheDocument()
-    // Toggle cf + iban
-    fireEvent.click(screen.getByTestId('wireframe-modifier-cf'))
-    fireEvent.click(screen.getByTestId('wireframe-modifier-iban'))
-    // Count badge present
+
+    // Exactly the 5 canonical toggles present.
+    for (const key of ['places', 'organizations', 'courts', 'cap', 'date']) {
+      const cb = screen.getByTestId(
+        `wireframe-modifier-${key}`,
+      ) as HTMLInputElement
+      expect(cb).toBeInTheDocument()
+      expect(cb.checked).toBe(false) // default OFF
+    }
+    // Removed (now-fake) entries are GONE from the menu.
+    for (const gone of ['cf', 'iban', 'phone', 'booking']) {
+      expect(
+        screen.queryByTestId(`wireframe-modifier-${gone}`),
+      ).not.toBeInTheDocument()
+    }
+
+    // Toggling two independent categories tracks the count badge.
+    fireEvent.click(screen.getByTestId('wireframe-modifier-places'))
+    fireEvent.click(screen.getByTestId('wireframe-modifier-cap'))
     const modBtnAfter = screen.getByTestId('wireframe-modifier-btn')
     expect(modBtnAfter.textContent).toContain('2')
   })

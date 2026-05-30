@@ -388,15 +388,18 @@ const it: Catalog = {
   'wireframe.action.pseudonimize': 'PSEUDONIMIZZA',
   'wireframe.action.decodifica': 'DECODIFICA',
   'wireframe.modifier.label': 'sostituisci anche',
-  'wireframe.modifier.cf': 'Codici Fiscali',
-  'wireframe.modifier.iban': 'IBAN',
-  'wireframe.modifier.date': 'Date',
+  // Dropdown ridotto a 5 voci opt-in con trade-off giuridico (founder criterio
+  // 2026-05-30 SID-20260530-095254). cf/iban/phone/booking rimosse: sono nel
+  // flusso standard sempre attivo, non più finte-opzionali. Le 3 NER portano
+  // l'annotazione "(riconoscimento automatico, meno preciso)"; date/CAP label
+  // semplice. NB copy customer-facing — review chief_of_staff / @comm.
+  'wireframe.modifier.places': 'Luoghi (riconoscimento automatico, meno preciso)',
+  'wireframe.modifier.organizations':
+    'Organizzazioni (riconoscimento automatico, meno preciso)',
+  'wireframe.modifier.courts':
+    'Tribunali (riconoscimento automatico, meno preciso)',
   'wireframe.modifier.cap': 'CAP',
-  'wireframe.modifier.phone': 'Numeri di telefono',
-  'wireframe.modifier.booking': 'Numeri prenotazione',
-  'wireframe.modifier.places': 'Luoghi',
-  'wireframe.modifier.organizations': 'Organizzazioni',
-  'wireframe.modifier.courts': 'Tribunali',
+  'wireframe.modifier.date': 'Date',
   'wireframe.modifier.applyBtn': 'Applica',
   'wireframe.panel.originale': 'originale',
   'wireframe.panel.pseudonimizzato': 'pseudonimizzato',
@@ -862,15 +865,14 @@ const en: Catalog = {
   'wireframe.action.pseudonimize': 'PSEUDONYMIZE',
   'wireframe.action.decodifica': 'DECODE',
   'wireframe.modifier.label': 'also replace',
-  'wireframe.modifier.cf': 'Tax IDs',
-  'wireframe.modifier.iban': 'IBAN',
-  'wireframe.modifier.date': 'Dates',
+  // 5 opt-in items with a legal-reasoning trade-off (founder criterio
+  // 2026-05-30). tax-id/iban/phone/booking removed: always-on standard flow.
+  'wireframe.modifier.places': 'Places (automatic detection, less precise)',
+  'wireframe.modifier.organizations':
+    'Organizations (automatic detection, less precise)',
+  'wireframe.modifier.courts': 'Courts (automatic detection, less precise)',
   'wireframe.modifier.cap': 'Postal codes',
-  'wireframe.modifier.phone': 'Phone numbers',
-  'wireframe.modifier.booking': 'Booking refs',
-  'wireframe.modifier.places': 'Places',
-  'wireframe.modifier.organizations': 'Organizations',
-  'wireframe.modifier.courts': 'Courts',
+  'wireframe.modifier.date': 'Dates',
   'wireframe.modifier.applyBtn': 'Apply',
   'wireframe.panel.originale': 'original',
   'wireframe.panel.pseudonimizzato': 'pseudonymized',
@@ -1273,15 +1275,17 @@ const de: Catalog = {
   'wireframe.action.pseudonimize': 'PSEUDONYMISIEREN',
   'wireframe.action.decodifica': 'DEKODIEREN',
   'wireframe.modifier.label': 'auch ersetzen',
-  'wireframe.modifier.cf': 'Steuer-IDs',
-  'wireframe.modifier.iban': 'IBAN',
-  'wireframe.modifier.date': 'Daten',
+  // 5 Opt-in-Einträge mit rechtlichem Trade-off (founder criterio 2026-05-30).
+  // Steuer-ID/IBAN/Telefon/Buchung entfernt: immer aktiver Standardfluss.
+  // Hinweis: DE-Labels sind länger → Overflow im Dropdown prüfen. "Daten" ist
+  // mehrdeutig (data ≠ dates) → "Datumsangaben" für Klarheit.
+  'wireframe.modifier.places': 'Orte (automatische Erkennung, weniger genau)',
+  'wireframe.modifier.organizations':
+    'Organisationen (automatische Erkennung, weniger genau)',
+  'wireframe.modifier.courts':
+    'Gerichte (automatische Erkennung, weniger genau)',
   'wireframe.modifier.cap': 'Postleitzahlen',
-  'wireframe.modifier.phone': 'Telefonnummern',
-  'wireframe.modifier.booking': 'Buchungsnummern',
-  'wireframe.modifier.places': 'Orte',
-  'wireframe.modifier.organizations': 'Organisationen',
-  'wireframe.modifier.courts': 'Gerichte',
+  'wireframe.modifier.date': 'Datumsangaben',
   'wireframe.modifier.applyBtn': 'Anwenden',
   'wireframe.panel.originale': 'original',
   'wireframe.panel.pseudonimizzato': 'pseudonymisiert',
@@ -1684,15 +1688,17 @@ const fr: Catalog = {
   'wireframe.action.pseudonimize': 'PSEUDONYMISER',
   'wireframe.action.decodifica': 'DÉCODER',
   'wireframe.modifier.label': 'remplacer aussi',
-  'wireframe.modifier.cf': 'Codes fiscaux',
-  'wireframe.modifier.iban': 'IBAN',
-  'wireframe.modifier.date': 'Dates',
+  // 5 options avec compromis juridique (founder criterio 2026-05-30). Codes
+  // fiscaux/IBAN/téléphone/réservation retirés : flux standard toujours actif.
+  // NB : labels FR plus longs → vérifier le débordement du menu déroulant.
+  'wireframe.modifier.places':
+    'Lieux (détection automatique, moins précise)',
+  'wireframe.modifier.organizations':
+    'Organisations (détection automatique, moins précise)',
+  'wireframe.modifier.courts':
+    'Tribunaux (détection automatique, moins précise)',
   'wireframe.modifier.cap': 'Codes postaux',
-  'wireframe.modifier.phone': 'Numéros de téléphone',
-  'wireframe.modifier.booking': 'Numéros de réservation',
-  'wireframe.modifier.places': 'Lieux',
-  'wireframe.modifier.organizations': 'Organisations',
-  'wireframe.modifier.courts': 'Tribunaux',
+  'wireframe.modifier.date': 'Dates',
   'wireframe.modifier.applyBtn': 'Appliquer',
   'wireframe.panel.originale': 'original',
   'wireframe.panel.pseudonimizzato': 'pseudonymisé',

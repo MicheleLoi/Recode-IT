@@ -12,6 +12,7 @@
  */
 
 import { applyRegexRules } from './regex'
+import { applyGatedSpans, detectGated } from './gated_detectors'
 import { findDeCuiusNames, isStoplist } from './stoplist'
 import { PseudonymMapper } from './pseudonym_mapper'
 import type {
@@ -246,16 +247,20 @@ function reanchorNerDetections(
  * returns the substituted text + the list of mapping entries produced (one
  * per entity, deduped by `realValue+pseudonym`).
  *
- * `includeCategoriesPass2` flips the variante-β behaviour: when `false`,
- * Pass 2 detections short-circuit before allocating a pseudonym and surface
- * as preserved entries (`isPreserved: true`, `pseudonym === realValue`).
+ * `isPass2Enabled(label)` decides, PER LABEL, whether a Pass-2 category
+ * (`luogo` / `organizzazione` / `tribunale`) is substituted (predicate true)
+ * or preserved (predicate false → emit `isPreserved: true`,
+ * `pseudonym === realValue`). This per-label granularity is the fix for the
+ * all-or-nothing bug (spuntare una voce attivava tutte e 3 le categorie) —
+ * founder criterio canonico `_org/decision_log.md` 2026-05-30
+ * SID-20260530-095254.
  */
 function applyNerWithPseudonyms(
   text: string,
   ner: NerDetection[],
   mapper: PseudonymMapper,
   userFalsePositives: ReadonlySet<string>,
-  includeCategoriesPass2: boolean,
+  isPass2Enabled: (label: string) => boolean,
 ): { text: string; mappingEntries: MappingEntry[] } {
   // Filter stoplist + user-marked false positives early (Python parity).
   const filtered = ner.filter(
@@ -281,9 +286,9 @@ function applyNerWithPseudonyms(
   for (const ent of personPartial) mapper.getPerson(ent.text)
 
   // Seed companies (full names before suffix-only mentions). Only seed when
-  // Pass 2 substitution is enabled — otherwise the org will be preserved and
-  // there's no reason to burn a pool slot.
-  if (includeCategoriesPass2) {
+  // the organizzazione label is enabled — otherwise the org will be preserved
+  // and there's no reason to burn a pool slot.
+  if (isPass2Enabled('organizzazione')) {
     const companiesFull = filtered
       .filter((e) => e.label === 'organizzazione' && isCompany(e.text))
       .sort((a, b) => a.start - b.start)
@@ -318,11 +323,12 @@ function applyNerWithPseudonyms(
     let category = label
 
     // Variante β: Pass 2 labels (luogo / organizzazione / tribunale) bypass
-    // pseudonym allocation when the toggle is off. Emit a preserved entry
-    // (realValue verbatim, no text edit) so the UI review panel can offer
-    // [Sostituisci comunque] per single entity.
+    // pseudonym allocation when THAT specific label is not enabled. Emit a
+    // preserved entry (realValue verbatim, no text edit) so the UI review
+    // panel can offer [Sostituisci comunque] per single entity. Per-label
+    // (not all-or-nothing) — founder criterio 2026-05-30.
     const isPass2Label = PASS_2_LABELS.has(label)
-    if (isPass2Label && !includeCategoriesPass2) {
+    if (isPass2Label && !isPass2Enabled(label)) {
       // De-dupe by category::realValue so repeated mentions of the same
       // place don't produce N rows in the review list.
       const dedupeKey = `preserved::${label}::${original}`
@@ -471,10 +477,24 @@ export function anonymize(
   // that overlap a regex mask are dropped (the regex already handled that
   // surface); spans whose mapped slice no longer matches `det.text` fall
   // back to a first-occurrence text search.
+
+  // Per-label Pass-2 predicate. Precedence:
+  //   1. `enabledPass2Labels` (granular, founder criterio 2026-05-30) — when
+  //      supplied (even empty), each label is enabled iff it's in the set.
+  //   2. else the legacy all-or-nothing `includeCategoriesPass2` boolean
+  //      (PseudonymizePanel single checkbox + engine regression suite).
+  const isPass2Enabled = ((): ((label: string) => boolean) => {
+    if (options.enabledPass2Labels !== undefined) {
+      const set = options.enabledPass2Labels
+      return (label: string) => set.has(label)
+    }
+    const all = options.includeCategoriesPass2 === true
+    return () => all
+  })()
+
   let pseudonymizedText = afterRegex
   if (options.nerDetections && options.nerDetections.length > 0) {
     const fp = options.userFalsePositives ?? new Set<string>()
-    const includeCategoriesPass2 = options.includeCategoriesPass2 === true
     const reanchored = reanchorNerDetections(
       options.nerDetections,
       detections,
@@ -486,10 +506,37 @@ export function anonymize(
       reanchored,
       mapper,
       fp,
-      includeCategoriesPass2,
+      isPass2Enabled,
     )
     pseudonymizedText = nerOutcome.text
     mappingEntries.push(...nerOutcome.mappingEntries)
+  }
+
+  // Layer 3: gated opt-in detectors (Date + CAP). Runs LAST, against the
+  // already-substituted text — same discipline as the phone pass in
+  // applyRegexRules: names/orgs/places are already masked, so a date/CAP scan
+  // can't bite into a pseudonym. Each distinct value gets a numbered token
+  // (<DATA_n>/<CAP_n>) recorded as a normal (non-preserved) mapping entry, so
+  // the Decodifica reverse pass round-trips it. Default OFF (trade-off
+  // giuridico → opt-in), founder criterio 2026-05-30 SID-20260530-095254.
+  if (options.enabledGatedDetectors && options.enabledGatedDetectors.size > 0) {
+    const { spans, entries } = detectGated(
+      pseudonymizedText,
+      options.enabledGatedDetectors,
+    )
+    if (spans.length > 0) {
+      pseudonymizedText = applyGatedSpans(pseudonymizedText, spans)
+      for (const e of entries) {
+        mappingEntries.push({
+          pseudonym: e.pseudonym,
+          realValue: e.realValue,
+          category: e.category,
+          isPreserved: false,
+          pass: 2,
+          source: 'regex',
+        })
+      }
+    }
   }
 
   return {

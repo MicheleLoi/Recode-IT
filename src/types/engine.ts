@@ -101,8 +101,36 @@ export type AnonymizeOptions = {
    * preserving foro competente / giurisdizione / leggi regionali is often
    * essential for downstream legal reasoning. Set to `true` to substitute
    * every category as in the legacy single-pass behaviour.
+   *
+   * LEGACY all-or-nothing toggle. Retained for the legacy
+   * `PseudonymizePanel` (single "anche i luoghi" checkbox) and the engine
+   * regression suite. When `enabledPass2Labels` is supplied it takes
+   * precedence (per-label granularity); this boolean is then ignored.
    */
   includeCategoriesPass2?: boolean
+  /**
+   * Per-label granular opt-in (founder criterio canonico
+   * `_org/decision_log.md` MHC-Work 2026-05-30 SID-20260530-095254). The set
+   * of Pass-2 NER labels (`'luogo'`, `'organizzazione'`, `'tribunale'`) the
+   * user explicitly enabled in the "Sostituisci anche" dropdown. A label NOT
+   * in the set is preserved (`isPreserved: true`); a label IN the set is
+   * substituted. Supersedes the all-or-nothing `includeCategoriesPass2`
+   * (bug: spuntare una voce attivava tutte e 3 — `WireframeWorkArea` +
+   * `PASS_2_LABELS`). When supplied (even empty) this is the source of truth;
+   * when `undefined` the engine falls back to `includeCategoriesPass2`.
+   */
+  enabledPass2Labels?: ReadonlySet<string>
+  /**
+   * Gated opt-in regex detectors (founder criterio 2026-05-30): the set of
+   * extra structured-detector keys the user enabled. Recognised keys: `'date'`
+   * (Italian date formats) and `'cap'` (5-digit postal codes, context-aware).
+   * Unlike the always-on `REGEX_RULES` (CF/IBAN/email/phone/booking — personal
+   * identifiers, flusso standard), these carry a legal-reasoning trade-off
+   * (chronology, geography) so they default OFF. Each detected value gets a
+   * numbered token (`<DATA_1>`, `<CAP_1>`) so the Decodifica reverse pass can
+   * round-trip it. When `undefined` or empty, neither detector runs.
+   */
+  enabledGatedDetectors?: ReadonlySet<string>
 }
 
 export type AnonymizeResult = {
