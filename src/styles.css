@@ -2685,6 +2685,55 @@ code {
   background: var(--wf-brand-blue-dark, #1e40af);
 }
 
+/* Feedback "Applica" durante ri-pseudonimizzazione (founder SID-20260530:
+   "non si capisce che fa qualcosa"). Spinner inline + dim del background +
+   label "Applicazione in corso…" + disabled. Coppia col flash verde sul
+   pannello pseudonimizzato al completamento. */
+.wireframe-modifier-apply-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 180px;
+}
+
+.wireframe-modifier-apply-btn:disabled,
+.wireframe-modifier-apply-btn.is-applying {
+  background: var(--wf-brand-blue, #1d4ed8);
+  opacity: 0.85;
+  cursor: progress;
+}
+
+.wireframe-modifier-apply-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Flash verde 1s sul pannello pseudonimizzato al completamento di "Applica"
+   — coerente con palette `active-mapping-banner-flash` (#d1fae5 → #10b981).
+   Differenza: 1s (più breve, gesto micro) vs 1.5s del save. */
+.wireframe-panel--flash {
+  animation: wireframe-panel-flash 1s ease-out;
+}
+
+@keyframes wireframe-panel-flash {
+  0% {
+    background: #d1fae5;
+    border-color: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  }
+  100% {
+    background: var(--wf-bg);
+    border-color: var(--wf-border);
+    box-shadow: var(--wf-shadow-sm);
+  }
+}
+
 /* Save group (Codifica) — Krug-style ratifica founder SID-20260530.
    Stack verticale stretto, centrato: toggle autosave sopra, bottone Salva
    PRIMARY grande nel mezzo, micro-istruzione sotto. */

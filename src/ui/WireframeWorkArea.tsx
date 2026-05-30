@@ -250,6 +250,16 @@ export function WireframeWorkArea({
   const [sostituisciAnche, setSostituisciAnche] = useState<Set<string>>(
     () => new Set(),
   )
+  /* Feedback visivo "Applica" del dropdown (founder SID-20260530):
+     senza affordance, il click su Applica chiudeva il dropdown silently e
+     l'utente non percepiva che la ri-pseudonimizzazione stava avvenendo.
+     Triplo layer: (a) bottone Applica con label "Applicazione in corso..."
+     + disabled durante l'esecuzione, (b) checkbox disabled durante, (c)
+     flash verde 1s sul pannello pseudonimizzato al completamento. Stato
+     locale dedicato (non dipende da nerStatus che ha transizioni sottili). */
+  const [isApplyingModifiers, setIsApplyingModifiers] = useState(false)
+  const [flashPseudoPanel, setFlashPseudoPanel] = useState(false)
+  const flashPseudoTimerRef = useRef<number | null>(null)
 
   /* ── upload affordance ─────────────────────────────────────────────────── */
   const [dragOver, setDragOver] = useState(false)
@@ -484,6 +494,9 @@ export function WireframeWorkArea({
       }
       if (copyDecodedTimerRef.current !== null) {
         window.clearTimeout(copyDecodedTimerRef.current)
+      }
+      if (flashPseudoTimerRef.current !== null) {
+        window.clearTimeout(flashPseudoTimerRef.current)
       }
     }
   }, [])
@@ -1235,6 +1248,7 @@ export function WireframeWorkArea({
                     <input
                       type="checkbox"
                       checked={sostituisciAnche.has(key)}
+                      disabled={isApplyingModifiers}
                       onChange={(e) => {
                         setSostituisciAnche((prev) => {
                           const next = new Set(prev)
@@ -1249,20 +1263,54 @@ export function WireframeWorkArea({
                   </label>
                 ))}
                 {/* SID-20260528-manual: bottone Applica per risolvere discoverability
-                    flow di applicazione. Click chiude dropdown + triggera rerun
-                    pseudonimizzazione con i nuovi flag (`sostituisciAnche` viene
-                    letto da handlePseudonimizza come `includeCategoriesPass2`). */}
+                    flow di applicazione. Click triggera rerun pseudonimizzazione
+                    con i nuovi flag (`sostituisciAnche` viene letto da
+                    handlePseudonimizza come `includeCategoriesPass2`).
+                    SID-20260530 (founder bug-report "non si capisce che fa
+                    qualcosa"): triplo feedback visivo — bottone spinner +
+                    label "Applicazione in corso..." + disabled durante;
+                    checkbox disabled durante; flash verde 1s sul pannello
+                    pseudonimizzato al completamento; dropdown si chiude SOLO
+                    DOPO il run (così il transition spinner→done è visibile). */}
                 <div className="wireframe-modifier-actions">
                   <button
                     type="button"
-                    className="wireframe-modifier-apply-btn"
-                    onClick={() => {
-                      setSostituisciAncheOpen(false)
-                      void handlePseudonimizza()
+                    className={`wireframe-modifier-apply-btn${
+                      isApplyingModifiers ? ' is-applying' : ''
+                    }`}
+                    onClick={async () => {
+                      if (isApplyingModifiers) return
+                      setIsApplyingModifiers(true)
+                      try {
+                        await handlePseudonimizza()
+                      } finally {
+                        setIsApplyingModifiers(false)
+                        setSostituisciAncheOpen(false)
+                        if (flashPseudoTimerRef.current !== null) {
+                          window.clearTimeout(flashPseudoTimerRef.current)
+                        }
+                        setFlashPseudoPanel(true)
+                        flashPseudoTimerRef.current = window.setTimeout(
+                          () => setFlashPseudoPanel(false),
+                          1000,
+                        )
+                      }
                     }}
+                    disabled={isApplyingModifiers}
                     data-testid="wireframe-modifier-apply-btn"
+                    aria-busy={isApplyingModifiers}
                   >
-                    {t('wireframe.modifier.applyBtn')}
+                    {isApplyingModifiers && (
+                      <span
+                        className="wireframe-modifier-apply-spinner"
+                        aria-hidden
+                      />
+                    )}
+                    <span>
+                      {isApplyingModifiers
+                        ? t('wireframe.modifier.applyingBtn')
+                        : t('wireframe.modifier.applyBtn')}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1556,7 +1604,9 @@ export function WireframeWorkArea({
 
         {/* DX: Pseudonimizzato */}
         <div
-          className="wireframe-panel wireframe-panel--pseudonimizzato"
+          className={`wireframe-panel wireframe-panel--pseudonimizzato${
+            flashPseudoPanel ? ' wireframe-panel--flash' : ''
+          }`}
           data-testid="wireframe-panel-pseudonimizzato"
         >
           <div className="wireframe-panel__label">

@@ -426,6 +426,10 @@ const it: Catalog = {
   'wireframe.modifier.cap': 'CAP',
   'wireframe.modifier.date': 'Date',
   'wireframe.modifier.applyBtn': 'Applica',
+  // SID-20260530 founder bug-report: feedback "Applica" — IT only per vincolo
+  // (EN/DE/FR fall back a IT via t() finché non viene tradotto in un secondo
+  // round). Label durante l'esecuzione di handlePseudonimizza().
+  'wireframe.modifier.applyingBtn': 'Applicazione in corso…',
   'wireframe.panel.originale': 'originale',
   'wireframe.panel.pseudonimizzato': 'pseudonimizzato',
   'wireframe.placeholder.originale.codifica': 'Trascina il documento qui, o incolla il testo',
