@@ -263,8 +263,12 @@ function applyNerWithPseudonyms(
   isPass2Enabled: (label: string) => boolean,
 ): { text: string; mappingEntries: MappingEntry[] } {
   // Filter stoplist + user-marked false positives early (Python parity).
+  // Drop 1-char entities (Pass-1 NER noise; no real IT surname is 1 char).
   const filtered = ner.filter(
-    (e) => !isStoplist(e.text) && !userFalsePositives.has(e.text),
+    (e) =>
+      !isStoplist(e.text) &&
+      !userFalsePositives.has(e.text) &&
+      e.text.trim().length >= 2,
   )
 
   // Two-pass: full names first to seed the surname map, then partials.

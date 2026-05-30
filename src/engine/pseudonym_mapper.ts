@@ -465,6 +465,12 @@ export class PseudonymMapper {
         const poolIdx = personPool.get(pseudo)
         if (poolIdx !== undefined && poolIdx > maxPerson) maxPerson = poolIdx
       } else if (cat === 'azienda') {
+        // Identity entry (pseudo === real) means the category was disabled at
+        // seeding time (e.g. user left "Aziende" OFF on Run 1). Skip seeding —
+        // otherwise a later Run with the category enabled would find the
+        // identity mapping and return the original instead of a fresh
+        // pseudonym from the pool. Mirrors the de-cuius rule above.
+        if (pseudo.toLowerCase() === realKey) continue
         // Strip suffix to recover the base — mirrors getCompany().
         const suffixRe = /(S\.r\.l\.|S\.p\.A\.|S\.n\.c\.|S\.a\.s\.)\s*$/i
         const m = suffixRe.exec(real)
@@ -478,14 +484,17 @@ export class PseudonymMapper {
         const poolIdx = companyPool.get(pseudoBase)
         if (poolIdx !== undefined && poolIdx > maxCompany) maxCompany = poolIdx
       } else if (cat === 'citta') {
+        if (pseudo.toLowerCase() === realKey) continue
         if (!this.cityMap.has(realKey)) this.cityMap.set(realKey, pseudo)
         const poolIdx = cityPool.get(pseudo)
         if (poolIdx !== undefined && poolIdx > maxCity) maxCity = poolIdx
       } else if (cat === 'via') {
+        if (pseudo.toLowerCase() === realKey) continue
         if (!this.streetMap.has(realKey)) this.streetMap.set(realKey, pseudo)
         const poolIdx = streetPool.get(pseudo)
         if (poolIdx !== undefined && poolIdx > maxStreet) maxStreet = poolIdx
       } else if (cat === 'tribunale' || cat === 'organizzazione') {
+        if (pseudo.toLowerCase() === realKey) continue
         if (!this.orgMap.has(realKey)) this.orgMap.set(realKey, pseudo)
       }
       // Other categories (numero di causa, data, email/telefono/iban) need no
