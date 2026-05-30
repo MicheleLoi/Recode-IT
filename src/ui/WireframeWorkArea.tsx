@@ -1403,6 +1403,7 @@ export function WireframeWorkArea({
                 onChangeCategory={handleChangeCategory}
                 onSubstituteAnyway={handleSubstituteAnyway}
                 onManualAnnotate={handleManualAnnotate}
+                hideManualHint
               />
             ) : (
               <textarea

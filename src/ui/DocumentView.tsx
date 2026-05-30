@@ -56,6 +56,14 @@ type Props = {
   onSubstituteAnyway?: (id: string) => void
   /** Manual annotation: user selected an un-highlighted span. */
   onManualAnnotate?: (start: number, end: number, category: ManualCategory) => void
+  /**
+   * When true, suppress the manual-hint banner (`.docview__manual-hint`).
+   * Used on the "originale" panel of the Codifica tab: the input/source pane
+   * doesn't need a "correggi i mancati del NER" hint — that safety-net belongs
+   * to the pseudonimizzato (output) pane on the right, where it already renders.
+   * Default false (backward-compatible: pseudonimizzato pane keeps the hint).
+   */
+  hideManualHint?: boolean
 }
 
 const MANUAL_CATEGORY_OPTIONS: ReadonlyArray<{
@@ -133,6 +141,7 @@ export function DocumentView({
   onChangeCategory,
   onSubstituteAnyway,
   onManualAnnotate,
+  hideManualHint = false,
 }: Props): JSX.Element {
   const { t } = useLanguage()
   const [activeEntityId, setActiveEntityId] = useState<string | null>(null)
@@ -324,7 +333,7 @@ export function DocumentView({
 
   return (
     <div className="docview-wrapper">
-      {!emptyState && (
+      {!emptyState && !hideManualHint && (
         <p className="docview__manual-hint" data-testid="docview-manual-hint">
           {t('docview.manualHint.prefix')}{' '}
           <strong>{t('docview.manualHint.inChiaro')}</strong>{' '}
