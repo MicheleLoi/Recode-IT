@@ -1664,22 +1664,22 @@ export function WireframeWorkArea({
                 data-testid="wireframe-preserved-suggestion"
               >
                 <div className="wireframe-preserved-suggestion__text">
-                  {preservedSuggestions.length === 1 ? (
+                  {preservedSuggestions.length === 1 && preservedSuggestions[0] ? (
                     <>
                       <strong>
                         {t('wireframe.suggestion.singleLead')
-                          .replace('{count}', String(preservedSuggestions[0].count))
+                          .replace('{count}', String(preservedSuggestions[0]!.count))
                           .replace(
                             '{label}',
                             t(
-                              `wireframe.suggestion.label.${preservedSuggestions[0].key}`,
+                              `wireframe.suggestion.label.${preservedSuggestions[0]!.key}`,
                             ),
                           )}
                       </strong>{' '}
                       {t('wireframe.suggestion.singleTail').replace(
                         '{label}',
                         t(
-                          `wireframe.suggestion.toggleLabel.${preservedSuggestions[0].key}`,
+                          `wireframe.suggestion.toggleLabel.${preservedSuggestions[0]!.key}`,
                         ),
                       )}
                     </>
