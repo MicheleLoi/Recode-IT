@@ -24,9 +24,10 @@
  *      l'anteprima, sblocca per €20 / chiave MHC" inline bearer input.
  *   6. **Lingua documento row** — full-width sotto i panel (FR/DE disabled).
  *   7. **2 cards mappa paritarie** — "Chiavi locali" + "Chiavi su server"
- *      (free tier → "Sblocca per 25 euro / una tantum").
- *   8. **Vista dettaglio mappa** — placeholder quando nessuna card selezionata,
- *      tabella CRUD piena quando "Chiavi locali" attiva.
+ *      (Pro parcheggiato Phase 1 → card promette "in arrivo, gratis su
+ *      invito"; il prezzo €25 una tantum è roadmap, non attivo oggi).
+ *   8. **Vista dettaglio mappa** — MappaPanel sempre visibile (trick width
+ *      SID-20260530 — gestalt verticale di default).
  *
  * Modal "I miei mapping" aperta da card "Chiavi su server" con upsell €25.
  *
