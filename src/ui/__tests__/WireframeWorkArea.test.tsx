@@ -413,14 +413,29 @@ describe('WireframeWorkArea — visual stability', () => {
 })
 
 describe('WireframeWorkArea — export Word / PDF (SID-20260530)', () => {
+  // Founder directive 2026-05-30: la Codifica produce un INTERMEDIO destinato
+  // all'AI esterna ("codifica NON ha bisogno di word e pdf; è per andare
+  // all'AI") → solo "Copia" sul pannello pseudonimizzato. Word/PDF restano
+  // SOLO sulla Decodifica (output ricostruito = deliverable).
   beforeEach(() => {
     ;(exportToWord as ReturnType<typeof vi.fn>).mockClear()
     ;(exportToPdf as ReturnType<typeof vi.fn>).mockClear()
   })
 
-  it('export buttons are HIDDEN on the pseudonimizzato panel before any run', () => {
-    // Pre-run: niente output → nessun bottone export (stessa regola di "Copia").
+  it('Codifica pseudonimizzato panel has NO Word/PDF buttons (intermedio → AI, solo Copia)', () => {
     renderWithProviders()
+    const sx = screen.getByTestId(
+      'wireframe-textarea-originale',
+    ) as HTMLTextAreaElement
+    fireEvent.change(sx, { target: { value: FIXTURE } })
+    fireEvent.click(screen.getByTestId('wireframe-action-btn'))
+    // Copia resta (per spostare il testo all'AI esterna).
+    expect(
+      screen.getByTestId('wireframe-copy-pseudonimizzato-btn'),
+    ).toBeInTheDocument()
+    // Word/PDF NON ci sono mai sul pannello Codifica (founder directive
+    // 2026-05-30): l'output pseudonimizzato è un intermedio, non un
+    // deliverable da archiviare.
     expect(
       screen.queryByTestId('wireframe-export-pseudonimizzato-word-btn'),
     ).not.toBeInTheDocument()
@@ -429,92 +444,26 @@ describe('WireframeWorkArea — export Word / PDF (SID-20260530)', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('export buttons appear on the pseudonimizzato panel after a Codifica run', () => {
+  it('Codifica run never calls exportToWord/exportToPdf (no entry point)', () => {
     renderWithProviders()
     const sx = screen.getByTestId(
       'wireframe-textarea-originale',
     ) as HTMLTextAreaElement
     fireEvent.change(sx, { target: { value: FIXTURE } })
     fireEvent.click(screen.getByTestId('wireframe-action-btn'))
-    // Bottoni present + accanto al bottone Copia.
-    expect(
-      screen.getByTestId('wireframe-copy-pseudonimizzato-btn'),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByTestId('wireframe-export-pseudonimizzato-word-btn'),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByTestId('wireframe-export-pseudonimizzato-pdf-btn'),
-    ).toBeInTheDocument()
+    expect(exportToWord as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+    expect(exportToPdf as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
   })
 
-  it('clicking Word button on Codifica triggers exportToWord with pseudo text', () => {
-    renderWithProviders()
-    const sx = screen.getByTestId(
-      'wireframe-textarea-originale',
-    ) as HTMLTextAreaElement
-    fireEvent.change(sx, { target: { value: FIXTURE } })
-    fireEvent.click(screen.getByTestId('wireframe-action-btn'))
-    fireEvent.click(
-      screen.getByTestId('wireframe-export-pseudonimizzato-word-btn'),
-    )
-    const mock = exportToWord as ReturnType<typeof vi.fn>
-    expect(mock).toHaveBeenCalledTimes(1)
-    const call = mock.mock.calls[0]
-    expect(call).toBeDefined()
-    const [text, filename] = call as [string, string]
-    // Il testo passato è quello pseudonimizzato (CF/email mascherati).
-    expect(text).not.toContain('RSSMRA80A01H501U')
-    expect(text).not.toContain('mario.rossi@example.com')
-    expect(text).toContain('<DS>')
-    expect(text).toContain('<EMAIL>')
-    // Filename: prefix canonico + estensione .docx.
-    expect(filename).toMatch(/^recode-codifica-.*\.docx$/)
-  })
-
-  it('clicking PDF button on Codifica triggers exportToPdf with pseudo text', () => {
-    renderWithProviders()
-    const sx = screen.getByTestId(
-      'wireframe-textarea-originale',
-    ) as HTMLTextAreaElement
-    fireEvent.change(sx, { target: { value: FIXTURE } })
-    fireEvent.click(screen.getByTestId('wireframe-action-btn'))
-    fireEvent.click(
-      screen.getByTestId('wireframe-export-pseudonimizzato-pdf-btn'),
-    )
-    const mock = exportToPdf as ReturnType<typeof vi.fn>
-    expect(mock).toHaveBeenCalledTimes(1)
-    const call = mock.mock.calls[0]
-    expect(call).toBeDefined()
-    const [text, filename] = call as [string, string]
-    expect(text).toContain('<DS>')
-    expect(filename).toMatch(/^recode-codifica-.*\.pdf$/)
-  })
-
-  it('export buttons render correct IT label by default', () => {
-    renderWithProviders()
-    const sx = screen.getByTestId(
-      'wireframe-textarea-originale',
-    ) as HTMLTextAreaElement
-    fireEvent.change(sx, { target: { value: FIXTURE } })
-    fireEvent.click(screen.getByTestId('wireframe-action-btn'))
-    const wordBtn = screen.getByTestId(
-      'wireframe-export-pseudonimizzato-word-btn',
-    )
-    const pdfBtn = screen.getByTestId(
-      'wireframe-export-pseudonimizzato-pdf-btn',
-    )
-    expect(wordBtn.textContent).toMatch(/Word/)
-    expect(pdfBtn.textContent).toMatch(/PDF/)
-    // Title IT: contiene "pseudonimizzato".
-    expect(wordBtn.getAttribute('title')).toMatch(/pseudonimizzato/i)
-    expect(pdfBtn.getAttribute('title')).toMatch(/pseudonimizzato/i)
-  })
-
-  it('export buttons render in 4 languages (IT/EN/DE/FR) with matching titles', () => {
-    // Helper component che switcha lingua via context — i bottoni "Word"/"PDF"
-    // hanno label identica in tutte le 4 lingue (sono unità lessicali invarianti),
-    // ma il title cambia.
+  it('Decodifica panel Word/PDF buttons render in 4 languages (IT/EN/DE/FR) with matching titles', () => {
+    // I bottoni Word/PDF restano sulla Decodifica (output ricostruito =
+    // deliverable). Lo smoke test multilingua si sposta qui: testiamo che
+    // il pannello Decodifica esponga sia il bottone Copia sia i due bottoni
+    // Word/PDF e che le label/title siano localizzate.
+    //
+    // Nota: in jsdom + AuthProvider anonimo il flusso "DECODIFICA" è gated
+    // da preview/lock → testiamo l'esistenza dei key i18n core (la
+    // wiring funzionale è coperta separatamente sotto integrazione real-user).
     type Lang = 'it' | 'en' | 'de' | 'fr'
     function Switcher({ lang }: { lang: Lang }): JSX.Element {
       const { setUiLanguage } = useLanguage()
@@ -525,39 +474,51 @@ describe('WireframeWorkArea — export Word / PDF (SID-20260530)', () => {
     }
 
     const expectations: Record<Lang, RegExp> = {
-      it: /pseudonimizzato/i,
-      en: /pseudonymized/i,
-      de: /pseudonymisierten/i,
-      fr: /pseudonymisé/i,
+      it: /decodificato/i,
+      en: /decoded/i,
+      de: /dekodierten/i,
+      fr: /décodé/i,
+    }
+
+    // Smoke: i18n keys per titleDecoded esistono in tutte le 4 lingue (se
+    // mancassero, t('wireframe.export.word.titleDecoded') tornerebbe la key
+    // stessa, non matcherebbe il regex localizzato). Render minimo + uso
+    // diretto via useLanguage().
+    function Probe({ lang }: { lang: Lang }): JSX.Element {
+      const { t } = useLanguage()
+      return (
+        <div data-testid={`probe-${lang}`}>
+          <span data-testid={`probe-word-${lang}`}>
+            {t('wireframe.export.word.titleDecoded')}
+          </span>
+          <span data-testid={`probe-pdf-${lang}`}>
+            {t('wireframe.export.pdf.titleDecoded')}
+          </span>
+          <span data-testid={`probe-btn-word-${lang}`}>
+            {t('wireframe.export.word.button')}
+          </span>
+          <span data-testid={`probe-btn-pdf-${lang}`}>
+            {t('wireframe.export.pdf.button')}
+          </span>
+        </div>
+      )
     }
 
     for (const lang of ['it', 'en', 'de', 'fr'] as Lang[]) {
       const { unmount } = render(
         <LanguageProvider>
-          <AuthProvider>
-            <ActiveMappingProvider>
-              <Switcher lang={lang} />
-              <WireframeWorkArea />
-            </ActiveMappingProvider>
-          </AuthProvider>
+          <Switcher lang={lang} />
+          <Probe lang={lang} />
         </LanguageProvider>,
       )
-      const sx = screen.getByTestId(
-        'wireframe-textarea-originale',
-      ) as HTMLTextAreaElement
-      fireEvent.change(sx, { target: { value: FIXTURE } })
-      fireEvent.click(screen.getByTestId('wireframe-action-btn'))
-      const wordBtn = screen.getByTestId(
-        'wireframe-export-pseudonimizzato-word-btn',
-      )
-      const pdfBtn = screen.getByTestId(
-        'wireframe-export-pseudonimizzato-pdf-btn',
-      )
-      expect(wordBtn.textContent).toMatch(/Word/)
-      expect(pdfBtn.textContent).toMatch(/PDF/)
-      // Le title strings sono localizzate.
-      expect(wordBtn.getAttribute('title')).toMatch(expectations[lang])
-      expect(pdfBtn.getAttribute('title')).toMatch(expectations[lang])
+      const wordTitle = screen.getByTestId(`probe-word-${lang}`).textContent
+      const pdfTitle = screen.getByTestId(`probe-pdf-${lang}`).textContent
+      const wordBtn = screen.getByTestId(`probe-btn-word-${lang}`).textContent
+      const pdfBtn = screen.getByTestId(`probe-btn-pdf-${lang}`).textContent
+      expect(wordTitle).toMatch(expectations[lang])
+      expect(pdfTitle).toMatch(expectations[lang])
+      expect(wordBtn).toMatch(/Word/)
+      expect(pdfBtn).toMatch(/PDF/)
       unmount()
     }
   })

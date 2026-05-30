@@ -416,14 +416,14 @@ const it: Catalog = {
   'wireframe.copy.done': '✓ Copiato',
   'wireframe.copy.titlePseudo': 'Copia il testo pseudonimizzato negli appunti',
   'wireframe.copy.titleDecoded': 'Copia il testo decodificato negli appunti',
-  // Esporta output (SID-20260530): Word/PDF affiancati a "Copia" su entrambi
-  // i pannelli output. Stessa label su entrambi i pannelli; i title
-  // differenziano il contesto.
+  // Esporta output (SID-20260530): Word/PDF affiancati a "Copia" SOLO sul
+  // pannello di Decodifica (output ricostruito = deliverable). La Codifica
+  // produce un intermedio destinato all'AI esterna → solo "Copia", no Word/PDF
+  // (founder directive 2026-05-30: "codifica NON ha bisogno di word e pdf;
+  // è per andare all'AI").
   'wireframe.export.word.button': '📄 Word',
-  'wireframe.export.word.titlePseudo': 'Scarica il testo pseudonimizzato in formato Word (.docx)',
   'wireframe.export.word.titleDecoded': 'Scarica il testo decodificato in formato Word (.docx)',
   'wireframe.export.pdf.button': '📕 PDF',
-  'wireframe.export.pdf.titlePseudo': 'Scarica il testo pseudonimizzato in formato PDF',
   'wireframe.export.pdf.titleDecoded': 'Scarica il testo decodificato in formato PDF',
   'wireframe.error.emptyDoc': 'Inserisci del testo o trascina un file prima di pseudonimizzare.',
   'wireframe.entityReview.heading': 'Rivedi entità rilevate',
@@ -901,10 +901,8 @@ const en: Catalog = {
   'wireframe.copy.titlePseudo': 'Copy the pseudonymized text to the clipboard',
   'wireframe.copy.titleDecoded': 'Copy the decoded text to the clipboard',
   'wireframe.export.word.button': '📄 Word',
-  'wireframe.export.word.titlePseudo': 'Download the pseudonymized text as Word (.docx)',
   'wireframe.export.word.titleDecoded': 'Download the decoded text as Word (.docx)',
   'wireframe.export.pdf.button': '📕 PDF',
-  'wireframe.export.pdf.titlePseudo': 'Download the pseudonymized text as PDF',
   'wireframe.export.pdf.titleDecoded': 'Download the decoded text as PDF',
   'wireframe.error.emptyDoc': 'Enter some text or drop a file before pseudonymizing.',
   'wireframe.entityReview.heading': 'Review detected entities',
@@ -1324,10 +1322,8 @@ const de: Catalog = {
   'wireframe.copy.titlePseudo': 'Pseudonymisierten Text in die Zwischenablage kopieren',
   'wireframe.copy.titleDecoded': 'Dekodierten Text in die Zwischenablage kopieren',
   'wireframe.export.word.button': '📄 Word',
-  'wireframe.export.word.titlePseudo': 'Pseudonymisierten Text als Word (.docx) herunterladen',
   'wireframe.export.word.titleDecoded': 'Dekodierten Text als Word (.docx) herunterladen',
   'wireframe.export.pdf.button': '📕 PDF',
-  'wireframe.export.pdf.titlePseudo': 'Pseudonymisierten Text als PDF herunterladen',
   'wireframe.export.pdf.titleDecoded': 'Dekodierten Text als PDF herunterladen',
   'wireframe.error.emptyDoc': 'Geben Sie Text ein oder ziehen Sie eine Datei, bevor Sie pseudonymisieren.',
   'wireframe.entityReview.heading': 'Erkannte Entitäten überprüfen',
@@ -1747,10 +1743,8 @@ const fr: Catalog = {
   'wireframe.copy.titlePseudo': 'Copier le texte pseudonymisé dans le presse-papiers',
   'wireframe.copy.titleDecoded': 'Copier le texte décodé dans le presse-papiers',
   'wireframe.export.word.button': '📄 Word',
-  'wireframe.export.word.titlePseudo': 'Télécharger le texte pseudonymisé au format Word (.docx)',
   'wireframe.export.word.titleDecoded': 'Télécharger le texte décodé au format Word (.docx)',
   'wireframe.export.pdf.button': '📕 PDF',
-  'wireframe.export.pdf.titlePseudo': 'Télécharger le texte pseudonymisé au format PDF',
   'wireframe.export.pdf.titleDecoded': 'Télécharger le texte décodé au format PDF',
   'wireframe.error.emptyDoc': 'Entrez du texte ou glissez un fichier avant de pseudonymiser.',
   'wireframe.entityReview.heading': 'Réviser les entités détectées',

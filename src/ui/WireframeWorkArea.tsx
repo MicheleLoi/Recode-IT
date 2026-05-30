@@ -318,33 +318,14 @@ export function WireframeWorkArea({
   }, [originaleText])
 
   /* ── export Word / PDF (SID-20260530) ───────────────────────────────────
-     Bottoni "📄 Word" / "📕 PDF" affiancati a "Copia" su entrambi i pannelli
-     output (pseudonimizzato in Codifica, originale ricostruito in Decodifica).
+     Bottoni "📄 Word" / "📕 PDF" affiancati a "Copia" SOLO sul pannello
+     output di Decodifica (originale ricostruito). La Codifica produce un
+     output intermedio destinato a essere incollato in un'AI esterna: NON
+     ha bisogno di Word/PDF (founder directive 2026-05-30 — "codifica NON
+     ha bisogno di word e pdf; è per andare all'AI"). Resta "Copia" per
+     spostare il testo negli appunti.
      Generazione lato-browser via `docx` + `jspdf`, download via blob anchor.
      Privacy: no metadati identificativi, filename timestamped. */
-  const handleExportPseudoWord = useCallback(async () => {
-    if (!pseudonimizzatoText) return
-    try {
-      await exportToWord(
-        pseudonimizzatoText,
-        formatExportFilename('codifica', 'docx'),
-      )
-    } catch {
-      /* export failed (e.g. blob/anchor not supported) — silent: lo
-         clipboard pattern adottato sopra è coerente, non vogliamo
-         interrompere il workflow con un alert. */
-    }
-  }, [pseudonimizzatoText])
-
-  const handleExportPseudoPdf = useCallback(() => {
-    if (!pseudonimizzatoText) return
-    try {
-      exportToPdf(pseudonimizzatoText, formatExportFilename('codifica', 'pdf'))
-    } catch {
-      /* silent — see handleExportPseudoWord */
-    }
-  }, [pseudonimizzatoText])
-
   const handleExportDecodedWord = useCallback(async () => {
     if (!originaleText) return
     try {
@@ -1523,24 +1504,6 @@ export function WireframeWorkArea({
                   {copyPseudoState === 'copied'
                     ? t('wireframe.copy.done')
                     : t('wireframe.copy.button')}
-                </button>
-                <button
-                  type="button"
-                  className="wireframe-export-btn"
-                  onClick={() => void handleExportPseudoWord()}
-                  data-testid="wireframe-export-pseudonimizzato-word-btn"
-                  title={t('wireframe.export.word.titlePseudo')}
-                >
-                  {t('wireframe.export.word.button')}
-                </button>
-                <button
-                  type="button"
-                  className="wireframe-export-btn"
-                  onClick={() => handleExportPseudoPdf()}
-                  data-testid="wireframe-export-pseudonimizzato-pdf-btn"
-                  title={t('wireframe.export.pdf.titlePseudo')}
-                >
-                  {t('wireframe.export.pdf.button')}
                 </button>
               </div>
             )}
