@@ -2450,7 +2450,16 @@ code {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 1080px;
+  /* Founder direttiva SID-20260530: la work area deve estendersi alla
+     larghezza piena dell'hero. L'hero vive in .app__header-inner (1400px);
+     .app__main (parent) è anch'esso 1400px. Il valore originale 1080px era
+     un porting letterale del prototipo standalone (notes/.../prototype.html)
+     dove .app cappava sia hero che work area a 1080px insieme. Nell'app reale
+     hero è stato esteso a 1400 senza propagare il valore qui — risultato
+     visivo: lavoro strizzato sotto hero edge-to-edge. Allineamento a 1400px
+     ripristina la simmetria hero ↔ work area su tutti i breakpoint desktop.
+     Mobile (<768px) resta gestito dal @media più sotto che colla a 1fr. */
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0;
 }
