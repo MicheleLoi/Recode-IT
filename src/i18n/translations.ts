@@ -123,6 +123,21 @@ const it: Catalog = {
   'pseudo.autosave.titleOff': 'Non attivo: usa il bottone «Salva mapping» per salvare le modifiche.',
   'pseudo.autosave.hintManual': 'Questa lista vive in questa finestra finché non clicchi «Salva mapping».',
   'pseudo.autosave.hintAuto': 'Salvataggio automatico attivo: ogni modifica viene salvata nel browser senza dover cliccare.',
+  // ───── Wireframe save (Krug-style ratificato founder SID-20260530) ─────
+  // Bottone primary "Salva nel browser" sempre uguale (no label dinamica).
+  // Toggle autosave inline sopra. Niente form etichetta — auto-label al primo
+  // salvataggio, rinomina disponibile dal banner Mapping attivo.
+  'wireframe.save.primary': 'Salva nel browser',
+  'wireframe.save.autoSaveLabel': 'Salvataggio automatico',
+  'wireframe.save.autoSaveDisabledHint': 'Salvataggio automatico attivo.',
+  'wireframe.save.manualHint': 'Questa lista vive solo in questa finestra finché non la salvi.',
+  'wireframe.save.autoLabelPrefix': 'Mapping del',
+  'banner.active.rename': 'Rinomina',
+  'banner.active.renameTitle': 'Cambia il nome del mapping attivo',
+  'banner.active.renamePlaceholder': 'Nuovo nome del mapping',
+  'banner.active.renameConfirm': 'Ok',
+  'banner.active.renameCancel': 'Annulla',
+  'banner.active.savedAt': 'salvato {time}',
   'pseudo.detail.placeholder': 'Trascina un file qui sopra o incolla il testo nel campo «Vista dettaglio». Il documento apparirà qui con le entità rilevate evidenziate inline.',
   'pseudo.detail.title': 'Vista dettaglio — testo e lista entità',
   'pseudo.detail.originalLabel': 'Testo originale',

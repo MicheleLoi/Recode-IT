@@ -205,6 +205,7 @@ export function WireframeWorkArea({
     saveActive,
     closeActive,
     updateEntries,
+    renameActive,
   } = useActiveMapping()
   const authCtx = useAuth()
 
@@ -349,12 +350,30 @@ export function WireframeWorkArea({
   }, [originaleText])
 
   /* ── save mapping ──────────────────────────────────────────────────────── */
-  const [labelInputOpen, setLabelInputOpen] = useState(false)
-  const [labelInput, setLabelInput] = useState('')
   const [saveStatus, setSaveStatus] = useState<
     'idle' | 'saving' | 'saved' | 'error'
   >('idle')
   const [saveError, setSaveError] = useState<string | null>(null)
+  // Krug-style ratifica founder SID-20260530: bottone "Salva nel browser" sempre
+  // primary, niente form etichetta. Auto-genera label "Mapping del DD/MM/YYYY HH:MM"
+  // al primo salvataggio. Rinomina rimane disponibile come link minuscolo nel banner
+  // Mapping attivo.
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState<boolean>(() => {
+    try {
+      return window.localStorage.getItem('recodeit:autoSaveMapping') === '1'
+    } catch {
+      return false
+    }
+  })
+  // Timestamp ms ultimo salvataggio per "salvato HH:MM" nel banner.
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null)
+  // Flash verde leggero sul banner per 1.5s dopo salvataggio MANUALE (founder
+  // ratifica SID-20260530: feedback visivo solo per atto esplicito utente,
+  // niente rumore visivo sui salvataggi automatici).
+  const [flashSaved, setFlashSaved] = useState(false)
+  // Mini-prompt rinomina inline nel banner Mapping attivo.
+  const [renameOpen, setRenameOpen] = useState(false)
+  const [renameInput, setRenameInput] = useState('')
 
   /* ── NER runner ────────────────────────────────────────────────────────── */
   const runnerRef = useRef<NerRunner | null>(null)
@@ -404,7 +423,6 @@ export function WireframeWorkArea({
   useEffect(() => {
     if (active) {
       setEntities(buildReviewEntities(active.entries))
-      setLabelInput(active.label)
     } else if (prevActiveIdRef.current !== null) {
       setOriginaleText('')
       setPseudonimizzatoText('')
@@ -413,6 +431,8 @@ export function WireframeWorkArea({
       setSaveStatus('idle')
       setSaveError(null)
       setHasRunOnCurrentDoc(false)
+      setLastSavedAt(null)
+      setRenameOpen(false)
     } else {
       setSaveStatus('idle')
       setSaveError(null)
@@ -875,53 +895,119 @@ export function WireframeWorkArea({
     entities.length > 0 &&
     (user.tier === 'free' || masterKey !== null)
 
-  const onSaveClick = () => {
-    if (!user) {
-      setSaveError(t('wireframe.save.errorAnon'))
-      return
-    }
-    if (user.tier === 'pro' && !masterKey) {
-      setSaveError(t('wireframe.save.errorMasterKey'))
-      return
-    }
-    setLabelInput(active?.label ?? '')
-    setLabelInputOpen(true)
-    setSaveError(null)
-  }
+  // Auto-genera etichetta "Mapping del DD/MM/YYYY HH:MM" (founder ratifica
+  // SID-20260530: niente form etichetta sul flusso primario, l'utente non viene
+  // più interrotto al primo salvataggio). Pattern Date.toLocaleString IT.
+  const generateAutoLabel = useCallback((): string => {
+    const now = new Date()
+    const stamp = now.toLocaleString('it-IT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+    return `${t('wireframe.save.autoLabelPrefix')} ${stamp}`
+  }, [t])
 
-  const onSaveConfirm = async () => {
-    const trimmedLabel = labelInput.trim()
-    if (!trimmedLabel) {
-      setSaveError(t('wireframe.save.errorLabel'))
-      return
-    }
-    setSaveStatus('saving')
-    setSaveError(null)
-    try {
-      const entriesToSave: MappingEntry[] = entities.map((e) => ({
-        pseudonym: e.pseudonym,
-        realValue: e.realValue,
-        category: e.category,
-        isFalsePositive: e.status === 'falsePositive',
-      }))
-      const finalEntries = active
-        ? mergeEntries(active.entries, entriesToSave)
-        : entriesToSave
-      await saveActive(trimmedLabel, finalEntries)
-      setSaveStatus('saved')
-      setLabelInputOpen(false)
-      window.setTimeout(() => setSaveStatus('idle'), 2500)
-    } catch (err) {
-      setSaveStatus('error')
-      const msg =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
+  // Core save routine — usata sia dal click manuale che dall'auto-save effect.
+  // `silent=true` salta status banner / flash (per auto-save: niente rumore visivo).
+  const doSave = useCallback(
+    async (opts: { silent?: boolean } = {}): Promise<void> => {
+      if (!user) {
+        setSaveError(t('wireframe.save.errorAnon'))
+        return
+      }
+      if (user.tier === 'pro' && !masterKey) {
+        setSaveError(t('wireframe.save.errorMasterKey'))
+        return
+      }
+      if (!opts.silent) {
+        setSaveStatus('saving')
+      }
+      setSaveError(null)
+      try {
+        const entriesToSave: MappingEntry[] = entities.map((e) => ({
+          pseudonym: e.pseudonym,
+          realValue: e.realValue,
+          category: e.category,
+          isFalsePositive: e.status === 'falsePositive',
+        }))
+        const finalEntries = active
+          ? mergeEntries(active.entries, entriesToSave)
+          : entriesToSave
+        const label = active?.label ?? generateAutoLabel()
+        await saveActive(label, finalEntries)
+        setLastSavedAt(Date.now())
+        if (!opts.silent) {
+          setSaveStatus('saved')
+          setFlashSaved(true)
+          window.setTimeout(() => setFlashSaved(false), 1500)
+          window.setTimeout(() => setSaveStatus('idle'), 2500)
+        }
+      } catch (err) {
+        setSaveStatus('error')
+        const msg =
+          err instanceof ApiError
             ? err.message
-            : t('wireframe.save.errorGeneric')
-      setSaveError(msg)
+            : err instanceof Error
+              ? err.message
+              : t('wireframe.save.errorGeneric')
+        setSaveError(msg)
+      }
+    },
+    [active, entities, generateAutoLabel, masterKey, saveActive, t, user],
+  )
+
+  const onSaveClick = useCallback((): void => {
+    void doSave({ silent: false })
+  }, [doSave])
+
+  // Toggle autosave (persisted in localStorage). Quando ON, ogni cambio entities
+  // triggera un save silenzioso. Bottone Salva resta visibile ma disabled.
+  const onToggleAutoSave = useCallback((checked: boolean): void => {
+    setAutoSaveEnabled(checked)
+    try {
+      window.localStorage.setItem(
+        'recodeit:autoSaveMapping',
+        checked ? '1' : '0',
+      )
+    } catch {
+      /* localStorage non disponibile (incognito strict): toggle resta valido in memoria */
     }
-  }
+  }, [])
+
+  // Auto-save effect — quando il toggle è ON e l'utente è loggato con entities
+  // popolate, ogni mutazione di entities triggera un salvataggio silenzioso
+  // (con piccolo debounce per evitare burst durante import multi-doc).
+  useEffect(() => {
+    if (!autoSaveEnabled) return
+    if (!user) return
+    if (entities.length === 0) return
+    if (user.tier === 'pro' && !masterKey) return
+    const timer = window.setTimeout(() => {
+      void doSave({ silent: true })
+    }, 600)
+    return () => window.clearTimeout(timer)
+  }, [autoSaveEnabled, entities, user, masterKey, doSave])
+
+  // Banner rinomina — open/confirm/cancel handlers.
+  const onRenameOpen = useCallback((): void => {
+    if (!active) return
+    setRenameInput(active.label)
+    setRenameOpen(true)
+  }, [active])
+
+  const onRenameConfirm = useCallback((): void => {
+    const trimmed = renameInput.trim()
+    if (!trimmed) return
+    renameActive(trimmed)
+    setRenameOpen(false)
+  }, [renameActive, renameInput])
+
+  const onRenameCancel = useCallback((): void => {
+    setRenameOpen(false)
+  }, [])
 
   /* ────────────────────────────────────────────────────────────────────── */
   /* Decodifica unlock handlers                                              */
@@ -1184,75 +1270,58 @@ export function WireframeWorkArea({
           </div>
         )}
 
-        {/* Save button (Codifica only) — discreet secondary action below */}
+        {/* Save group (Codifica only) — Krug-style ratifica founder
+            SID-20260530: bottone Salva PRIMARY grande + toggle autosave inline
+            sopra + micro-istruzione sotto. Niente form etichetta: l'etichetta
+            viene auto-generata "Mapping del DD/MM/YYYY HH:MM" al primo save;
+            rinomina vive nel banner Mapping attivo come link minuscolo. */}
         {mode === 'codifica' && user && entities.length > 0 && (
-          <button
-            type="button"
-            className="wireframe-save-btn"
-            onClick={onSaveClick}
-            disabled={!canSave || saveStatus === 'saving'}
-            data-testid="wireframe-save-btn"
-            title={
-              user.tier === 'pro' && !masterKey
-                ? t('wireframe.save.errorMasterKey')
-                : user.tier === 'free'
-                  ? t('wireframe.save.tooltipFree')
-                  : t('wireframe.save.tooltipPro')
-            }
+          <div
+            className="wireframe-save-group"
+            data-testid="wireframe-save-group"
           >
-            {saveStatus === 'saving'
-              ? t('pseudo.save.saving')
-              : saveStatus === 'saved'
-                ? t('pseudo.save.saved')
-                : active?.label
-                  ? t('pseudo.save.update')
-                  : t('pseudo.button.save')}
-          </button>
-        )}
-      </div>
-
-      {/* Save label form */}
-      {labelInputOpen && (
-        <div className="wireframe-save-label-form" data-testid="wireframe-save-label-form">
-          <label className="field">
-            <span className="field__label">{t('wireframe.save.labelHint')}</span>
-            <input
-              type="text"
-              value={labelInput}
-              onChange={(e) => setLabelInput(e.target.value)}
-              className="auth-input"
-              autoFocus
-              data-testid="wireframe-save-label-input"
-              maxLength={120}
-              placeholder={t('wireframe.save.labelPlaceholder')}
-            />
-          </label>
-          <div className="actions actions--inline">
+            <label className="wireframe-save-autosave-toggle">
+              <input
+                type="checkbox"
+                checked={autoSaveEnabled}
+                onChange={(e) => onToggleAutoSave(e.target.checked)}
+                data-testid="wireframe-save-autosave-toggle"
+              />
+              <span>{t('wireframe.save.autoSaveLabel')}</span>
+            </label>
             <button
               type="button"
-              className="btn btn--primary"
-              onClick={() => void onSaveConfirm()}
-              disabled={!labelInput.trim() || saveStatus === 'saving'}
-              data-testid="wireframe-save-label-confirm"
+              className="wireframe-save-btn-primary"
+              onClick={onSaveClick}
+              disabled={
+                !canSave || saveStatus === 'saving' || autoSaveEnabled
+              }
+              data-testid="wireframe-save-btn"
+              title={
+                user.tier === 'pro' && !masterKey
+                  ? t('wireframe.save.errorMasterKey')
+                  : user.tier === 'free'
+                    ? t('wireframe.save.tooltipFree')
+                    : t('wireframe.save.tooltipPro')
+              }
             >
               {saveStatus === 'saving'
-                ? t('wireframe.save.saving')
-                : t('wireframe.save.confirm')}
+                ? t('pseudo.save.saving')
+                : saveStatus === 'saved'
+                  ? t('pseudo.save.saved')
+                  : t('wireframe.save.primary')}
             </button>
-            <button
-              type="button"
-              className="btn btn--secondary"
-              onClick={() => {
-                setLabelInputOpen(false)
-                setSaveError(null)
-              }}
-              data-testid="wireframe-save-label-cancel"
+            <div
+              className="wireframe-save-hint"
+              data-testid="wireframe-save-hint"
             >
-              {t('wireframe.save.cancel')}
-            </button>
+              {autoSaveEnabled
+                ? t('wireframe.save.autoSaveDisabledHint')
+                : t('wireframe.save.manualHint')}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {saveError && (
         <div className="error" role="alert" data-testid="wireframe-save-error">
@@ -1721,13 +1790,82 @@ export function WireframeWorkArea({
           (Round 1+2 UX-loop SID-20260526 doctrine preservata). */}
       {active && (
         <div
-          className="active-mapping-banner"
+          className={`active-mapping-banner${flashSaved ? ' active-mapping-banner--flash-saved' : ''}`}
           data-testid="active-mapping-banner"
         >
           <div className="active-mapping-banner__identity">
             {t('banner.active.label')}{' '}
             <strong>{active.label}</strong>
+            {/* Link minuscolo "Rinomina" — Krug-style ratifica founder
+                SID-20260530: unico posto dove sopravvive il prompt etichetta,
+                opzionale, fuori dal flusso primario. */}
+            <button
+              type="button"
+              className="active-mapping-banner__rename-link"
+              onClick={onRenameOpen}
+              data-testid="banner-active-rename-link"
+              title={t('banner.active.renameTitle')}
+            >
+              {t('banner.active.rename')}
+            </button>
+            {lastSavedAt !== null && (
+              <span
+                className="active-mapping-banner__saved-at"
+                data-testid="banner-active-saved-at"
+              >
+                {t('banner.active.savedAt').replace(
+                  '{time}',
+                  new Date(lastSavedAt).toLocaleTimeString('it-IT', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }),
+                )}
+              </span>
+            )}
           </div>
+          {renameOpen && (
+            <div
+              className="active-mapping-banner__rename-form"
+              data-testid="banner-active-rename-form"
+            >
+              <input
+                type="text"
+                value={renameInput}
+                onChange={(e) => setRenameInput(e.target.value)}
+                className="auth-input"
+                autoFocus
+                maxLength={120}
+                placeholder={t('banner.active.renamePlaceholder')}
+                data-testid="banner-active-rename-input"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    onRenameConfirm()
+                  } else if (e.key === 'Escape') {
+                    e.preventDefault()
+                    onRenameCancel()
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={onRenameConfirm}
+                disabled={!renameInput.trim()}
+                data-testid="banner-active-rename-confirm"
+              >
+                {t('banner.active.renameConfirm')}
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary"
+                onClick={onRenameCancel}
+                data-testid="banner-active-rename-cancel"
+              >
+                {t('banner.active.renameCancel')}
+              </button>
+            </div>
+          )}
           {active.entries.length === 0 ? (
             <div
               className="active-mapping-banner__count-empty"
