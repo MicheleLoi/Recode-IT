@@ -2802,6 +2802,44 @@ code {
   color: var(--wf-brand-blue);
 }
 
+/* ── Copia output a un click (Fix 1, regressione post-wireframe) ─────────
+   Bottone floating top-LEFT del corpo pannello (specchio del
+   ".wireframe-new-doc-btn" che vive top-RIGHT nel pannello originale in
+   Codifica), così i due non collidono mai. Palette accent blu: è l'azione
+   "porta via l'output", primaria per l'utente che ha finito. Sul pannello
+   originale (Decodifica) il top-right è libero (new-doc è codifica-only),
+   ma teniamo top-left per coerenza visiva su entrambi i pannelli. */
+.wireframe-copy-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--wf-brand-blue);
+  border: 1px solid var(--wf-brand-blue);
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: var(--wf-shadow-sm);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.wireframe-copy-btn:hover {
+  background: var(--wf-brand-blue-hover);
+  border-color: var(--wf-brand-blue-hover);
+}
+
+.wireframe-copy-btn:focus-visible {
+  outline: 2px solid var(--wf-brand-blue);
+  outline-offset: 2px;
+}
+
 /* ── Preview banner (Decodifica free tier) ──────────────────────── */
 .wireframe-preview-banner {
   display: flex;
@@ -3181,20 +3219,27 @@ code {
 }
 
 /* DocumentView mounted inside wireframe panel needs to fill the panel body
- * and lose its default padding for a clean side-by-side feel. */
+ * and lose its default padding for a clean side-by-side feel.
+ * Fix 2 (SID-20260530): padding-top:44px riserva una fascia top per i bottoni
+ * floating (".wireframe-copy-btn" sx + ".wireframe-new-doc-btn" dx), così
+ * l'hint di sicurezza sotto parte a piena larghezza senza overlap. */
 .wireframe-panel__body .docview-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 280px;
+  padding-top: 44px;
 }
 
 .wireframe-panel__body .docview {
   flex: 1;
-  /* padding-top elevated (was 16px) → 44px per founder direttiva
-     SID-20260527-181552: simmetria col textarea wireframe, evita overlap
-     col ".wireframe-new-doc-btn" floating top-right + warning banner. */
-  padding: 44px 90px 16px 16px;
+  /* Fix 2 (SID-20260530): padding-top RIDOTTO da 44px → 16px. Il vecchio
+     44px serviva a tenere il testo del documento sotto i bottoni floating +
+     hint, ma faceva collassare l'hint tiny dietro i bottoni. Ora i bottoni
+     floating vivono in una fascia top dedicata (".docview-wrapper" ha
+     padding-top), l'hint è un banner full-width leggibile sotto i bottoni, e
+     il testo del documento parte subito sotto l'hint. */
+  padding: 16px 16px 16px 16px;
   background: transparent;
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 14px;
@@ -3202,13 +3247,46 @@ code {
   overflow-y: auto;
 }
 
+/* Fix 2 (SID-20260530) — l'avviso "correggi i non riconosciuti" è la rete di
+   sicurezza dell'anonimizzazione (insegna all'avvocato a correggere a mano i
+   dati che il NER ha mancato). NON è cosmetica. Tre problemi risolti:
+   (1) FONT: era 11px ("sembra apposta per non leggere") → 14px disclaimer
+       leggibile, peso 500, colore ambra ad alto contrasto (non più muted).
+   (2) ⚠ SOVRAPPOSTA: l'override wireframe aveva tolto il padding-left:44px
+       che faceva spazio all'icona absolute (::before left:14px) → ripristino
+       padding-left:44px così l'icona ha la sua colonna e non copre il testo.
+   (3) "↻ Nuovo documento" + "Copia" SOVRAPPOSTI: i bottoni floating (top:8px,
+       corner sx/dx) vivevano sopra l'hint. Ora ".docview-wrapper" riserva una
+       fascia top (padding-top:44px, vedi .docview-wrapper) per i bottoni, e
+       l'hint parte sotto a piena larghezza → nessun overlap, anche con DE/FR
+       multi-riga. */
 .wireframe-panel__body .docview__manual-hint {
-  padding: 6px 16px;
-  margin: 0;
-  font-size: 11px;
-  color: var(--wf-text-muted);
-  background: var(--wf-label-bg);
-  border-bottom: 1px dashed var(--wf-border);
+  margin: 0 12px 4px;
+  padding: 10px 16px 10px 44px;
+  position: relative;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #78350f;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-left: 4px solid #f59e0b;
+  border-radius: 6px;
+}
+
+.wireframe-panel__body .docview__manual-hint::before {
+  content: '⚠';
+  position: absolute;
+  left: 16px;
+  top: 10px;
+  font-size: 1.1rem;
+  color: #d97706;
+  line-height: 1.3;
+}
+
+.wireframe-panel__body .docview__manual-hint strong {
+  color: #92400e;
+  font-weight: 700;
 }
 
 /* Mobile responsive: stack panels vertically on narrow viewports. */

@@ -161,6 +161,75 @@ describe('WireframeWorkArea — Codifica flow', () => {
     expect(dxPanel.textContent).toContain('<EMAIL>')
   })
 
+  it('copy-output button (Fix 1) appears on the pseudonimizzato panel after a run and copies to clipboard', async () => {
+    // Regressione post-wireframe: il copia-output a un click era sparito dal
+    // pannello di output. Deve riapparire sul pannello pseudonimizzato dopo
+    // una pseudonimizzazione, e copiare il testo pseudonimizzato.
+    renderWithProviders()
+    // Pre-run: nessun bottone copia (niente output ancora).
+    expect(
+      screen.queryByTestId('wireframe-copy-pseudonimizzato-btn'),
+    ).not.toBeInTheDocument()
+    const sx = screen.getByTestId(
+      'wireframe-textarea-originale',
+    ) as HTMLTextAreaElement
+    fireEvent.change(sx, { target: { value: FIXTURE } })
+    fireEvent.click(screen.getByTestId('wireframe-action-btn'))
+    // Post-run: il bottone copia è presente sul pannello pseudonimizzato.
+    const copyBtn = screen.getByTestId('wireframe-copy-pseudonimizzato-btn')
+    expect(copyBtn).toBeInTheDocument()
+    fireEvent.click(copyBtn)
+    // navigator.clipboard.writeText è mockato in beforeEach.
+    const writeTextMock = navigator.clipboard.writeText as ReturnType<
+      typeof vi.fn
+    >
+    expect(writeTextMock).toHaveBeenCalledTimes(1)
+    const firstCall = writeTextMock.mock.calls[0]
+    expect(firstCall).toBeDefined()
+    const copied = firstCall![0] as string
+    // Copia il testo pseudonimizzato (CF/email mascherati, non in chiaro).
+    expect(copied).not.toContain('RSSMRA80A01H501U')
+    expect(copied).not.toContain('mario.rossi@example.com')
+    expect(copied).toContain('<DS>')
+    expect(copied).toContain('<EMAIL>')
+    // Feedback "✓ Copiato" dopo il click (state update post-await: usa findBy).
+    expect(
+      await screen.findByText(/copiato/i),
+    ).toBeInTheDocument()
+  })
+
+  it('copy-output button (Fix 1) is HIDDEN on the pseudonimizzato panel before any run', () => {
+    renderWithProviders()
+    const sx = screen.getByTestId(
+      'wireframe-textarea-originale',
+    ) as HTMLTextAreaElement
+    fireEvent.change(sx, { target: { value: FIXTURE } })
+    // Testo inserito ma NON ancora pseudonimizzato → nessun output → no copia.
+    expect(
+      screen.queryByTestId('wireframe-copy-pseudonimizzato-btn'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('security hint (Fix 2) renders full instructional text on the originale panel after a run', () => {
+    // L'avviso "correggi i non riconosciuti" è la rete di sicurezza: deve
+    // essere presente e con il testo istruttivo completo (la leggibilità del
+    // font/overlap è garantita via CSS, non asseribile in jsdom).
+    renderWithProviders()
+    const sx = screen.getByTestId(
+      'wireframe-textarea-originale',
+    ) as HTMLTextAreaElement
+    fireEvent.change(sx, { target: { value: FIXTURE } })
+    fireEvent.click(screen.getByTestId('wireframe-action-btn'))
+    const hints = screen.getAllByTestId('docview-manual-hint')
+    expect(hints.length).toBeGreaterThan(0)
+    const hint = hints[0]
+    expect(hint).toBeDefined()
+    // Testo istruttivo chiave presente (prefix + "in chiaro" + suffix).
+    expect(hint!.textContent).toMatch(/in chiaro/i)
+    expect(hint!.textContent).toMatch(/selezionalo/i)
+    expect(hint!.textContent).toMatch(/tutte le occorrenze/i)
+  })
+
   it('shows error when PSEUDONIMIZZA clicked with empty text (defensive — guarded by disabled, but error path is wired)', () => {
     renderWithProviders()
     const sx = screen.getByTestId(

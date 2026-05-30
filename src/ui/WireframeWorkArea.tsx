@@ -262,6 +262,56 @@ export function WireframeWorkArea({
   const [bearerError, setBearerError] = useState<string | null>(null)
   const [stripeOpening, setStripeOpening] = useState(false)
 
+  /* ── copy-output one-click (Fix 1, regressione post-wireframe) ──────────
+     Pre-wireframe PseudonymizePanel aveva un bottone "Copia ⧉ / ✓ Copiato"
+     (navigator.clipboard.writeText(pseudonymizedText)). Il rewrite wireframe-
+     first lo aveva droppato: l'output (pseudonimizzato in Codifica, originale
+     decodificato in Decodifica) non aveva più copia a un click. Due flag
+     indipendenti: uno per il pannello pseudonimizzato (Codifica), uno per il
+     pannello originale che ospita l'output di Decodifica. */
+  const [copyPseudoState, setCopyPseudoState] = useState<'idle' | 'copied'>(
+    'idle',
+  )
+  const [copyDecodedState, setCopyDecodedState] = useState<'idle' | 'copied'>(
+    'idle',
+  )
+  const copyPseudoTimerRef = useRef<number | null>(null)
+  const copyDecodedTimerRef = useRef<number | null>(null)
+
+  const handleCopyPseudo = useCallback(async () => {
+    if (!pseudonimizzatoText) return
+    try {
+      await navigator.clipboard.writeText(pseudonimizzatoText)
+      setCopyPseudoState('copied')
+      if (copyPseudoTimerRef.current !== null) {
+        window.clearTimeout(copyPseudoTimerRef.current)
+      }
+      copyPseudoTimerRef.current = window.setTimeout(
+        () => setCopyPseudoState('idle'),
+        2000,
+      )
+    } catch {
+      /* clipboard unavailable (insecure context / permission) — silent */
+    }
+  }, [pseudonimizzatoText])
+
+  const handleCopyDecoded = useCallback(async () => {
+    if (!originaleText) return
+    try {
+      await navigator.clipboard.writeText(originaleText)
+      setCopyDecodedState('copied')
+      if (copyDecodedTimerRef.current !== null) {
+        window.clearTimeout(copyDecodedTimerRef.current)
+      }
+      copyDecodedTimerRef.current = window.setTimeout(
+        () => setCopyDecodedState('idle'),
+        2000,
+      )
+    } catch {
+      /* clipboard unavailable — silent */
+    }
+  }, [originaleText])
+
   /* ── save mapping ──────────────────────────────────────────────────────── */
   const [labelInputOpen, setLabelInputOpen] = useState(false)
   const [labelInput, setLabelInput] = useState('')
@@ -369,6 +419,18 @@ export function WireframeWorkArea({
   useEffect(() => {
     setHasRunOnCurrentDoc(false)
   }, [originaleText])
+
+  /* ── clear copy-feedback timers on unmount (Fix 1) ─────────────────────── */
+  useEffect(() => {
+    return () => {
+      if (copyPseudoTimerRef.current !== null) {
+        window.clearTimeout(copyPseudoTimerRef.current)
+      }
+      if (copyDecodedTimerRef.current !== null) {
+        window.clearTimeout(copyDecodedTimerRef.current)
+      }
+    }
+  }, [])
 
   /* ── user FP carry-over ────────────────────────────────────────────────── */
   const userFalsePositiveTerms = useMemo<Set<string>>(() => {
@@ -1214,6 +1276,24 @@ export function WireframeWorkArea({
           data-testid="wireframe-panel-originale"
         >
           <div className="wireframe-panel__label">{t('wireframe.panel.originale')}</div>
+          {/* Copia output a un click (Fix 1) — Decodifica: il testo
+              decodificato (nomi reali) atterra qui nel pannello originale.
+              Bottone floating top-left (".wireframe-new-doc-btn" sta top-right
+              ma è codifica-only → nessuna collisione), mostrato solo in
+              Decodifica quando c'è output e l'utente ha eseguito la decodifica. */}
+          {mode === 'decodifica' && hasRunDecodifica && originaleText && (
+            <button
+              type="button"
+              className="wireframe-copy-btn"
+              onClick={() => void handleCopyDecoded()}
+              data-testid="wireframe-copy-decodificato-btn"
+              title={t('wireframe.copy.titleDecoded')}
+            >
+              {copyDecodedState === 'copied'
+                ? t('wireframe.copy.done')
+                : t('wireframe.copy.button')}
+            </button>
+          )}
           {showDecodificaFreeAffordance && (
             <div
               className="wireframe-preview-banner"
@@ -1351,6 +1431,25 @@ export function WireframeWorkArea({
             {t('wireframe.panel.pseudonimizzato')}
           </div>
           <div className="wireframe-panel__body">
+            {/* Copia output a un click (Fix 1) — Codifica: il pannello
+                pseudonimizzato è l'output. Bottone floating top-left, sopra
+                DocumentView/textarea (il padding-top:44px riserva la fascia).
+                Il pannello pseudonimizzato non ha new-doc-btn → top-left e
+                top-right entrambi liberi, scegliamo top-left per coerenza col
+                pannello originale in Decodifica. */}
+            {mode === 'codifica' && pseudonimizzatoText && (
+              <button
+                type="button"
+                className="wireframe-copy-btn"
+                onClick={() => void handleCopyPseudo()}
+                data-testid="wireframe-copy-pseudonimizzato-btn"
+                title={t('wireframe.copy.titlePseudo')}
+              >
+                {copyPseudoState === 'copied'
+                  ? t('wireframe.copy.done')
+                  : t('wireframe.copy.button')}
+              </button>
+            )}
             {/* In codifica mode after run, show DocumentView (pseudo). In
                 decodifica mode, plain editable textarea (user paste AI response). */}
             {mode === 'codifica' && pseudonimizzatoText && hasRunOnCurrentDoc ? (
