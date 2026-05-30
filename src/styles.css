@@ -2697,6 +2697,18 @@ code {
   margin-top: 4px;
 }
 
+/* Heading di sezione "Memoria pseudonimi" — Krug-style Opzione B
+   (founder ratifica SID-20260530): piccolo, muted, segna la sezione come
+   tema "memoria" senza competere col bottone primary sotto. */
+.wireframe-save-section-heading {
+  font-size: 0.85em;
+  color: var(--wf-text-muted, #6b7280);
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
 .wireframe-save-autosave-toggle {
   display: inline-flex;
   align-items: center;

@@ -1280,6 +1280,12 @@ export function WireframeWorkArea({
             className="wireframe-save-group"
             data-testid="wireframe-save-group"
           >
+            <div
+              className="wireframe-save-section-heading"
+              data-testid="wireframe-save-section-heading"
+            >
+              {t('wireframe.save.sectionHeading')}
+            </div>
             <label className="wireframe-save-autosave-toggle">
               <input
                 type="checkbox"

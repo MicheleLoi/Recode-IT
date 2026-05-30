@@ -127,10 +127,15 @@ const it: Catalog = {
   // Bottone primary "Salva nel browser" sempre uguale (no label dinamica).
   // Toggle autosave inline sopra. Niente form etichetta — auto-label al primo
   // salvataggio, rinomina disponibile dal banner Mapping attivo.
-  'wireframe.save.primary': 'Salva nel browser',
+  // Round 2 (founder ratifica Opzione B SID-20260530): focus su *memoria* e
+  // uso futuro — heading "Memoria pseudonimi" sopra il toggle, label bottone
+  // "Conserva pseudonimi per la prossima volta", microtesti onesti su cosa
+  // si perde (manuale) / cosa si mantiene (auto).
+  'wireframe.save.sectionHeading': 'Memoria pseudonimi',
+  'wireframe.save.primary': 'Conserva pseudonimi per la prossima volta',
   'wireframe.save.autoSaveLabel': 'Salvataggio automatico',
-  'wireframe.save.autoSaveDisabledHint': 'Salvataggio automatico attivo.',
-  'wireframe.save.manualHint': 'Questa lista vive solo in questa finestra finché non la salvi.',
+  'wireframe.save.autoSaveDisabledHint': 'Salvataggio automatico attivo. Le corrispondenze nome→pseudonimo restano anche se chiudi la finestra.',
+  'wireframe.save.manualHint': 'Senza salvare, ogni volta che chiudi la finestra le corrispondenze nome→pseudonimo si perdono.',
   'wireframe.save.autoLabelPrefix': 'Mapping del',
   'banner.active.rename': 'Rinomina',
   'banner.active.renameTitle': 'Cambia il nome del mapping attivo',
