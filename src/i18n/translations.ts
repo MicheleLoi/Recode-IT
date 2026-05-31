@@ -476,9 +476,10 @@ const it: Catalog = {
   // 2026-05-31: esplicita che le scelte valgono per i prossimi documenti
   // mentre le sostituzioni già fatte restano stabili. IT only; EN/DE/FR
   // fallback IT.
-  'wireframe.modifier.btn.locked': 'ora non puoi più sostituire',
+  'wireframe.modifier.btn.locked':
+    'le tue scelte valgono per i prossimi documenti che pseudonimizzi',
   'wireframe.modifier.lockedBanner':
-    'Le tue scelte valgono per i prossimi documenti che pseudonimizzi. Le sostituzioni già fatte (es. Marco→Tizio) restano come sono.',
+    'Le sostituzioni già fatte (es. Marco→Tizio) restano come sono. Per cambiare cosa sostituire, ricomincia con un nuovo documento.',
   'wireframe.modifier.restartLink': '→ Ricomincia con un nuovo documento',
   'wireframe.panel.originale': 'originale',
   'wireframe.panel.pseudonimizzato': 'pseudonimizzato',
