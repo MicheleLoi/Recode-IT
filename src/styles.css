@@ -4228,3 +4228,57 @@ code {
   margin: 16px 0;
 }
 
+/* ───── Mapping-lock affordance (founder SID-20260531) ─────
+   Microcopy permanente: dentro il dropdown "sostituisci anche", sotto i
+   5 toggle, sopra il bottone Applica. Visibile sempre quando un mapping
+   è loaded da IDB (active.entries.length>0 && active.pristine), anche
+   se il popup è stato dismesso. Stile asciutto: piccolo, muted, italic.
+   Il popup riusa .modal-overlay / .modal; classi specifiche solo per
+   actions stack, link Pro, checkbox "non mostrare più". */
+.wireframe-modifier-locked-hint {
+  font-size: 0.85em;
+  color: var(--muted, #6a7280);
+  font-style: italic;
+  line-height: 1.4;
+  padding: 8px 10px 0 10px;
+  border-top: 1px dashed var(--rule, #d0d6de);
+  margin-top: 4px;
+}
+
+.mapping-lock-modal {
+  max-width: 480px;
+}
+
+.mapping-lock-modal .actions--stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.mapping-lock-modal__pro-link {
+  font-size: 0.9rem;
+  color: var(--accent, #1a2632);
+  text-decoration: underline;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.mapping-lock-modal__pro-link:hover {
+  color: var(--accent-hover, #2a3848);
+}
+
+.mapping-lock-modal__dont-show {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--muted, #6a7280);
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+.mapping-lock-modal__dont-show input[type="checkbox"] {
+  margin: 0;
+}
+

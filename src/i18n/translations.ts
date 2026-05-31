@@ -461,6 +461,27 @@ const it: Catalog = {
   'wireframe.suggestion.articled.organizations': 'le organizzazioni',
   'wireframe.suggestion.articled.courts': 'i tribunali',
   'wireframe.suggestion.dismissAria': 'Ignora suggerimento per questa sessione',
+  // Microcopy permanente dentro il dropdown "sostituisci anche" quando un
+  // mapping è loaded da IDB (active.entries.length > 0 && active.pristine).
+  // Stile asciutto, sotto i 5 toggle, sopra il bottone Applica. Si vede
+  // sempre — indipendentemente da mappingLockHintDismissed (founder
+  // SID-20260531: la microcopy NON è il popup, è prevenzione costante).
+  'wireframe.modifier.lockedHint':
+    'Mapping salvato: le categorie non si modificano qui. Per rivederle serve Pro.',
+  // ───────── Mapping-lock popup (founder SID-20260531) ─────────
+  // Affordance contestuale al primo cambio di un toggle "sostituisci anche"
+  // con mapping attivo loaded da IDB. Copy ratificato verbatim, IT only;
+  // chiavi EN/DE/FR fallback IT identical (placeholder finché un round
+  // separato non porta traduzioni). Non modificare senza founder sign-off.
+  'mappingLock.title': 'Le categorie di questo mapping sono fissate',
+  'mappingLock.body':
+    'Quando hai salvato {nomeDelMapping}, hai scelto cosa sostituire. Quelle scelte restano così: i prossimi documenti della stessa causa vengono trattati con le stesse regole, e i pseudonimi già assegnati non cambiano.',
+  'mappingLock.fallbackLabel': 'questo mapping',
+  'mappingLock.primary': 'Va bene, continua',
+  'mappingLock.secondary': 'Elimina il mapping e ricomincia',
+  'mappingLock.proLink':
+    'Su Pro rivedi le categorie senza perdere i pseudonimi →',
+  'mappingLock.dontShowAgain': 'Non mostrarmi più questo avviso',
   'wireframe.panel.originale': 'originale',
   'wireframe.panel.pseudonimizzato': 'pseudonimizzato',
   'wireframe.placeholder.originale.codifica': 'Trascina il documento qui, o incolla il testo',

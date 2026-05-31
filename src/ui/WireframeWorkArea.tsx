@@ -80,6 +80,10 @@ import {
 } from './exportDocument'
 import { type Language, SUPPORTED_LANGUAGES, useLanguage } from './LanguageContext'
 import { MappaPanel } from './MappaPanel'
+import {
+  MAPPING_LOCK_HINT_STORAGE_KEY,
+  MappingLockModal,
+} from './MappingLockModal'
 import { ModelLoadingState, type ModelLoadPhase } from './ModelLoadingState'
 import type { ReviewEntity, SwitchableCategory } from './types'
 
@@ -279,6 +283,40 @@ export function WireframeWorkArea({
   const [isApplyingModifiers, setIsApplyingModifiers] = useState(false)
   const [flashPseudoPanel, setFlashPseudoPanel] = useState(false)
   const flashPseudoTimerRef = useRef<number | null>(null)
+
+  /* ── Mapping-lock affordance (founder SID-20260531) ─────────────────────
+     Free tier: una volta salvato un mapping, le categorie di sostituzione
+     sono fissate per coerenza di causa. Quando l'utente prova a cambiare
+     un toggle del dropdown "sostituisci anche" MENTRE c'è un mapping
+     attivo loaded da IDB (active.entries.length > 0 && active.pristine),
+     intercettiamo il primo cambio e mostriamo il popup esplicativo.
+     - mappingLockModalOpen: visibilità del modal.
+     - mappingLockHintDismissed: persistito in localStorage; se true il
+       popup non riappare più (su questo browser). La MICROCOPY permanente
+       sotto i toggle resta sempre visibile, indipendente da questo flag.
+     Nota su rollback: NON serve tracking del toggle che ha innescato il
+     modal. React controlled-input bound a `sostituisciAnche` ricostruisce
+     il checked al valore precedente quando non chiamiamo setSostituisciAnche.
+     Quindi "rollback" è zero-state (semplicemente non applichiamo il cambio). */
+  const [mappingLockModalOpen, setMappingLockModalOpen] = useState(false)
+  const [mappingLockHintDismissed, setMappingLockHintDismissed] = useState(
+    () => {
+      if (typeof window === 'undefined') return false
+      try {
+        return window.localStorage.getItem(MAPPING_LOCK_HINT_STORAGE_KEY) === '1'
+      } catch {
+        return false
+      }
+    },
+  )
+
+  // Condizione "mapping attivo loaded da IDB" — il popup va mostrato SOLO
+  // qui (chi sta lavorando in continuità nella stessa sessione, mapping
+  // appena creato → pristine=false → niente popup, sarebbe rumore).
+  const isMappingLoadedFromIdb =
+    active !== null &&
+    active.entries.length > 0 &&
+    active.pristine === true
 
   /* ── suggerimento "luoghi preservati" (founder SID-20260530) ──────────────
      Quando la pseudonimizzazione preserva entità Pass-2 (citta/via/azienda/
@@ -1329,6 +1367,20 @@ export function WireframeWorkArea({
                       checked={sostituisciAnche.has(key)}
                       disabled={isApplyingModifiers}
                       onChange={(e) => {
+                        // Intercept: se mapping loaded da IDB e popup non
+                        // ancora dismesso, mostra popup invece di applicare
+                        // il cambio. Lo state del checkbox passa attraverso
+                        // (React controlled — torna a checked=prev) perché
+                        // NON facciamo setSostituisciAnche qui. Il rollback
+                        // visivo è automatico: il source-of-truth è
+                        // `sostituisciAnche`, e quello non l'abbiamo toccato.
+                        if (
+                          isMappingLoadedFromIdb &&
+                          !mappingLockHintDismissed
+                        ) {
+                          setMappingLockModalOpen(true)
+                          return
+                        }
                         setSostituisciAnche((prev) => {
                           const next = new Set(prev)
                           if (e.target.checked) next.add(key)
@@ -1341,6 +1393,14 @@ export function WireframeWorkArea({
                     {t(labelKey)}
                   </label>
                 ))}
+                {isMappingLoadedFromIdb && (
+                  <div
+                    className="wireframe-modifier-locked-hint"
+                    data-testid="wireframe-modifier-locked-hint"
+                  >
+                    {t('wireframe.modifier.lockedHint')}
+                  </div>
+                )}
                 {/* SID-20260528-manual: bottone Applica per risolvere discoverability
                     flow di applicazione. Click triggera rerun pseudonimizzazione
                     con i nuovi flag (`sostituisciAnche` viene letto da
@@ -2309,6 +2369,43 @@ export function WireframeWorkArea({
           </div>
         </div>
       )}
+
+      {/* ── Mapping-lock popup (founder SID-20260531) ──────────────────
+          Affordance contestuale: spiega che le categorie di un mapping
+          salvato sono fissate per coerenza di causa (free tier). Trigger
+          + state vivono in questo componente; rendering è il
+          MappingLockModal isolato. Su "continue" (incluso ESC/outside
+          click) NON aggiorniamo `sostituisciAnche` — il toggle resta
+          coerente con state. Su "delete-mapping" chiamiamo closeActive()
+          via prop e il toggle dell'utente prende effetto (siamo fresh). */}
+      <MappingLockModal
+        isOpen={mappingLockModalOpen}
+        mappingLabel={active?.label ?? null}
+        onClose={(reason, dontShowAgain) => {
+          setMappingLockModalOpen(false)
+          if (dontShowAgain) {
+            try {
+              window.localStorage.setItem(MAPPING_LOCK_HINT_STORAGE_KEY, '1')
+            } catch {
+              // localStorage può essere disabilitato (private mode,
+              // policy). Degradiamo silently: il popup riappare alla
+              // prossima sessione, accettabile.
+            }
+            setMappingLockHintDismissed(true)
+          }
+          // reason === 'continue' → niente da fare sul toggle:
+          //   sostituisciAnche non è stato modificato, quindi React
+          //   riconcilia automaticamente il checked al valore precedente.
+          // reason === 'delete-mapping' → onDeleteMapping ha già chiamato
+          //   closeActive(); il toggle che ha innescato il modal resta
+          //   non-applicato (l'utente in stato fresh potrà cliccarlo di
+          //   nuovo se vuole, e questa volta funziona normalmente).
+          void reason
+        }}
+        onDeleteMapping={() => {
+          closeActive()
+        }}
+      />
     </div>
   )
 }
