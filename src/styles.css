@@ -4228,57 +4228,68 @@ code {
   margin: 16px 0;
 }
 
-/* ───── Mapping-lock affordance (founder SID-20260531) ─────
-   Microcopy permanente: dentro il dropdown "sostituisci anche", sotto i
-   5 toggle, sopra il bottone Applica. Visibile sempre quando un mapping
-   è loaded da IDB (active.entries.length>0 && active.pristine), anche
-   se il popup è stato dismesso. Stile asciutto: piccolo, muted, italic.
-   Il popup riusa .modal-overlay / .modal; classi specifiche solo per
-   actions stack, link Pro, checkbox "non mostrare più". */
-.wireframe-modifier-locked-hint {
+/* ───── Mapping-lock affordance (founder SID-20260531, supersede a6db56f) ─────
+   Stato "locked" del dropdown "sostituisci anche" quando esiste un mapping
+   attivo con entità (isMappingActive). Quattro classi:
+   - .wireframe-modifier-btn--locked  → bottone collapsed rosso desaturato
+   - .wireframe-modifier-option--locked → toggle disabled/greyed
+   - .wireframe-modifier-locked-banner → microcopy SOPRA i toggle
+   - .wireframe-modifier-restart-link  → link CTA SOTTO i toggle
+   Palette ruggine/red-soft #a55a5a (NON rosso pieno tipo #dc3545): l'intento
+   è "fermati e rifletti" senza farlo sembrare un errore distruttivo. */
+.wireframe-modifier-btn.wireframe-modifier-btn--locked,
+.wireframe-modifier-btn.wireframe-modifier-btn--locked:hover {
+  background-color: #a55a5a;
+  color: #ffffff;
+}
+
+.wireframe-modifier-btn--locked:focus-visible {
+  outline: 2px solid #a55a5a;
+  outline-offset: 2px;
+}
+
+.wireframe-modifier-locked-banner {
   font-size: 0.85em;
   color: var(--muted, #6a7280);
   font-style: italic;
   line-height: 1.4;
-  padding: 8px 10px 0 10px;
+  padding: 4px 10px 10px 10px;
+  border-bottom: 1px dashed var(--rule, #d0d6de);
+  margin-bottom: 6px;
+}
+
+.wireframe-modifier-option--locked,
+.wireframe-modifier-option--locked input[type='checkbox'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.wireframe-modifier-option--locked input[type='checkbox'] {
+  pointer-events: none;
+}
+
+.wireframe-modifier-restart-row {
+  display: flex;
+  justify-content: flex-start;
+  padding: 10px 10px 4px 10px;
   border-top: 1px dashed var(--rule, #d0d6de);
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
-.mapping-lock-modal {
-  max-width: 480px;
-}
-
-.mapping-lock-modal .actions--stack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.mapping-lock-modal__pro-link {
+.wireframe-modifier-restart-link {
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  font-family: inherit;
   font-size: 0.9rem;
-  color: var(--accent, #1a2632);
+  color: #a55a5a;
   text-decoration: underline;
-  align-self: flex-start;
-  margin-top: 4px;
-}
-
-.mapping-lock-modal__pro-link:hover {
-  color: var(--accent-hover, #2a3848);
-}
-
-.mapping-lock-modal__dont-show {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: var(--muted, #6a7280);
-  margin-top: 4px;
   cursor: pointer;
+  text-align: left;
 }
 
-.mapping-lock-modal__dont-show input[type="checkbox"] {
-  margin: 0;
+.wireframe-modifier-restart-link:hover,
+.wireframe-modifier-restart-link:focus-visible {
+  color: #8a4747;
 }
 

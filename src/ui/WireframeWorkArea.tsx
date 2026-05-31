@@ -80,10 +80,6 @@ import {
 } from './exportDocument'
 import { type Language, SUPPORTED_LANGUAGES, useLanguage } from './LanguageContext'
 import { MappaPanel } from './MappaPanel'
-import {
-  MAPPING_LOCK_HINT_STORAGE_KEY,
-  MappingLockModal,
-} from './MappingLockModal'
 import { ModelLoadingState, type ModelLoadPhase } from './ModelLoadingState'
 import type { ReviewEntity, SwitchableCategory } from './types'
 
@@ -284,39 +280,22 @@ export function WireframeWorkArea({
   const [flashPseudoPanel, setFlashPseudoPanel] = useState(false)
   const flashPseudoTimerRef = useRef<number | null>(null)
 
-  /* ── Mapping-lock affordance (founder SID-20260531) ─────────────────────
-     Free tier: una volta salvato un mapping, le categorie di sostituzione
-     sono fissate per coerenza di causa. Quando l'utente prova a cambiare
-     un toggle del dropdown "sostituisci anche" MENTRE c'è un mapping
-     attivo loaded da IDB (active.entries.length > 0 && active.pristine),
-     intercettiamo il primo cambio e mostriamo il popup esplicativo.
-     - mappingLockModalOpen: visibilità del modal.
-     - mappingLockHintDismissed: persistito in localStorage; se true il
-       popup non riappare più (su questo browser). La MICROCOPY permanente
-       sotto i toggle resta sempre visibile, indipendente da questo flag.
-     Nota su rollback: NON serve tracking del toggle che ha innescato il
-     modal. React controlled-input bound a `sostituisciAnche` ricostruisce
-     il checked al valore precedente quando non chiamiamo setSostituisciAnche.
-     Quindi "rollback" è zero-state (semplicemente non applichiamo il cambio). */
-  const [mappingLockModalOpen, setMappingLockModalOpen] = useState(false)
-  const [mappingLockHintDismissed, setMappingLockHintDismissed] = useState(
-    () => {
-      if (typeof window === 'undefined') return false
-      try {
-        return window.localStorage.getItem(MAPPING_LOCK_HINT_STORAGE_KEY) === '1'
-      } catch {
-        return false
-      }
-    },
-  )
-
-  // Condizione "mapping attivo loaded da IDB" — il popup va mostrato SOLO
-  // qui (chi sta lavorando in continuità nella stessa sessione, mapping
-  // appena creato → pristine=false → niente popup, sarebbe rumore).
-  const isMappingLoadedFromIdb =
-    active !== null &&
-    active.entries.length > 0 &&
-    active.pristine === true
+  /* ── Mapping-lock affordance (founder SID-20260531, supersede a6db56f) ──
+     Una volta che esiste un mapping attivo con entità (sia loaded da IDB
+     sia appena costruito in-session post-PSEUDONIMIZZA), le categorie di
+     sostituzione sono fissate per coerenza di causa. Il dropdown
+     "sostituisci anche" passa in stato "locked":
+       - bottone collapsed: label "ora non puoi più sostituire" + rosso
+         desaturato, cliccabile (apre il dropdown);
+       - dropdown aperto: banner microcopy sopra i 5 toggle (disabled +
+         greyed), bottone Applica nascosto, link CTA "Ricomincia con un
+         nuovo documento" sotto.
+     Click CTA → closeActive() + reset input/output ⇒ stato fresh.
+     Trigger semantico: `active !== null && active.entries.length > 0`,
+     indipendente da `pristine` — l'evento vincolante è PSEUDONIMIZZA,
+     non il save. */
+  const isMappingActive =
+    active !== null && active.entries.length > 0
 
   /* ── suggerimento "luoghi preservati" (founder SID-20260530) ──────────────
      Quando la pseudonimizzazione preserva entità Pass-2 (citta/via/azienda/
@@ -1336,15 +1315,27 @@ export function WireframeWorkArea({
           <div className="wireframe-modifier-row">
             <button
               type="button"
-              className="wireframe-modifier-btn"
+              className={`wireframe-modifier-btn${
+                isMappingActive ? ' wireframe-modifier-btn--locked' : ''
+              }`}
               onClick={(e) => {
                 e.stopPropagation()
                 setSostituisciAncheOpen((v) => !v)
               }}
+              aria-label={
+                isMappingActive
+                  ? 'sostituisci anche — categorie fissate, clicca per vedere'
+                  : t('wireframe.modifier.label')
+              }
               data-testid="wireframe-modifier-btn"
+              data-locked={isMappingActive ? 'true' : 'false'}
             >
-              <span>{t('wireframe.modifier.label')}</span>
-              {sostituisciAnche.size > 0 && (
+              <span>
+                {isMappingActive
+                  ? t('wireframe.modifier.btn.locked')
+                  : t('wireframe.modifier.label')}
+              </span>
+              {!isMappingActive && sostituisciAnche.size > 0 && (
                 <span className="wireframe-modifier-count">
                   {sostituisciAnche.size}
                 </span>
@@ -1355,32 +1346,45 @@ export function WireframeWorkArea({
             </button>
             {sostituisciAncheOpen && (
               <div
-                className="wireframe-modifier-dropdown"
-                role="menu"
-                aria-label={t('wireframe.modifier.label')}
+                className={`wireframe-modifier-dropdown${
+                  isMappingActive ? ' wireframe-modifier-dropdown--locked' : ''
+                }`}
+                role={isMappingActive ? 'region' : 'menu'}
+                aria-label={
+                  isMappingActive
+                    ? 'sostituisci anche — categorie fissate'
+                    : t('wireframe.modifier.label')
+                }
                 data-testid="wireframe-modifier-dropdown"
+                data-locked={isMappingActive ? 'true' : 'false'}
               >
+                {/* Stato locked (founder SID-20260531 supersede a6db56f):
+                    microcopy SOPRA i toggle, toggle visibili ma disabled
+                    + greyed, Applica nascosto, link CTA "Ricomincia con un
+                    nuovo documento" SOTTO. La condition è isMappingActive
+                    = active !== null && active.entries.length > 0
+                    (estesa al caso in-session post-PSEUDONIMIZZA). */}
+                {isMappingActive && (
+                  <div
+                    className="wireframe-modifier-locked-banner"
+                    data-testid="wireframe-modifier-locked-banner"
+                  >
+                    {t('wireframe.modifier.lockedBanner')}
+                  </div>
+                )}
                 {SOSTITUISCI_ANCHE_CATEGORIES.map(({ key, labelKey }) => (
-                  <label key={key} className="wireframe-modifier-option">
+                  <label
+                    key={key}
+                    className={`wireframe-modifier-option${
+                      isMappingActive ? ' wireframe-modifier-option--locked' : ''
+                    }`}
+                  >
                     <input
                       type="checkbox"
                       checked={sostituisciAnche.has(key)}
-                      disabled={isApplyingModifiers}
+                      disabled={isApplyingModifiers || isMappingActive}
                       onChange={(e) => {
-                        // Intercept: se mapping loaded da IDB e popup non
-                        // ancora dismesso, mostra popup invece di applicare
-                        // il cambio. Lo state del checkbox passa attraverso
-                        // (React controlled — torna a checked=prev) perché
-                        // NON facciamo setSostituisciAnche qui. Il rollback
-                        // visivo è automatico: il source-of-truth è
-                        // `sostituisciAnche`, e quello non l'abbiamo toccato.
-                        if (
-                          isMappingLoadedFromIdb &&
-                          !mappingLockHintDismissed
-                        ) {
-                          setMappingLockModalOpen(true)
-                          return
-                        }
+                        if (isMappingActive) return
                         setSostituisciAnche((prev) => {
                           const next = new Set(prev)
                           if (e.target.checked) next.add(key)
@@ -1393,65 +1397,81 @@ export function WireframeWorkArea({
                     {t(labelKey)}
                   </label>
                 ))}
-                {isMappingLoadedFromIdb && (
-                  <div
-                    className="wireframe-modifier-locked-hint"
-                    data-testid="wireframe-modifier-locked-hint"
-                  >
-                    {t('wireframe.modifier.lockedHint')}
+                {isMappingActive ? (
+                  /* CTA in stato locked — equivalente a "Nuovo documento" +
+                     "Elimina mapping": closeActive() + reset input/output +
+                     reset entities + reset sostituisciAnche. Dopo il click
+                     il dropdown si chiude e l'utente è in stato fresh. */
+                  <div className="wireframe-modifier-restart-row">
+                    <button
+                      type="button"
+                      className="wireframe-modifier-restart-link"
+                      onClick={() => {
+                        closeActive()
+                        setOriginaleText('')
+                        setPseudonimizzatoText('')
+                        setEntities([])
+                        setHasRunOnCurrentDoc(false)
+                        setEntityReviewOpen(false)
+                        setSostituisciAnche(new Set())
+                        setSostituisciAncheOpen(false)
+                      }}
+                      data-testid="wireframe-modifier-restart-link"
+                    >
+                      {t('wireframe.modifier.restartLink')}
+                    </button>
+                  </div>
+                ) : (
+                  /* SID-20260528-manual: bottone Applica per risolvere
+                     discoverability flow di applicazione (visibile solo in
+                     stato non-locked). Click triggera rerun pseudonimizzazione
+                     con i nuovi flag (`sostituisciAnche` letto da
+                     handlePseudonimizza come `includeCategoriesPass2`).
+                     SID-20260530 triplo feedback visivo: spinner + label
+                     "Applicazione in corso…" + disabled, checkbox disabled
+                     durante, flash verde 1s sul pannello pseudonimizzato. */
+                  <div className="wireframe-modifier-actions">
+                    <button
+                      type="button"
+                      className={`wireframe-modifier-apply-btn${
+                        isApplyingModifiers ? ' is-applying' : ''
+                      }`}
+                      onClick={async () => {
+                        if (isApplyingModifiers) return
+                        setIsApplyingModifiers(true)
+                        try {
+                          await handlePseudonimizza()
+                        } finally {
+                          setIsApplyingModifiers(false)
+                          setSostituisciAncheOpen(false)
+                          if (flashPseudoTimerRef.current !== null) {
+                            window.clearTimeout(flashPseudoTimerRef.current)
+                          }
+                          setFlashPseudoPanel(true)
+                          flashPseudoTimerRef.current = window.setTimeout(
+                            () => setFlashPseudoPanel(false),
+                            1000,
+                          )
+                        }
+                      }}
+                      disabled={isApplyingModifiers}
+                      data-testid="wireframe-modifier-apply-btn"
+                      aria-busy={isApplyingModifiers}
+                    >
+                      {isApplyingModifiers && (
+                        <span
+                          className="wireframe-modifier-apply-spinner"
+                          aria-hidden
+                        />
+                      )}
+                      <span>
+                        {isApplyingModifiers
+                          ? t('wireframe.modifier.applyingBtn')
+                          : t('wireframe.modifier.applyBtn')}
+                      </span>
+                    </button>
                   </div>
                 )}
-                {/* SID-20260528-manual: bottone Applica per risolvere discoverability
-                    flow di applicazione. Click triggera rerun pseudonimizzazione
-                    con i nuovi flag (`sostituisciAnche` viene letto da
-                    handlePseudonimizza come `includeCategoriesPass2`).
-                    SID-20260530 (founder bug-report "non si capisce che fa
-                    qualcosa"): triplo feedback visivo — bottone spinner +
-                    label "Applicazione in corso..." + disabled durante;
-                    checkbox disabled durante; flash verde 1s sul pannello
-                    pseudonimizzato al completamento; dropdown si chiude SOLO
-                    DOPO il run (così il transition spinner→done è visibile). */}
-                <div className="wireframe-modifier-actions">
-                  <button
-                    type="button"
-                    className={`wireframe-modifier-apply-btn${
-                      isApplyingModifiers ? ' is-applying' : ''
-                    }`}
-                    onClick={async () => {
-                      if (isApplyingModifiers) return
-                      setIsApplyingModifiers(true)
-                      try {
-                        await handlePseudonimizza()
-                      } finally {
-                        setIsApplyingModifiers(false)
-                        setSostituisciAncheOpen(false)
-                        if (flashPseudoTimerRef.current !== null) {
-                          window.clearTimeout(flashPseudoTimerRef.current)
-                        }
-                        setFlashPseudoPanel(true)
-                        flashPseudoTimerRef.current = window.setTimeout(
-                          () => setFlashPseudoPanel(false),
-                          1000,
-                        )
-                      }
-                    }}
-                    disabled={isApplyingModifiers}
-                    data-testid="wireframe-modifier-apply-btn"
-                    aria-busy={isApplyingModifiers}
-                  >
-                    {isApplyingModifiers && (
-                      <span
-                        className="wireframe-modifier-apply-spinner"
-                        aria-hidden
-                      />
-                    )}
-                    <span>
-                      {isApplyingModifiers
-                        ? t('wireframe.modifier.applyingBtn')
-                        : t('wireframe.modifier.applyBtn')}
-                    </span>
-                  </button>
-                </div>
               </div>
             )}
           </div>
@@ -2370,42 +2390,6 @@ export function WireframeWorkArea({
         </div>
       )}
 
-      {/* ── Mapping-lock popup (founder SID-20260531) ──────────────────
-          Affordance contestuale: spiega che le categorie di un mapping
-          salvato sono fissate per coerenza di causa (free tier). Trigger
-          + state vivono in questo componente; rendering è il
-          MappingLockModal isolato. Su "continue" (incluso ESC/outside
-          click) NON aggiorniamo `sostituisciAnche` — il toggle resta
-          coerente con state. Su "delete-mapping" chiamiamo closeActive()
-          via prop e il toggle dell'utente prende effetto (siamo fresh). */}
-      <MappingLockModal
-        isOpen={mappingLockModalOpen}
-        mappingLabel={active?.label ?? null}
-        onClose={(reason, dontShowAgain) => {
-          setMappingLockModalOpen(false)
-          if (dontShowAgain) {
-            try {
-              window.localStorage.setItem(MAPPING_LOCK_HINT_STORAGE_KEY, '1')
-            } catch {
-              // localStorage può essere disabilitato (private mode,
-              // policy). Degradiamo silently: il popup riappare alla
-              // prossima sessione, accettabile.
-            }
-            setMappingLockHintDismissed(true)
-          }
-          // reason === 'continue' → niente da fare sul toggle:
-          //   sostituisciAnche non è stato modificato, quindi React
-          //   riconcilia automaticamente il checked al valore precedente.
-          // reason === 'delete-mapping' → onDeleteMapping ha già chiamato
-          //   closeActive(); il toggle che ha innescato il modal resta
-          //   non-applicato (l'utente in stato fresh potrà cliccarlo di
-          //   nuovo se vuole, e questa volta funziona normalmente).
-          void reason
-        }}
-        onDeleteMapping={() => {
-          closeActive()
-        }}
-      />
     </div>
   )
 }
