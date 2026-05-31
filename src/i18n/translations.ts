@@ -461,17 +461,25 @@ const it: Catalog = {
   'wireframe.suggestion.articled.organizations': 'le organizzazioni',
   'wireframe.suggestion.articled.courts': 'i tribunali',
   'wireframe.suggestion.dismissAria': 'Ignora suggerimento per questa sessione',
-  // ───────── Dual-model UX hint (founder SID-20260531, supersede del lock
-  // pattern fe283d4 — ratifica 2026-05-31) ─────────────────────────────────
-  // Il motore implementa dual-model: storia immutabile (mergeEntries protegge
-  // le sostituzioni già applicate) + configurazione editabile per i prossimi
-  // documenti. Il dropdown "sostituisci anche" resta editabile in ogni
-  // momento. Microcopy permanente dentro il dropdown quando c'è un mapping
-  // attivo con entità (active !== null && active.entries.length > 0) per
-  // esplicitare la semantica dual-model. Niente lock, niente cambio colore,
-  // niente blocco. Copy ratificato verbatim, IT only; EN/DE/FR fallback IT.
-  'wireframe.modifier.dualModelHint':
+  // ───────── Mapping-lock affordance dual-model (founder SID-20260531,
+  // ratifica 2026-05-31 — ripristino pattern fe283d4 con copy dual-model
+  // dopo che il microcopy nel dropdown del commit 3a26620 si è rivelato
+  // invisibile in pratica: l'utente non apre il dropdown se il bottone non
+  // cambia visivamente) ─────────────────────────────────────────────────────
+  // Stato locked del dropdown "sostituisci anche" quando esiste un mapping
+  // attivo con entità (active !== null && active.entries.length > 0,
+  // indipendente da `pristine` → copre anche in-session post-PSEUDONIMIZZA).
+  // Il bottone collapsed cambia label + colore rosso desaturato; il dropdown
+  // aperto mostra microcopy SOPRA i toggle (disabled/greyed) + link CTA
+  // "Ricomincia con un nuovo documento" SOTTO (azione = closeActive() +
+  // reset doc). Il banner usa il copy dual-model verbatim ratificato
+  // 2026-05-31: esplicita che le scelte valgono per i prossimi documenti
+  // mentre le sostituzioni già fatte restano stabili. IT only; EN/DE/FR
+  // fallback IT.
+  'wireframe.modifier.btn.locked': 'ora non puoi più sostituire',
+  'wireframe.modifier.lockedBanner':
     'Le tue scelte valgono per i prossimi documenti che pseudonimizzi. Le sostituzioni già fatte (es. Marco→Tizio) restano come sono.',
+  'wireframe.modifier.restartLink': '→ Ricomincia con un nuovo documento',
   'wireframe.panel.originale': 'originale',
   'wireframe.panel.pseudonimizzato': 'pseudonimizzato',
   'wireframe.placeholder.originale.codifica': 'Trascina il documento qui, o incolla il testo',
