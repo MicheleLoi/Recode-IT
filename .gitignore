@@ -9,6 +9,11 @@ dist/
 # Test outputs
 coverage/
 
+# Playwright e2e
+test-results/
+playwright-report/
+tests/e2e/persistence_matrix_results.md
+
 # Env
 .env
 .env.*
