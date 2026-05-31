@@ -425,6 +425,26 @@ const it: Catalog = {
     'Tribunali (riconoscimento automatico, meno preciso)',
   'wireframe.modifier.cap': 'CAP',
   'wireframe.modifier.date': 'Date',
+  // SID-20260531 founder direttiva — quando il dropdown è in stato locked
+  // (isMappingActive: già esiste un mapping con entità preservate dalla
+  // storia di sostituzioni), i 5 toggle restano editabili MA la label
+  // segnala che la scelta si applica solo alle entità NUOVE: prefix
+  // "Nuovi/Nuove" in rosso desaturato + rest invariato. Split in 2 chiavi
+  // per evitare HTML embedded in i18n (rendering: <span class="…-new">prefix</span> rest).
+  // Solo IT — EN/DE/FR fallback a IT via t().
+  'wireframe.modifier.places.newPrefix': 'Nuovi',
+  'wireframe.modifier.places.newRest':
+    'luoghi (riconoscimento automatico, meno preciso)',
+  'wireframe.modifier.organizations.newPrefix': 'Nuove',
+  'wireframe.modifier.organizations.newRest':
+    'organizzazioni (riconoscimento automatico, meno preciso)',
+  'wireframe.modifier.courts.newPrefix': 'Nuovi',
+  'wireframe.modifier.courts.newRest':
+    'tribunali (riconoscimento automatico, meno preciso)',
+  'wireframe.modifier.cap.newPrefix': 'Nuovi',
+  'wireframe.modifier.cap.newRest': 'CAP',
+  'wireframe.modifier.date.newPrefix': 'Nuove',
+  'wireframe.modifier.date.newRest': 'date',
   'wireframe.modifier.applyBtn': 'Applica',
   // SID-20260530 founder bug-report: feedback "Applica" — IT only per vincolo
   // (EN/DE/FR fall back a IT via t() finché non viene tradotto in un secondo

@@ -1378,18 +1378,12 @@ export function WireframeWorkArea({
                   </div>
                 )}
                 {SOSTITUISCI_ANCHE_CATEGORIES.map(({ key, labelKey }) => (
-                  <label
-                    key={key}
-                    className={`wireframe-modifier-option${
-                      isMappingActive ? ' wireframe-modifier-option--locked' : ''
-                    }`}
-                  >
+                  <label key={key} className="wireframe-modifier-option">
                     <input
                       type="checkbox"
                       checked={sostituisciAnche.has(key)}
-                      disabled={isApplyingModifiers || isMappingActive}
+                      disabled={isApplyingModifiers}
                       onChange={(e) => {
-                        if (isMappingActive) return
                         setSostituisciAnche((prev) => {
                           const next = new Set(prev)
                           if (e.target.checked) next.add(key)
@@ -1399,14 +1393,84 @@ export function WireframeWorkArea({
                       }}
                       data-testid={`wireframe-modifier-${key}`}
                     />
-                    {t(labelKey)}
+                    {/* SID-20260531 founder direttiva — in stato locked
+                        (isMappingActive), il toggle resta editabile ma la
+                        label diventa "Nuovi/Nuove X" con prefix in rosso
+                        desaturato (#a55a5a) per segnalare che la scelta
+                        si applica solo alle entità NUOVE; storia mappa
+                        preserved da mergeEntries (b15894a). Split prefix/rest
+                        evita HTML embedded in i18n. */}
+                    {isMappingActive ? (
+                      <span>
+                        <span className="wireframe-modifier-option-new">
+                          {t(`${labelKey}.newPrefix`)}
+                        </span>{' '}
+                        {t(`${labelKey}.newRest`)}
+                      </span>
+                    ) : (
+                      t(labelKey)
+                    )}
                   </label>
                 ))}
-                {isMappingActive ? (
-                  /* CTA in stato locked — equivalente a "Nuovo documento" +
-                     "Elimina mapping": closeActive() + reset input/output +
-                     reset entities + reset sostituisciAnche. Dopo il click
-                     il dropdown si chiude e l'utente è in stato fresh. */
+                {/* SID-20260528-manual + SID-20260531: bottone Applica
+                   sempre visibile (anche in stato locked) per supportare la
+                   ratifica founder 2026-05-31 dual-model — i toggle locked
+                   sono editabili e devono poter essere APPLICATI alle entità
+                   nuove. Click triggera rerun pseudonimizzazione con i nuovi
+                   flag (`sostituisciAnche` letto da handlePseudonimizza come
+                   `enabledPass2Labels` / `enabledGatedDetectors`). La storia
+                   sostituzioni esistente è protetta da mergeEntries (b15894a).
+                   SID-20260530 triplo feedback visivo: spinner + label
+                   "Applicazione in corso…" + disabled, checkbox disabled
+                   durante, flash verde 1s sul pannello pseudonimizzato. */}
+                <div className="wireframe-modifier-actions">
+                  <button
+                    type="button"
+                    className={`wireframe-modifier-apply-btn${
+                      isApplyingModifiers ? ' is-applying' : ''
+                    }`}
+                    onClick={async () => {
+                      if (isApplyingModifiers) return
+                      setIsApplyingModifiers(true)
+                      try {
+                        await handlePseudonimizza()
+                      } finally {
+                        setIsApplyingModifiers(false)
+                        setSostituisciAncheOpen(false)
+                        if (flashPseudoTimerRef.current !== null) {
+                          window.clearTimeout(flashPseudoTimerRef.current)
+                        }
+                        setFlashPseudoPanel(true)
+                        flashPseudoTimerRef.current = window.setTimeout(
+                          () => setFlashPseudoPanel(false),
+                          1000,
+                        )
+                      }
+                    }}
+                    disabled={isApplyingModifiers}
+                    data-testid="wireframe-modifier-apply-btn"
+                    aria-busy={isApplyingModifiers}
+                  >
+                    {isApplyingModifiers && (
+                      <span
+                        className="wireframe-modifier-apply-spinner"
+                        aria-hidden
+                      />
+                    )}
+                    <span>
+                      {isApplyingModifiers
+                        ? t('wireframe.modifier.applyingBtn')
+                        : t('wireframe.modifier.applyBtn')}
+                    </span>
+                  </button>
+                </div>
+                {isMappingActive && (
+                  /* CTA Ricomincia — visibile in stato locked SOTTO Applica
+                     (azione secondaria). Border-top dashed leggero per
+                     separazione visiva dall'Apply. Equivalente a "Nuovo
+                     documento" + "Elimina mapping": closeActive() + reset
+                     input/output + reset entities + reset sostituisciAnche.
+                     Dopo il click il dropdown si chiude e l'utente è fresh. */
                   <div className="wireframe-modifier-restart-row">
                     <button
                       type="button"
@@ -1424,56 +1488,6 @@ export function WireframeWorkArea({
                       data-testid="wireframe-modifier-restart-link"
                     >
                       {t('wireframe.modifier.restartLink')}
-                    </button>
-                  </div>
-                ) : (
-                  /* SID-20260528-manual: bottone Applica per risolvere
-                     discoverability flow di applicazione (visibile solo in
-                     stato non-locked). Click triggera rerun pseudonimizzazione
-                     con i nuovi flag (`sostituisciAnche` letto da
-                     handlePseudonimizza come `includeCategoriesPass2`).
-                     SID-20260530 triplo feedback visivo: spinner + label
-                     "Applicazione in corso…" + disabled, checkbox disabled
-                     durante, flash verde 1s sul pannello pseudonimizzato. */
-                  <div className="wireframe-modifier-actions">
-                    <button
-                      type="button"
-                      className={`wireframe-modifier-apply-btn${
-                        isApplyingModifiers ? ' is-applying' : ''
-                      }`}
-                      onClick={async () => {
-                        if (isApplyingModifiers) return
-                        setIsApplyingModifiers(true)
-                        try {
-                          await handlePseudonimizza()
-                        } finally {
-                          setIsApplyingModifiers(false)
-                          setSostituisciAncheOpen(false)
-                          if (flashPseudoTimerRef.current !== null) {
-                            window.clearTimeout(flashPseudoTimerRef.current)
-                          }
-                          setFlashPseudoPanel(true)
-                          flashPseudoTimerRef.current = window.setTimeout(
-                            () => setFlashPseudoPanel(false),
-                            1000,
-                          )
-                        }
-                      }}
-                      disabled={isApplyingModifiers}
-                      data-testid="wireframe-modifier-apply-btn"
-                      aria-busy={isApplyingModifiers}
-                    >
-                      {isApplyingModifiers && (
-                        <span
-                          className="wireframe-modifier-apply-spinner"
-                          aria-hidden
-                        />
-                      )}
-                      <span>
-                        {isApplyingModifiers
-                          ? t('wireframe.modifier.applyingBtn')
-                          : t('wireframe.modifier.applyBtn')}
-                      </span>
                     </button>
                   </div>
                 )}

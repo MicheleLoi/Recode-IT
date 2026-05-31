@@ -4229,16 +4229,21 @@ code {
 }
 
 /* ───── Mapping-lock affordance (founder SID-20260531, ratifica 2026-05-31
-   ripristino pattern fe283d4 con copy dual-model — il microcopy interno
-   al dropdown del commit 3a26620 si è rivelato invisibile in pratica:
-   l'utente non apre il dropdown se il bottone non cambia visivamente) ─────
+   ripristino pattern fe283d4 con copy dual-model + dual-model editabile) ─────
    Stato "locked" del dropdown "sostituisci anche" quando esiste un mapping
-   attivo con entità (isMappingActive). Quattro classi:
+   attivo con entità (isMappingActive). Classi attive:
    - .wireframe-modifier-btn--locked  → bottone collapsed rosso desaturato
-   - .wireframe-modifier-option--locked → toggle disabled/greyed
    - .wireframe-modifier-locked-banner → microcopy SOPRA i toggle (copy
-     dual-model verbatim)
-   - .wireframe-modifier-restart-link  → link CTA SOTTO i toggle
+     dual-model verbatim: "le sostituzioni già fatte restano, scegli i
+     NUOVI luoghi per il prossimo run")
+   - .wireframe-modifier-option-new   → prefix "Nuovi/Nuove" rosso
+     desaturato sulle label dei toggle quando il dropdown è locked
+   - .wireframe-modifier-restart-link → link CTA SOTTO Apply (azione
+     secondaria, separata da border-top dashed)
+   I toggle in stato locked NON sono più greyed/disabled: la ratifica
+   founder 2026-05-31 li ha resi editabili — la scelta si applica alle
+   entità NUOVE, la storia è protetta da mergeEntries (b15894a). Pertanto
+   `.wireframe-modifier-option--locked` è rimossa.
    Palette ruggine/red-soft #a55a5a (NON rosso pieno tipo #dc3545): l'intento
    è "fermati e rifletti" senza farlo sembrare un errore distruttivo.
    Specificity fix: doppio selettore `.wireframe-modifier-btn.wireframe-modifier-btn--locked`
@@ -4265,14 +4270,9 @@ code {
   margin-bottom: 6px;
 }
 
-.wireframe-modifier-option--locked,
-.wireframe-modifier-option--locked input[type='checkbox'] {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.wireframe-modifier-option--locked input[type='checkbox'] {
-  pointer-events: none;
+.wireframe-modifier-option-new {
+  color: #a55a5a;
+  font-weight: 600;
 }
 
 .wireframe-modifier-restart-row {
