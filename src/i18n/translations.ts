@@ -461,19 +461,17 @@ const it: Catalog = {
   'wireframe.suggestion.articled.organizations': 'le organizzazioni',
   'wireframe.suggestion.articled.courts': 'i tribunali',
   'wireframe.suggestion.dismissAria': 'Ignora suggerimento per questa sessione',
-  // ───────── Mapping-lock affordance (founder SID-20260531, ratifica
-  // 2026-05-31 supersede del modal+microcopy del commit a6db56f) ─────────
-  // Stato locked del dropdown "sostituisci anche" quando esiste un mapping
-  // attivo con entità (active !== null && active.entries.length > 0,
-  // indipendente da `pristine` → copre anche in-session post-PSEUDONIMIZZA).
-  // Il bottone collapsed cambia label + colore rosso desaturato; il dropdown
-  // aperto mostra microcopy SOPRA i toggle (disabled/greyed) + link CTA
-  // "Ricomincia con un nuovo documento" SOTTO (azione = closeActive() +
-  // reset doc). Copy ratificato verbatim, IT only; EN/DE/FR fallback IT.
-  'wireframe.modifier.btn.locked': 'ora non puoi più sostituire',
-  'wireframe.modifier.lockedBanner':
-    'Per sostituire anche questi elementi, ricomincia con un nuovo documento.',
-  'wireframe.modifier.restartLink': '→ Ricomincia con un nuovo documento',
+  // ───────── Dual-model UX hint (founder SID-20260531, supersede del lock
+  // pattern fe283d4 — ratifica 2026-05-31) ─────────────────────────────────
+  // Il motore implementa dual-model: storia immutabile (mergeEntries protegge
+  // le sostituzioni già applicate) + configurazione editabile per i prossimi
+  // documenti. Il dropdown "sostituisci anche" resta editabile in ogni
+  // momento. Microcopy permanente dentro il dropdown quando c'è un mapping
+  // attivo con entità (active !== null && active.entries.length > 0) per
+  // esplicitare la semantica dual-model. Niente lock, niente cambio colore,
+  // niente blocco. Copy ratificato verbatim, IT only; EN/DE/FR fallback IT.
+  'wireframe.modifier.dualModelHint':
+    'Le tue scelte valgono per i prossimi documenti che pseudonimizzi. Le sostituzioni già fatte (es. Marco→Tizio) restano come sono.',
   'wireframe.panel.originale': 'originale',
   'wireframe.panel.pseudonimizzato': 'pseudonimizzato',
   'wireframe.placeholder.originale.codifica': 'Trascina il documento qui, o incolla il testo',
