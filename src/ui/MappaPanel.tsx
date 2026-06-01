@@ -61,6 +61,20 @@ export function MappaPanel(): JSX.Element {
     [sourceEntries],
   )
 
+  // Identity entries (pseudonym === realValue) are entries that were
+  // recognized but NOT substituted — typically because the corresponding
+  // category was OFF at recognition time (e.g. Luoghi). We render the
+  // pseudonym cell with a soft frame and surface a banner explaining the
+  // mental model + recovery path (founder ratify 2026-06-01).
+  const identityCount = useMemo(
+    () =>
+      visibleEntries.reduce(
+        (acc, e) => (e.pseudonym === e.realValue ? acc + 1 : acc),
+        0,
+      ),
+    [visibleEntries],
+  )
+
   const [newReal, setNewReal] = useState('')
   const [newPseudo, setNewPseudo] = useState('')
   const [addError, setAddError] = useState<string | null>(null)
@@ -240,6 +254,15 @@ export function MappaPanel(): JSX.Element {
         ✎ {t('mappa.table.editHint')}
       </p>
 
+      {identityCount > 0 && (
+        <p
+          className="mappa-panel__identity-banner"
+          data-testid="mappa-identity-banner"
+        >
+          {t('mappa.table.identityBanner')}
+        </p>
+      )}
+
       <div className="mappa-panel__table-wrap">
         <table className="mappa-panel__table" data-testid="mappa-table">
           <thead>
@@ -254,6 +277,10 @@ export function MappaPanel(): JSX.Element {
           <tbody>
             {sourceEntries.map((entry, idx) => {
               if (entry.isFalsePositive === true) return null
+              const isIdentity = entry.pseudonym === entry.realValue
+              const pseudoClass = isIdentity
+                ? 'mappa-panel__cell-input mappa-panel__cell-input--identity'
+                : 'mappa-panel__cell-input'
               return (
                 <tr key={idx} data-testid={`mappa-row-${idx}`}>
                   <td>
@@ -269,11 +296,12 @@ export function MappaPanel(): JSX.Element {
                   <td>
                     <input
                       type="text"
-                      className="mappa-panel__cell-input"
+                      className={pseudoClass}
                       value={entry.pseudonym}
                       onChange={(e) => handleEditPseudo(idx, e.target.value)}
                       aria-label={`${t('mappa.table.colPseudo')} riga ${idx + 1}`}
                       data-testid={`mappa-pseudo-${idx}`}
+                      data-identity={isIdentity ? 'true' : undefined}
                     />
                   </td>
                   <td className="mappa-panel__cell-action">

@@ -2295,6 +2295,35 @@ code {
   outline: none;
 }
 
+/* Identity entry — pseudonimo === realValue: signal grafico (no testo extra)
+ * che la voce è stata riconosciuta ma NON sostituita (categoria OFF al
+ * momento del riconoscimento). Box leggero attorno al pseudonimo identity
+ * — il banner mappa-panel__identity-banner sopra la tabella spiega il
+ * mental model. Founder ratify 2026-06-01. */
+.mappa-panel__cell-input--identity {
+  border: 1px solid var(--rule);
+  background: var(--surface-alt);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.mappa-panel__cell-input--identity:hover {
+  border-color: var(--rule);
+  background: var(--surface-alt);
+}
+
+.mappa-panel__identity-banner {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: var(--surface-alt);
+  border: 1px solid var(--rule-soft);
+  border-left: 3px solid var(--rule);
+  border-radius: 4px;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
 .mappa-panel__cell-action {
   width: 36px;
   text-align: center;

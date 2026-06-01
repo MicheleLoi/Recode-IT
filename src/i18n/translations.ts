@@ -315,6 +315,8 @@ const it: Catalog = {
   'mappa.table.colPseudo': 'Pseudonimo',
   'mappa.table.colActions': 'Azioni',
   'mappa.table.editHint': 'Clicca su un campo per modificarlo direttamente.',
+  'mappa.table.identityBanner':
+    'Le voci con il pseudonimo riquadrato non sono state sostituite — la categoria era OFF al momento del riconoscimento. Per sostituirle: cancella con ✕, attiva la categoria nei Filtri, premi Pseudonimizza.',
   'mappa.table.deleteAria': 'Rimuovi questa coppia',
   'mappa.table.deleteTitle': 'Rimuovi questa coppia dalla mappa',
   'mappa.add.heading': 'Aggiungi una coppia mancante',
@@ -891,6 +893,8 @@ const en: Catalog = {
   'mappa.table.colPseudo': 'Pseudonym',
   'mappa.table.colActions': 'Actions',
   'mappa.table.editHint': 'Click on any field to edit it inline.',
+  'mappa.table.identityBanner':
+    'Items with the framed pseudonym were not substituted — the category was OFF during recognition. To substitute them: delete with ✕, enable the category in Filters, press Pseudonymize.',
   'mappa.table.deleteAria': 'Remove this pair',
   'mappa.table.deleteTitle': 'Remove this pair from the map',
   'mappa.add.heading': 'Add a missing pair',
@@ -1352,6 +1356,8 @@ const de: Catalog = {
   'mappa.table.colPseudo': 'Pseudonym',
   'mappa.table.colActions': 'Aktionen',
   'mappa.table.editHint': 'Klicken Sie auf ein Feld, um es direkt zu bearbeiten.',
+  'mappa.table.identityBanner':
+    'Einträge mit eingerahmtem Pseudonym wurden nicht ersetzt — die Kategorie war bei der Erkennung deaktiviert. So ersetzen Sie sie: mit ✕ löschen, Kategorie in den Filtern aktivieren, Pseudonymisieren drücken.',
   'mappa.table.deleteAria': 'Dieses Paar entfernen',
   'mappa.table.deleteTitle': 'Dieses Paar aus der Zuordnung entfernen',
   'mappa.add.heading': 'Fehlendes Paar hinzufügen',
@@ -1778,6 +1784,8 @@ const fr: Catalog = {
   'mappa.table.colPseudo': 'Pseudonyme',
   'mappa.table.colActions': 'Actions',
   'mappa.table.editHint': 'Cliquez sur un champ pour le modifier directement.',
+  'mappa.table.identityBanner':
+    'Les entrées avec le pseudonyme encadré n\'ont pas été remplacées — la catégorie était désactivée lors de la reconnaissance. Pour les remplacer : supprimez avec ✕, activez la catégorie dans les Filtres, cliquez sur Pseudonymiser.',
   'mappa.table.deleteAria': 'Supprimer cette paire',
   'mappa.table.deleteTitle': 'Supprimer cette paire de la carte',
   'mappa.add.heading': 'Ajouter une paire manquante',
