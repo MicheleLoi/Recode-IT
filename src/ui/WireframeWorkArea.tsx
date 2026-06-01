@@ -869,17 +869,20 @@ export function WireframeWorkArea({
     void handleFiles(e.target.files)
   }
 
-  // Reset flag quando il rispettivo state torna vuoto (nuovo doc / reset).
+  // Reset flag action quando il text rilevante al mode corrente torna vuoto
+  // (nuovo doc / reset). Single-shot per upload-sequence: nuovo upload =
+  // nuovo scroll. Codifica osserva `originaleText`, decodifica osserva
+  // `pseudonimizzatoText`.
   useEffect(() => {
-    if (originaleText === '') {
-      scrollFiredOnUploadRef.current.originale = false
+    if (originaleText === '' && mode === 'codifica') {
+      scrollFiredOnUploadRef.current.action = false
     }
-  }, [originaleText])
+  }, [originaleText, mode])
   useEffect(() => {
-    if (pseudonimizzatoText === '') {
-      scrollFiredOnUploadRef.current.pseudonimizzato = false
+    if (pseudonimizzatoText === '' && mode === 'decodifica') {
+      scrollFiredOnUploadRef.current.action = false
     }
-  }, [pseudonimizzatoText])
+  }, [pseudonimizzatoText, mode])
 
   /* ────────────────────────────────────────────────────────────────────── */
   /* Entity review actions                                                   */
