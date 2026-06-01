@@ -4383,6 +4383,11 @@ code {
 /* Pattern recuperato dal pre-pivot commit 7fd5202 (.drop-hero +              */
 /* .drop-zone--hero + .btn-ghost), adattato per integrarsi nella pagina LIVE. */
 /* Sostituisce la pill 'Carica documento' che viveva nel pannello originale.  */
+/* Riordino SID-20260601 post-deploy 7cc0b8c:                                  */
+/*   - centratura orizzontale (margin auto) + max-width 760px → card stile    */
+/*     onboarding centrata sotto la toolbar 2 modalità, evita asimmetria      */
+/*     visiva rispetto agli altri blocchi full-width (PSEUDONIMIZZA, dropdown,*/
+/*     Memoria pseudonimi).                                                    */
 /* ────────────────────────────────────────────────────────────────────────── */
 
 .drop-hero {
@@ -4390,7 +4395,8 @@ code {
   border: 1px solid var(--rule);
   border-radius: 10px;
   padding: 26px 30px 30px;
-  margin: 14px 0;
+  margin: 14px auto;
+  max-width: 760px;
 }
 
 .drop-hero__tabs {
