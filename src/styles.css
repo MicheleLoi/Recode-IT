@@ -4299,6 +4299,54 @@ code {
   margin-bottom: 6px;
 }
 
+/* lockedBanner — 3-blocchi layout (founder direttiva SID-20260601-085130).
+   Ogni <p> è un blocco visivamente separato; <strong> rimane corsivo
+   ereditato ma con peso 600 per evidenziare i verbi azione (Applica,
+   Pseudonimizza) e il glifo ✕. */
+.wireframe-modifier-locked-banner__line {
+  margin: 0 0 8px 0;
+}
+.wireframe-modifier-locked-banner__line:last-child {
+  margin-bottom: 0;
+}
+.wireframe-modifier-locked-banner__line strong {
+  font-weight: 600;
+}
+
+/* "Mappa" link cliccabile dentro lockedBanner: stile button → link inline.
+   Tinta blu accent (coerente con la stessa palette del pulse #2563eb),
+   non-italic per stacco visivo dal corpo italic del banner; sottolineato
+   solo a hover/focus per affordance non invasiva. */
+.wireframe-modifier-locked-banner__map-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-style: normal;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: none;
+}
+.wireframe-modifier-locked-banner__map-link:hover,
+.wireframe-modifier-locked-banner__map-link:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
+/* Pulse animation per evidenziare l'arrivo dello scroll alla Mappa
+   pseudonimi (founder direttiva SID-20260601-085130). 1.5s ease-out,
+   single-shot — classe aggiunta da scrollToMap handler e rimossa via
+   setTimeout. Palette blue accent #2563eb coerente con il map-link. */
+@keyframes mappaPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.35); }
+  50%  { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.1); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+.mappa-pseudonimi--highlight-pulse {
+  animation: mappaPulse 1.5s ease-out;
+}
+
 .wireframe-modifier-option-new {
   color: #a55a5a;
   font-weight: 600;

@@ -1391,7 +1391,73 @@ export function WireframeWorkArea({
                     className="wireframe-modifier-locked-banner"
                     data-testid="wireframe-modifier-locked-banner"
                   >
-                    {t('wireframe.modifier.lockedBanner')}
+                    {(() => {
+                      /* 3-blocchi + "Mappa" link cliccabile (founder direttiva
+                         SID-20260601-085130). Render decomposto via JSX (NON
+                         HTML-in-i18n) per restare coerenti con la convenzione
+                         translations.ts text-only. Click su "Mappa" esegue
+                         smooth scroll a #mappa-pseudonimi + pulse animation
+                         1.5s come indizio visivo dell'arrivo. */
+                      const scrollToMap = (): void => {
+                        const el = document.getElementById('mappa-pseudonimi')
+                        if (!el) return
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                        el.classList.add('mappa-pseudonimi--highlight-pulse')
+                        window.setTimeout(() => {
+                          el.classList.remove('mappa-pseudonimi--highlight-pulse')
+                        }, 1500)
+                      }
+                      const applyLabel = t('wireframe.modifier.applyBtn')
+                      const pseudoLabel = t('pseudo.button.pseudonimize')
+                      const mapLabel = t('wireframe.modifier.lockedBanner.mapLink')
+                      const line2Body = t('wireframe.modifier.lockedBanner.line2.body')
+                      const line2Parts = line2Body.split('{0}')
+                      const line3 = t('wireframe.modifier.lockedBanner.line3')
+                      // line3 contiene tre placeholder {0}, {1}, {2}.
+                      const line3Parts: string[] = []
+                      let rest = line3
+                      for (const ph of ['{0}', '{1}', '{2}']) {
+                        const idx = rest.indexOf(ph)
+                        if (idx === -1) {
+                          line3Parts.push(rest)
+                          rest = ''
+                          break
+                        }
+                        line3Parts.push(rest.slice(0, idx))
+                        rest = rest.slice(idx + ph.length)
+                      }
+                      if (rest) line3Parts.push(rest)
+                      return (
+                        <>
+                          <p className="wireframe-modifier-locked-banner__line">
+                            {t('wireframe.modifier.lockedBanner.line1')}
+                          </p>
+                          <p className="wireframe-modifier-locked-banner__line">
+                            <strong>{t('wireframe.modifier.lockedBanner.line2.q')}</strong>
+                            {' '}
+                            {line2Parts[0]}
+                            <strong>{applyLabel}</strong>
+                            {line2Parts[1] ?? ''}
+                          </p>
+                          <p className="wireframe-modifier-locked-banner__line">
+                            {line3Parts[0]}
+                            <strong>{'✕'}</strong>
+                            {line3Parts[1] ?? ''}
+                            <button
+                              type="button"
+                              className="wireframe-modifier-locked-banner__map-link"
+                              onClick={scrollToMap}
+                              data-testid="wireframe-modifier-locked-banner-map-link"
+                            >
+                              {mapLabel}
+                            </button>
+                            {line3Parts[2] ?? ''}
+                            <strong>{pseudoLabel}</strong>
+                            {line3Parts[3] ?? ''}
+                          </p>
+                        </>
+                      )
+                    })()}
                   </div>
                 )}
                 {SOSTITUISCI_ANCHE_CATEGORIES.map(({ key, labelKey }) => (
@@ -2166,7 +2232,10 @@ export function WireframeWorkArea({
             non condiziona più la presenza/assenza del pannello in fondo.
             Stato "tabella vuota" è gestito internamente da MappaPanel
             (mappa-panel__empty), quindi non serve più un placeholder esterno. */}
-        <div className="wireframe-mappa-detail">
+        <div
+          className="wireframe-mappa-detail"
+          id="mappa-pseudonimi"
+        >
           <MappaPanel />
         </div>
       </div>
