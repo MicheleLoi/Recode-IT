@@ -4347,6 +4347,17 @@ code {
   animation: mappaPulse 1.5s ease-out;
 }
 
+/* Auto-scroll + highlight pulse sul pannello target dopo upload via hero
+   (founder direttiva SID-20260601-085130). Riusa keyframe `mappaPulse`
+   esistente (blue accent #2563eb, 1.5s) per coerenza visiva col link Mappa
+   in lockedBanner: stesso feedback "qui è atterrato qualcosa".
+   Applicato da scrollToPanel handler in WireframeWorkArea su:
+   - Codifica: pannello Originale (file-upload, drop, paste hero)
+   - Decodifica: pannello Pseudonimizzato (paste hero, drop fallback) */
+.wireframe-panel--highlight-pulse {
+  animation: mappaPulse 1.5s ease-out;
+}
+
 .wireframe-modifier-option-new {
   color: #a55a5a;
   font-weight: 600;

@@ -773,6 +773,40 @@ export function WireframeWorkArea({
   /* File upload                                                             */
   /* ────────────────────────────────────────────────────────────────────── */
 
+  /* ── Auto-scroll + highlight pulse sul pannello target dopo upload via hero
+     (founder direttiva SID-20260601-085130). Quando l'utente carica file o
+     incolla testo via hero, scroll smooth verso il pannello dove appare il
+     testo + pulse 1.5s. Target dipende da mode: Codifica → Originale (SX),
+     Decodifica → Pseudonimizzato (DX). Pattern coerente con scrollToMap
+     deployato in commit f0eb33f (riuso keyframe mappaPulse).
+
+     Anti-double-fire: ref-flag traccia "ho già scrollato per il current
+     non-vuoto input"; si resetta via useEffect quando il rispettivo state
+     torna vuoto. Così NON scrolla a ogni keystroke (founder requirement).
+     Test env safety: scrollIntoView guard. */
+  const scrollFiredOnUploadRef = useRef<{
+    originale: boolean
+    pseudonimizzato: boolean
+  }>({ originale: false, pseudonimizzato: false })
+
+  const scrollToPanel = useCallback(
+    (target: 'originale' | 'pseudonimizzato') => {
+      if (scrollFiredOnUploadRef.current[target]) return
+      scrollFiredOnUploadRef.current[target] = true
+      if (typeof window === 'undefined' || typeof document === 'undefined') return
+      const el = document.getElementById(`wireframe-panel-${target}`)
+      if (!el) return
+      if (typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+      el.classList.add('wireframe-panel--highlight-pulse')
+      window.setTimeout(() => {
+        el.classList.remove('wireframe-panel--highlight-pulse')
+      }, 1500)
+    },
+    [],
+  )
+
   const handleFiles = useCallback(
     async (files: FileList | null) => {
       setPseudoError(null)
@@ -793,13 +827,20 @@ export function WireframeWorkArea({
           return
         }
         setOriginaleText(result.text)
+        // Auto-scroll + pulse sul pannello target (founder direttiva
+        // SID-20260601-085130). Target dipende da mode, non da quale state
+        // riceve il testo: in Decodifica il file-picker è fallback minore ma
+        // direttiva è "Decodifica → Pseudonimizzato sempre" per coerenza UX.
+        if (result.text && result.text.length > 0) {
+          scrollToPanel(mode === 'decodifica' ? 'pseudonimizzato' : 'originale')
+        }
       } catch (err) {
         setPseudoError(
           `${t('pseudo.upload.errorReadPrefix')}${(err as Error).message}`,
         )
       }
     },
-    [t],
+    [t, mode, scrollToPanel],
   )
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -820,6 +861,18 @@ export function WireframeWorkArea({
   const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
     void handleFiles(e.target.files)
   }
+
+  // Reset flag quando il rispettivo state torna vuoto (nuovo doc / reset).
+  useEffect(() => {
+    if (originaleText === '') {
+      scrollFiredOnUploadRef.current.originale = false
+    }
+  }, [originaleText])
+  useEffect(() => {
+    if (pseudonimizzatoText === '') {
+      scrollFiredOnUploadRef.current.pseudonimizzato = false
+    }
+  }, [pseudonimizzatoText])
 
   /* ────────────────────────────────────────────────────────────────────── */
   /* Entity review actions                                                   */
@@ -1409,7 +1462,16 @@ export function WireframeWorkArea({
               ref={heroPasteAreaRefCodifica}
               className="drop-hero__paste-area"
               value={originaleText}
-              onChange={(e) => setOriginaleText(e.target.value)}
+              onChange={(e) => {
+                const next = e.target.value
+                // Empty → non-empty = paste/typed-first-char via hero.
+                // Trigger scroll + pulse sul pannello target. La ref-flag
+                // garantisce single-shot (no re-scroll su ogni keystroke).
+                if (originaleText.length === 0 && next.length > 0) {
+                  scrollToPanel('originale')
+                }
+                setOriginaleText(next)
+              }}
               placeholder={t('wireframe.placeholder.originale.codifica')}
               data-testid="drop-hero-paste-codifica"
               rows={6}
@@ -1539,7 +1601,14 @@ export function WireframeWorkArea({
               className="drop-hero__paste-area"
               value={pseudonimizzatoText}
               onChange={(e) => {
-                setPseudonimizzatoText(e.target.value)
+                const next = e.target.value
+                // Empty → non-empty = paste/typed-first-char via hero.
+                // Trigger scroll + pulse sul pannello pseudonimizzato.
+                // La ref-flag garantisce single-shot (no re-scroll su keystroke).
+                if (pseudonimizzatoText.length === 0 && next.length > 0) {
+                  scrollToPanel('pseudonimizzato')
+                }
+                setPseudonimizzatoText(next)
                 setHasRunDecodifica(false)
               }}
               placeholder={t('wireframe.placeholder.pseudonimizzato.decodifica')}
@@ -1973,6 +2042,7 @@ export function WireframeWorkArea({
       <div className="wireframe-panels">
         {/* SX: Originale */}
         <div
+          id="wireframe-panel-originale"
           className={`wireframe-panel wireframe-panel--originale${dragOver && mode === 'codifica' ? ' wireframe-panel--dragover' : ''}`}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -2271,6 +2341,7 @@ export function WireframeWorkArea({
 
         {/* DX: Pseudonimizzato */}
         <div
+          id="wireframe-panel-pseudonimizzato"
           className={`wireframe-panel wireframe-panel--pseudonimizzato${
             flashPseudoPanel ? ' wireframe-panel--flash' : ''
           }`}
