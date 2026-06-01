@@ -608,14 +608,28 @@ export function WireframeWorkArea({
   )
 
   const runRegexOnly = useCallback(
-    (userFalsePositives: Set<string>, nerDetections?: NerDetection[]) => {
+    (
+      userFalsePositives: Set<string>,
+      nerDetections?: NerDetection[],
+      extraKeys?: Set<string>,
+    ) => {
       // Translate the dropdown selection (UI keys) into the two granular
       // engine option sets: NER Pass-2 labels + gated regex detectors. Each
       // toggle is independent — spuntare "Luoghi" maschera SOLO `luogo`
       // (founder criterio 2026-05-30, fix bug all-or-nothing).
+      //
+      // `extraKeys` (opt) consente al chiamante di forzare l'inclusione di
+      // chiavi aggiuntive nello stesso tick di un setState pendente — necessario
+      // perché React useState è async e leggere `sostituisciAnche` dalla closure
+      // del render corrente ritorna il valore PRIMA dell'update. Caso d'uso:
+      // bottone "Sì, includi i luoghi" del banner preserved-suggestion che
+      // attiva un toggle e rilancia subito Pseudonimizza (bug fix 2026-06-01).
+      const effectiveKeys = extraKeys
+        ? new Set<string>([...sostituisciAnche, ...extraKeys])
+        : sostituisciAnche
       const enabledPass2Labels = new Set<string>()
       const enabledGatedDetectors = new Set<string>()
-      for (const key of sostituisciAnche) {
+      for (const key of effectiveKeys) {
         const nerLabel = KEY_TO_NER_LABEL[key]
         if (nerLabel) enabledPass2Labels.add(nerLabel)
         const gated = KEY_TO_GATED_DETECTOR[key]
@@ -659,61 +673,64 @@ export function WireframeWorkArea({
     ],
   )
 
-  const handlePseudonimizza = useCallback(async () => {
-    setPseudoError(null)
-    setPartialNotice(null)
-    if (!originaleText.trim()) {
-      setPseudoError(t('wireframe.error.emptyDoc'))
-      return
-    }
-    const userFalsePositives = new Set<string>([
-      ...entities
-        .filter((e) => e.status === 'falsePositive')
-        .map((e) => e.realValue),
-      ...userFalsePositiveTerms,
-    ])
-
-    const workerSupported =
-      typeof Worker !== 'undefined' && nerStatus !== 'unavailable'
-
-    if (!workerSupported || !runnerRef.current) {
-      runRegexOnly(userFalsePositives)
-      return
-    }
-
-    let nerDetections: NerDetection[] | undefined
-    setNerStatus('running')
-    try {
-      const predictResult = await runnerRef.current.predict(originaleText)
-      nerDetections = predictResult.detections
-      if (predictResult.partial) {
-        setPartialNotice({ failedRanges: predictResult.failedChunkRanges })
+  const handlePseudonimizza = useCallback(
+    async (options?: { extraKeys?: Set<string> }) => {
+      setPseudoError(null)
+      setPartialNotice(null)
+      if (!originaleText.trim()) {
+        setPseudoError(t('wireframe.error.emptyDoc'))
+        return
       }
-    } catch (err) {
-      const rawMsg = (err as Error).message ?? 'errore sconosciuto'
-      const isPermanent =
-        rawMsg.includes('ERR_MODEL_NOT_FOUND') ||
-        rawMsg.includes('ERR_BACKEND_INIT')
-      if (isPermanent) {
-        runnerRef.current = null
-        setNerStatus('unavailable')
-      }
-      setPseudoError(
-        `${t('pseudo.error.nerBackend')} ${rawMsg.replace(/^ERR_[A-Z_]+:\s*/, '')}`,
-      )
-    } finally {
-      setNerStatus((prev) => (prev === 'running' ? 'idle' : prev))
-    }
+      const userFalsePositives = new Set<string>([
+        ...entities
+          .filter((e) => e.status === 'falsePositive')
+          .map((e) => e.realValue),
+        ...userFalsePositiveTerms,
+      ])
 
-    runRegexOnly(userFalsePositives, nerDetections)
-  }, [
-    originaleText,
-    entities,
-    userFalsePositiveTerms,
-    nerStatus,
-    runRegexOnly,
-    t,
-  ])
+      const workerSupported =
+        typeof Worker !== 'undefined' && nerStatus !== 'unavailable'
+
+      if (!workerSupported || !runnerRef.current) {
+        runRegexOnly(userFalsePositives, undefined, options?.extraKeys)
+        return
+      }
+
+      let nerDetections: NerDetection[] | undefined
+      setNerStatus('running')
+      try {
+        const predictResult = await runnerRef.current.predict(originaleText)
+        nerDetections = predictResult.detections
+        if (predictResult.partial) {
+          setPartialNotice({ failedRanges: predictResult.failedChunkRanges })
+        }
+      } catch (err) {
+        const rawMsg = (err as Error).message ?? 'errore sconosciuto'
+        const isPermanent =
+          rawMsg.includes('ERR_MODEL_NOT_FOUND') ||
+          rawMsg.includes('ERR_BACKEND_INIT')
+        if (isPermanent) {
+          runnerRef.current = null
+          setNerStatus('unavailable')
+        }
+        setPseudoError(
+          `${t('pseudo.error.nerBackend')} ${rawMsg.replace(/^ERR_[A-Z_]+:\s*/, '')}`,
+        )
+      } finally {
+        setNerStatus((prev) => (prev === 'running' ? 'idle' : prev))
+      }
+
+      runRegexOnly(userFalsePositives, nerDetections, options?.extraKeys)
+    },
+    [
+      originaleText,
+      entities,
+      userFalsePositiveTerms,
+      nerStatus,
+      runRegexOnly,
+      t,
+    ],
+  )
 
   const handleDecodifica = useCallback(() => {
     if (!pseudonimizzatoText.trim()) return
@@ -1808,14 +1825,25 @@ export function WireframeWorkArea({
                       data-testid={`wireframe-preserved-suggestion-include-${s.key}`}
                       onClick={async () => {
                         if (isApplyingModifiers) return
+                        const newKey = s.key
+                        // Update toggle state for UI consistency (chip /
+                        // dropdown reflects "Luoghi" now ON) — async,
+                        // committed nel next render.
                         setSostituisciAnche((prev) => {
                           const next = new Set(prev)
-                          next.add(s.key)
+                          next.add(newKey)
                           return next
                         })
                         setIsApplyingModifiers(true)
                         try {
-                          await handlePseudonimizza()
+                          // Pass extraKeys esplicitamente: il setState sopra è
+                          // async e runRegexOnly leggerebbe il vecchio set dalla
+                          // closure del render corrente. extraKeys garantisce
+                          // che la run includa newKey nello stesso tick.
+                          // Bug fix 2026-06-01 (closure stale).
+                          await handlePseudonimizza({
+                            extraKeys: new Set([newKey]),
+                          })
                         } finally {
                           setIsApplyingModifiers(false)
                           if (flashPseudoTimerRef.current !== null) {
