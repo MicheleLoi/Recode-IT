@@ -784,27 +784,33 @@ export function WireframeWorkArea({
      non-vuoto input"; si resetta via useEffect quando il rispettivo state
      torna vuoto. Così NON scrolla a ogni keystroke (founder requirement).
      Test env safety: scrollIntoView guard. */
-  const scrollFiredOnUploadRef = useRef<{
-    originale: boolean
-    pseudonimizzato: boolean
-  }>({ originale: false, pseudonimizzato: false })
+  const scrollFiredOnUploadRef = useRef<{ action: boolean }>({ action: false })
 
-  const scrollToPanel = useCallback(
-    (target: 'originale' | 'pseudonimizzato') => {
-      if (scrollFiredOnUploadRef.current[target]) return
-      scrollFiredOnUploadRef.current[target] = true
+  /* Scroll target post-upload (founder direttiva SID-20260601-085130 v2):
+     target spostato dai pannelli colonna al wrapper del bottone azione
+     (PSEUDONIMIZZA in codifica, DECODIFICA in decodifica). Razionale: il
+     bottone è la prima cosa visibile in cima al viewport, le colonne col
+     testo appena caricato restano visibili sotto, l'azione successiva è
+     chiaramente segnalata. Anchor id dinamico via `mode` sul wrapper
+     `.wireframe-toolbar` (l.1646). */
+  const scrollToActionSection = useCallback(
+    () => {
+      if (scrollFiredOnUploadRef.current.action) return
+      scrollFiredOnUploadRef.current.action = true
       if (typeof window === 'undefined' || typeof document === 'undefined') return
-      const el = document.getElementById(`wireframe-panel-${target}`)
+      const targetId =
+        mode === 'decodifica' ? 'decodifica-section' : 'pseudonimizza-section'
+      const el = document.getElementById(targetId)
       if (!el) return
       if (typeof el.scrollIntoView === 'function') {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
-      el.classList.add('wireframe-panel--highlight-pulse')
+      el.classList.add('wireframe-action--highlight-pulse')
       window.setTimeout(() => {
-        el.classList.remove('wireframe-panel--highlight-pulse')
+        el.classList.remove('wireframe-action--highlight-pulse')
       }, 1500)
     },
-    [],
+    [mode],
   )
 
   const handleFiles = useCallback(
@@ -827,12 +833,13 @@ export function WireframeWorkArea({
           return
         }
         setOriginaleText(result.text)
-        // Auto-scroll + pulse sul pannello target (founder direttiva
-        // SID-20260601-085130). Target dipende da mode, non da quale state
-        // riceve il testo: in Decodifica il file-picker è fallback minore ma
-        // direttiva è "Decodifica → Pseudonimizzato sempre" per coerenza UX.
+        // Auto-scroll + pulse sul wrapper PSEUDONIMIZZA/DECODIFICA (founder
+        // direttiva SID-20260601-085130 v2). Target spostato dai pannelli
+        // colonna al wrapper toolbar action: l'azione successiva è la prima
+        // cosa visibile in cima al viewport, le colonne col testo caricato
+        // restano visibili sotto.
         if (result.text && result.text.length > 0) {
-          scrollToPanel(mode === 'decodifica' ? 'pseudonimizzato' : 'originale')
+          scrollToActionSection()
         }
       } catch (err) {
         setPseudoError(
@@ -840,7 +847,7 @@ export function WireframeWorkArea({
         )
       }
     },
-    [t, mode, scrollToPanel],
+    [t, scrollToActionSection],
   )
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -1465,10 +1472,10 @@ export function WireframeWorkArea({
               onChange={(e) => {
                 const next = e.target.value
                 // Empty → non-empty = paste/typed-first-char via hero.
-                // Trigger scroll + pulse sul pannello target. La ref-flag
+                // Trigger scroll + pulse sul wrapper PSEUDONIMIZZA. La ref-flag
                 // garantisce single-shot (no re-scroll su ogni keystroke).
                 if (originaleText.length === 0 && next.length > 0) {
-                  scrollToPanel('originale')
+                  scrollToActionSection()
                 }
                 setOriginaleText(next)
               }}
@@ -1603,10 +1610,10 @@ export function WireframeWorkArea({
               onChange={(e) => {
                 const next = e.target.value
                 // Empty → non-empty = paste/typed-first-char via hero.
-                // Trigger scroll + pulse sul pannello pseudonimizzato.
+                // Trigger scroll + pulse sul wrapper DECODIFICA.
                 // La ref-flag garantisce single-shot (no re-scroll su keystroke).
                 if (pseudonimizzatoText.length === 0 && next.length > 0) {
-                  scrollToPanel('pseudonimizzato')
+                  scrollToActionSection()
                 }
                 setPseudonimizzatoText(next)
                 setHasRunDecodifica(false)
@@ -1642,8 +1649,15 @@ export function WireframeWorkArea({
         </div>
       )}
 
-      {/* ── Toolbar: PSEUDONIMIZZA/DECODIFICA + sostituisci anche ──────── */}
-      <div className="wireframe-toolbar">
+      {/* ── Toolbar: PSEUDONIMIZZA/DECODIFICA + sostituisci anche ────────
+           Anchor id dinamico via `mode` (founder direttiva
+           SID-20260601-085130 v2): scroll target post-upload via hero atterra
+           QUI invece che sui pannelli colonna. Il bottone azione resta la
+           prima cosa visibile in cima al viewport, colonne sotto. */}
+      <div
+        className="wireframe-toolbar"
+        id={mode === 'decodifica' ? 'decodifica-section' : 'pseudonimizza-section'}
+      >
         <button
           type="button"
           className="wireframe-action-btn"
@@ -2042,7 +2056,6 @@ export function WireframeWorkArea({
       <div className="wireframe-panels">
         {/* SX: Originale */}
         <div
-          id="wireframe-panel-originale"
           className={`wireframe-panel wireframe-panel--originale${dragOver && mode === 'codifica' ? ' wireframe-panel--dragover' : ''}`}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -2341,7 +2354,6 @@ export function WireframeWorkArea({
 
         {/* DX: Pseudonimizzato */}
         <div
-          id="wireframe-panel-pseudonimizzato"
           className={`wireframe-panel wireframe-panel--pseudonimizzato${
             flashPseudoPanel ? ' wireframe-panel--flash' : ''
           }`}

@@ -4347,14 +4347,17 @@ code {
   animation: mappaPulse 1.5s ease-out;
 }
 
-/* Auto-scroll + highlight pulse sul pannello target dopo upload via hero
-   (founder direttiva SID-20260601-085130). Riusa keyframe `mappaPulse`
-   esistente (blue accent #2563eb, 1.5s) per coerenza visiva col link Mappa
-   in lockedBanner: stesso feedback "qui è atterrato qualcosa".
-   Applicato da scrollToPanel handler in WireframeWorkArea su:
-   - Codifica: pannello Originale (file-upload, drop, paste hero)
-   - Decodifica: pannello Pseudonimizzato (paste hero, drop fallback) */
-.wireframe-panel--highlight-pulse {
+/* Auto-scroll + highlight pulse sul wrapper toolbar action (PSEUDONIMIZZA in
+   codifica, DECODIFICA in decodifica) dopo upload via hero (founder direttiva
+   SID-20260601-085130 v2). Target spostato dai pannelli colonna al wrapper
+   `.wireframe-toolbar` con id="pseudonimizza-section" / "decodifica-section":
+   l'azione successiva e' la prima cosa visibile in cima al viewport, colonne
+   restano visibili sotto. Riusa keyframe `mappaPulse` (blue accent #2563eb,
+   1.5s) per coerenza visiva col link Mappa in lockedBanner.
+   Applicato da scrollToActionSection handler in WireframeWorkArea su:
+   - Codifica: file-upload, drop, paste hero → #pseudonimizza-section
+   - Decodifica: paste hero, drop fallback → #decodifica-section */
+.wireframe-action--highlight-pulse {
   animation: mappaPulse 1.5s ease-out;
 }
 
