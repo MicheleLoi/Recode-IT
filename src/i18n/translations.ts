@@ -501,7 +501,7 @@ const it: Catalog = {
   'wireframe.modifier.btn.locked':
     'le tue scelte valgono per i prossimi documenti che pseudonimizzi',
   'wireframe.modifier.lockedBanner':
-    'Le sostituzioni già fatte (es. Marco→Tizio) restano come sono. Per cambiare cosa sostituire, ricomincia con un nuovo documento.',
+    'Le sostituzioni già fatte (es. Marco→Tizio) restano come sono. Vuoi anonimizzare in più? Spunta luoghi, organizzazioni, tribunali, CAP o date qui sotto, poi Applica. Per entità già viste e lasciate in chiaro: ✕ nella Mappa, poi Pseudonimizza.',
   'wireframe.modifier.restartLink': '→ Ricomincia con un nuovo documento',
   'wireframe.panel.originale': 'originale',
   'wireframe.panel.pseudonimizzato': 'pseudonimizzato',
@@ -997,6 +997,8 @@ const en: Catalog = {
   'wireframe.modifier.cap': 'Postal codes',
   'wireframe.modifier.date': 'Dates',
   'wireframe.modifier.applyBtn': 'Apply',
+  'wireframe.modifier.lockedBanner':
+    "The substitutions you've already made (e.g. Marco→Tizio) stay as they are. Want to anonymize more? Tick places, organizations, courts, postcodes or dates below, then Apply. For entities already seen and left in the clear: ✕ in the Map, then Pseudonymize.",
   'wireframe.panel.originale': 'original',
   'wireframe.panel.pseudonimizzato': 'pseudonymized',
   'wireframe.placeholder.originale.codifica': 'Drop the document here, or paste the text',
@@ -1425,6 +1427,8 @@ const de: Catalog = {
   'wireframe.modifier.cap': 'Postleitzahlen',
   'wireframe.modifier.date': 'Datumsangaben',
   'wireframe.modifier.applyBtn': 'Anwenden',
+  'wireframe.modifier.lockedBanner':
+    'Die bereits vorgenommenen Ersetzungen (z. B. Marco→Tizio) bleiben unverändert. Möchten Sie mehr anonymisieren? Orte, Organisationen, Gerichte, PLZ oder Daten unten ankreuzen, dann Anwenden. Für Entitäten, die bereits erkannt und im Klartext belassen wurden: ✕ in der Map, dann Pseudonymisieren.',
   'wireframe.panel.originale': 'original',
   'wireframe.panel.pseudonimizzato': 'pseudonymisiert',
   'wireframe.placeholder.originale.codifica': 'Dokument hierher ziehen oder Text einfügen',
@@ -1853,6 +1857,8 @@ const fr: Catalog = {
   'wireframe.modifier.cap': 'Codes postaux',
   'wireframe.modifier.date': 'Dates',
   'wireframe.modifier.applyBtn': 'Appliquer',
+  'wireframe.modifier.lockedBanner':
+    'Les substitutions déjà effectuées (par ex. Marco→Tizio) restent inchangées. Vous voulez anonymiser plus ? Cochez lieux, organisations, tribunaux, codes postaux ou dates ci-dessous, puis Appliquer. Pour les entités déjà vues et laissées en clair : ✕ dans la Carte, puis Pseudonymiser.',
   'wireframe.panel.originale': 'original',
   'wireframe.panel.pseudonimizzato': 'pseudonymisé',
   'wireframe.placeholder.originale.codifica': 'Glissez le document ici, ou collez le texte',
