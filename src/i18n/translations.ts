@@ -517,6 +517,30 @@ const it: Catalog = {
   'wireframe.placeholder.pseudonimizzato.decodifica': "Incolla qui la risposta dell'AI con i pseudonimi",
   'wireframe.upload.pill': '📎 Carica documento',
   'wireframe.newDoc.button': '↻ Nuovo documento',
+  // Hero drop-zone full-width integrata (SID-20260601-085130). Tab "Carica file"
+  // / "Incolla testo" + drop-zone dashed con icona + headline + hint + bottone
+  // primary. Pattern recuperato dal pre-pivot commit 7fd5202 e adattato per
+  // integrarsi nella pagina LIVE. Codifica: default 'file'. Decodifica: default
+  // 'paste' (caso d'uso primario incollare risposta AI).
+  'wireframe.hero.codifica.tab.file': 'Carica file',
+  'wireframe.hero.codifica.tab.paste': 'Incolla testo',
+  'wireframe.hero.codifica.headline':
+    'Trascina qui il documento o clicca per caricare',
+  'wireframe.hero.codifica.hint':
+    'Formati supportati: .txt · .md · .docx · .pdf',
+  'wireframe.hero.codifica.cta': 'Carica documento',
+  'wireframe.hero.codifica.divider': 'oppure',
+  'wireframe.hero.codifica.newdoc': '↻ Nuovo documento',
+  'wireframe.hero.decodifica.headline':
+    "Incolla qui la risposta dell'AI con i pseudonimi",
+  'wireframe.hero.decodifica.hint':
+    "Il testo verrà mostrato anche nel pannello 'pseudonimizzato' qui sotto, dove puoi modificarlo prima di premere Decodifica.",
+  'wireframe.hero.decodifica.cta': 'Incolla testo',
+  'wireframe.hero.decodifica.newdoc': '↻ Nuova decodifica',
+  // Pseudo-placeholder simmetrico nel pannello pseudonimizzato vuoto (Codifica).
+  'wireframe.pseudoPlaceholder.codifica.headline': 'In attesa di un documento',
+  'wireframe.pseudoPlaceholder.codifica.body':
+    'Il documento con pseudonimi apparirà qui dopo Pseudonimizza',
   // Copia output a un click (Fix 1, regressione post-wireframe). Stessa label
   // su entrambi i pannelli (pseudonimizzato in Codifica, decodificato in
   // Decodifica); i title differenziano il contesto.
@@ -1019,6 +1043,24 @@ const en: Catalog = {
   'wireframe.placeholder.pseudonimizzato.decodifica': "Paste the AI response with pseudonyms here",
   'wireframe.upload.pill': '📎 Upload document',
   'wireframe.newDoc.button': '↻ New document',
+  'wireframe.hero.codifica.tab.file': 'Upload file',
+  'wireframe.hero.codifica.tab.paste': 'Paste text',
+  'wireframe.hero.codifica.headline':
+    'Drop the document here or click to upload',
+  'wireframe.hero.codifica.hint':
+    'Supported formats: .txt · .md · .docx · .pdf',
+  'wireframe.hero.codifica.cta': 'Upload document',
+  'wireframe.hero.codifica.divider': 'or',
+  'wireframe.hero.codifica.newdoc': '↻ New document',
+  'wireframe.hero.decodifica.headline':
+    "Paste the AI response with pseudonyms here",
+  'wireframe.hero.decodifica.hint':
+    "The text will also appear in the 'pseudonymized' panel below, where you can edit it before pressing Decode.",
+  'wireframe.hero.decodifica.cta': 'Paste text',
+  'wireframe.hero.decodifica.newdoc': '↻ New decoding',
+  'wireframe.pseudoPlaceholder.codifica.headline': 'Waiting for a document',
+  'wireframe.pseudoPlaceholder.codifica.body':
+    'The document with pseudonyms will appear here after Pseudonymize',
   'wireframe.copy.button': 'Copy ⧉',
   'wireframe.copy.done': '✓ Copied',
   'wireframe.copy.titlePseudo': 'Copy the pseudonymized text to the clipboard',
@@ -1455,6 +1497,24 @@ const de: Catalog = {
   'wireframe.placeholder.pseudonimizzato.decodifica': 'KI-Antwort mit Pseudonymen hier einfügen',
   'wireframe.upload.pill': '📎 Dokument laden',
   'wireframe.newDoc.button': '↻ Neues Dokument',
+  'wireframe.hero.codifica.tab.file': 'Datei laden',
+  'wireframe.hero.codifica.tab.paste': 'Text einfügen',
+  'wireframe.hero.codifica.headline':
+    'Dokument hierher ziehen oder zum Laden klicken',
+  'wireframe.hero.codifica.hint':
+    'Unterstützte Formate: .txt · .md · .docx · .pdf',
+  'wireframe.hero.codifica.cta': 'Dokument laden',
+  'wireframe.hero.codifica.divider': 'oder',
+  'wireframe.hero.codifica.newdoc': '↻ Neues Dokument',
+  'wireframe.hero.decodifica.headline':
+    'KI-Antwort mit Pseudonymen hier einfügen',
+  'wireframe.hero.decodifica.hint':
+    "Der Text erscheint auch im Feld 'pseudonymisiert' unten, wo Sie ihn vor dem Dekodieren bearbeiten können.",
+  'wireframe.hero.decodifica.cta': 'Text einfügen',
+  'wireframe.hero.decodifica.newdoc': '↻ Neue Dekodierung',
+  'wireframe.pseudoPlaceholder.codifica.headline': 'Warten auf ein Dokument',
+  'wireframe.pseudoPlaceholder.codifica.body':
+    'Das Dokument mit Pseudonymen erscheint hier nach dem Pseudonymisieren',
   'wireframe.copy.button': 'Kopieren ⧉',
   'wireframe.copy.done': '✓ Kopiert',
   'wireframe.copy.titlePseudo': 'Pseudonymisierten Text in die Zwischenablage kopieren',
@@ -1891,6 +1951,24 @@ const fr: Catalog = {
   'wireframe.placeholder.pseudonimizzato.decodifica': "Collez ici la réponse de l'IA avec les pseudonymes",
   'wireframe.upload.pill': '📎 Charger un document',
   'wireframe.newDoc.button': '↻ Nouveau document',
+  'wireframe.hero.codifica.tab.file': 'Charger un fichier',
+  'wireframe.hero.codifica.tab.paste': 'Coller texte',
+  'wireframe.hero.codifica.headline':
+    'Glissez le document ici ou cliquez pour le charger',
+  'wireframe.hero.codifica.hint':
+    'Formats pris en charge : .txt · .md · .docx · .pdf',
+  'wireframe.hero.codifica.cta': 'Charger un document',
+  'wireframe.hero.codifica.divider': 'ou',
+  'wireframe.hero.codifica.newdoc': '↻ Nouveau document',
+  'wireframe.hero.decodifica.headline':
+    "Collez ici la réponse de l'IA avec les pseudonymes",
+  'wireframe.hero.decodifica.hint':
+    "Le texte apparaîtra aussi dans le panneau 'pseudonymisé' ci-dessous, où vous pourrez le modifier avant d'appuyer sur Décoder.",
+  'wireframe.hero.decodifica.cta': 'Coller texte',
+  'wireframe.hero.decodifica.newdoc': '↻ Nouveau décodage',
+  'wireframe.pseudoPlaceholder.codifica.headline': "En attente d'un document",
+  'wireframe.pseudoPlaceholder.codifica.body':
+    'Le document avec pseudonymes apparaîtra ici après Pseudonymiser',
   'wireframe.copy.button': 'Copier ⧉',
   'wireframe.copy.done': '✓ Copié',
   'wireframe.copy.titlePseudo': 'Copier le texte pseudonymisé dans le presse-papiers',

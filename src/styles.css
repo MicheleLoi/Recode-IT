@@ -4377,3 +4377,221 @@ code {
   color: #8a4747;
 }
 
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Hero drop-zone integrata sopra le colonne (SID-20260601-085130)             */
+/* Pattern recuperato dal pre-pivot commit 7fd5202 (.drop-hero +              */
+/* .drop-zone--hero + .btn-ghost), adattato per integrarsi nella pagina LIVE. */
+/* Sostituisce la pill 'Carica documento' che viveva nel pannello originale.  */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+.drop-hero {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 26px 30px 30px;
+  margin: 14px 0;
+}
+
+.drop-hero__tabs {
+  display: flex;
+  gap: 18px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 18px;
+}
+
+.drop-hero__tab {
+  background: transparent;
+  border: none;
+  padding: 10px 4px 14px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  font-family: inherit;
+}
+
+.drop-hero__tab.is-active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+  font-weight: 600;
+}
+
+.drop-hero__tab:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.drop-zone--hero {
+  border: 2.5px dashed var(--rule);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  padding: 36px 24px 30px;
+  text-align: center;
+  transition: border-color .15s ease, background .15s ease;
+  cursor: pointer;
+}
+
+.drop-zone--hero:hover,
+.drop-zone--hero.is-dragover {
+  border-color: #2563eb;
+  background: #eef4fb;
+}
+
+.drop-zone--hero:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.drop-zone--hero-paste {
+  cursor: default;
+}
+
+.drop-zone__icon {
+  font-size: 2.5rem;
+  color: #2563eb;
+  opacity: 0.7;
+  line-height: 1;
+}
+
+.drop-zone__headline {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 12px 0 6px;
+}
+
+.drop-zone__hint {
+  font-size: 0.86rem;
+  color: var(--muted);
+  margin: 0 0 16px;
+  line-height: 1.45;
+}
+
+.drop-zone__cta.btn-primary {
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  padding: 11px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.93rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.drop-zone__cta.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.drop-hero__paste {
+  margin-top: 4px;
+}
+
+.drop-hero__paste-area {
+  width: 100%;
+  min-height: 140px;
+  border: 1.5px solid var(--rule);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink);
+  background: #fff;
+  resize: vertical;
+  outline: none;
+  margin-top: 14px;
+}
+
+.drop-hero__paste-area:focus {
+  border-color: #2563eb;
+}
+
+.hero-divider {
+  margin: 20px 0 14px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero-divider::before,
+.hero-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--rule);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+  padding: 10px 22px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+.btn-ghost:hover,
+.btn-ghost:focus-visible {
+  border-color: #2563eb;
+  color: #2563eb;
+  outline: none;
+}
+
+/* Pseudo-placeholder simmetrico nel pannello pseudonimizzato vuoto (Codifica).
+   Pattern visivo coerente con la drop-zone hero: icona + headline + body. */
+.pseudo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.pseudo-placeholder__icon {
+  font-size: 2.4rem;
+  opacity: 0.5;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.pseudo-placeholder__headline {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+.pseudo-placeholder__body {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.45;
+  font-style: italic;
+}
+
+/* Responsive: su viewport stretto la hero si riassetta. */
+@media (max-width: 720px) {
+  .drop-hero {
+    padding: 20px 16px 22px;
+  }
+  .drop-zone--hero {
+    padding: 28px 14px 22px;
+  }
+  .drop-zone__icon {
+    font-size: 2.1rem;
+  }
+}
