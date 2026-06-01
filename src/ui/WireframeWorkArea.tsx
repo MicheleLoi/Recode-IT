@@ -78,6 +78,7 @@ import {
   exportToWord,
   formatExportFilename,
 } from './exportDocument'
+import { IntroBanner } from './IntroBanner'
 import { type Language, SUPPORTED_LANGUAGES, useLanguage } from './LanguageContext'
 import { MappaPanel } from './MappaPanel'
 import { ModelLoadingState, type ModelLoadPhase } from './ModelLoadingState'
@@ -1340,6 +1341,16 @@ export function WireframeWorkArea({
       data-testid="wireframe-workarea"
       data-decodifica-truncated={decodificaTruncated ? 'true' : 'false'}
     >
+      {/* ── Intro banner Variante E (cosa fa + 3 step come si usa) ────────
+          Banner unico dismissibile. Persiste dismiss via
+          localStorage 'recode-it.introDismissed'. Posizione: PRIMO blocco
+          della work area, sotto la login-bar di AppHeader e SOPRA la toolbar
+          2 modalità (.wireframe-macro-row). Vale per entrambe le modalità
+          (codifica / decodifica) — l'intro è generale al prodotto.
+          Canon: founder direttiva SID-20260601-085130 + wireframe
+          MHC-Work/notes/research/recode-it/wireframes/header_copy_preview/
+          (Variante E). Copy use-case-avvocato (`@comm` ratificata). */}
+      <IntroBanner />
       {/* ── 2-macro toggle ────────────────────────────────────────────── */}
       <div
         className="wireframe-macro-row"

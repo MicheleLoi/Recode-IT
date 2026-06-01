@@ -4615,3 +4615,95 @@ code {
     font-size: 2.1rem;
   }
 }
+
+/* ── Intro banner Variante E (cosa fa + 3 step) ─────────────────────────
+   Banner unico dismissibile, posizione: sotto login-bar AppHeader,
+   sopra `.wireframe-macro-row` (toolbar 2 modalità). Pattern recuperato
+   da MHC-Work/notes/research/recode-it/wireframes/header_copy_preview/
+   index.html (`.combo-intro*`). Variabili --regia-blue* già definite in
+   root :root, riusate verbatim.
+   Canon: founder direttiva SID-20260601-085130. */
+.intro-banner-combo {
+  background: var(--regia-blue-soft);
+  border: 1px solid var(--regia-blue-light);
+  border-left: 4px solid var(--regia-blue);
+  border-radius: 8px;
+  padding: 18px 22px 16px;
+  margin: 0 0 4px;
+  position: relative;
+}
+.intro-banner-combo__copy {
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--ink, #1b2230);
+  margin: 0 0 14px;
+  padding-right: 30px;
+}
+.intro-banner-combo__copy strong {
+  color: var(--regia-blue-dark);
+  font-weight: 600;
+}
+.intro-banner-combo__dismiss {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: var(--muted, #6b7280);
+  font-size: 1.05rem;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  line-height: 1;
+  font-family: inherit;
+}
+.intro-banner-combo__dismiss:hover,
+.intro-banner-combo__dismiss:focus-visible {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--ink, #1b2230);
+  outline: none;
+}
+.intro-banner-combo__steps {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.intro-banner-combo__step {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #fff;
+  border: 1px solid #e8ecf1;
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.intro-banner-combo__step-num {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--regia-blue);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.intro-banner-combo__step-text {
+  font-size: 0.84rem;
+  color: #2f3848;
+  line-height: 1.4;
+}
+.intro-banner-combo__step-text strong {
+  color: var(--ink, #1b2230);
+  font-weight: 600;
+}
+@media (max-width: 720px) {
+  .intro-banner-combo {
+    padding: 16px 16px 14px;
+  }
+  .intro-banner-combo__steps {
+    grid-template-columns: 1fr;
+  }
+}

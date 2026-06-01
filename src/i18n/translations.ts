@@ -306,6 +306,26 @@ const it: Catalog = {
   'macro.decodifica': 'Rimetti a posto gli originali',
   'macro.decodifica.title': 'Incolla la risposta dell’AI e ricevi i nomi reali (€20, sblocco a vita)',
 
+  // ────────────────────────── Intro banner Variante E ──────────────────────────
+  // Banner unico dismissibile (sotto login-bar, sopra la toolbar 2 modalità).
+  // Copy "cosa fa" 2-frase use-case-avvocato + 3 step "come si usa" compatti.
+  // Le porzioni in bold sono split-render: `bodyLead` (1ª frase bold) +
+  // `bodyTail` (2ª frase plain); ciascuno step come `step{N}.{before,bold,after}`.
+  // Canon: founder direttiva SID-20260601-085130 + comm proposta `use-case-avvocato`.
+  'app.intro.regionAria': 'Cosa fa e come si usa',
+  'app.intro.bodyLead': 'Quando vuoi chiedere aiuto a un’AI su un documento che contiene nomi reali — clienti, controparti, atti — Recode IT li sostituisce con pseudonimi prima che il testo lasci il tuo computer.',
+  'app.intro.bodyTail': 'Quando l’AI ti risponde, ti rimette i nomi veri.',
+  'app.intro.step1.before': 'Carica il documento e premi ',
+  'app.intro.step1.bold': 'Pseudonimizza',
+  'app.intro.step1.after': '.',
+  'app.intro.step2.before': 'Copia il risultato e portalo nella tua AI.',
+  'app.intro.step2.bold': '',
+  'app.intro.step2.after': '',
+  'app.intro.step3.before': 'Riporta la risposta e premi ',
+  'app.intro.step3.bold': 'Decodifica',
+  'app.intro.step3.after': '.',
+  'app.intro.dismissAria': 'Nascondi questo messaggio',
+
   // ────────────────────────── Mappa panel ──────────────────────────
   'mappa.heading': 'Mappa pseudonimi',
   'mappa.subheading': 'Ogni nome reale del tuo documento e il pseudonimo che lo sostituisce. Puoi correggere, aggiungere o togliere coppie.',
@@ -914,6 +934,21 @@ const en: Catalog = {
   'macro.decodifica': 'Put back the originals',
   'macro.decodifica.title': 'Paste the AI response and get back real names (€20, lifetime unlock)',
 
+  // ────────────────────────── Intro banner Variante E ──────────────────────────
+  'app.intro.regionAria': 'What it does and how to use it',
+  'app.intro.bodyLead': 'When you want an AI’s help with a document that contains real names — clients, counterparties, case files — ENcode swaps them for pseudonyms before the text ever leaves your computer.',
+  'app.intro.bodyTail': 'When the AI answers, it puts the real names back.',
+  'app.intro.step1.before': 'Upload the document and press ',
+  'app.intro.step1.bold': 'Pseudonymize',
+  'app.intro.step1.after': '.',
+  'app.intro.step2.before': 'Copy the result and paste it into your AI.',
+  'app.intro.step2.bold': '',
+  'app.intro.step2.after': '',
+  'app.intro.step3.before': 'Bring back the answer and press ',
+  'app.intro.step3.bold': 'Decode',
+  'app.intro.step3.after': '.',
+  'app.intro.dismissAria': 'Hide this message',
+
   // ────────────────────────── Mappa panel ──────────────────────────
   'mappa.heading': 'Pseudonym map',
   'mappa.subheading': 'Every real name from your document and the pseudonym that replaced it. You can correct, add or remove pairs.',
@@ -1404,6 +1439,21 @@ const de: Catalog = {
   'macro.decodifica': 'Originale wiederherstellen',
   'macro.decodifica.title': 'KI-Antwort einfügen und echte Namen zurückerhalten (20 €, dauerhafte Freischaltung)',
 
+  // ────────────────────────── Intro banner Variante E ──────────────────────────
+  'app.intro.regionAria': 'Was es macht und wie man es benutzt',
+  'app.intro.bodyLead': 'Wenn Sie eine KI um Hilfe bei einem Dokument mit echten Namen bitten möchten — Mandanten, Gegenparteien, Akten — ersetzt DEcode sie durch Pseudonyme, bevor der Text Ihren Rechner verlässt.',
+  'app.intro.bodyTail': 'Wenn die KI antwortet, setzt es die echten Namen wieder ein.',
+  'app.intro.step1.before': 'Laden Sie das Dokument und klicken Sie auf ',
+  'app.intro.step1.bold': 'Pseudonymisieren',
+  'app.intro.step1.after': '.',
+  'app.intro.step2.before': 'Kopieren Sie das Ergebnis und fügen Sie es in Ihre KI ein.',
+  'app.intro.step2.bold': '',
+  'app.intro.step2.after': '',
+  'app.intro.step3.before': 'Bringen Sie die Antwort zurück und klicken Sie auf ',
+  'app.intro.step3.bold': 'Dekodieren',
+  'app.intro.step3.after': '.',
+  'app.intro.dismissAria': 'Diese Nachricht ausblenden',
+
   'mappa.heading': 'Pseudonym-Zuordnung',
   'mappa.subheading': 'Jeder echte Name aus Ihrem Dokument und das ihn ersetzende Pseudonym. Sie können Paare korrigieren, hinzufügen oder löschen.',
   'mappa.empty.title': 'Lokales Mapping — noch leer',
@@ -1857,6 +1907,21 @@ const fr: Catalog = {
   'macro.codifica.title': 'Pseudonymiser le document (gratuit)',
   'macro.decodifica': 'Remettre les originaux',
   'macro.decodifica.title': 'Coller la réponse IA et récupérer les vrais noms (20 €, déblocage à vie)',
+
+  // ────────────────────────── Intro banner Variante E ──────────────────────────
+  'app.intro.regionAria': 'Ce qu’il fait et comment l’utiliser',
+  'app.intro.bodyLead': 'Quand vous voulez l’aide d’une IA sur un document qui contient de vrais noms — clients, parties adverses, dossiers — ChiFRer les remplace par des pseudonymes avant que le texte ne quitte votre ordinateur.',
+  'app.intro.bodyTail': 'Quand l’IA répond, il y remet les vrais noms.',
+  'app.intro.step1.before': 'Chargez le document et cliquez sur ',
+  'app.intro.step1.bold': 'Pseudonymiser',
+  'app.intro.step1.after': '.',
+  'app.intro.step2.before': 'Copiez le résultat et collez-le dans votre IA.',
+  'app.intro.step2.bold': '',
+  'app.intro.step2.after': '',
+  'app.intro.step3.before': 'Rapportez la réponse et cliquez sur ',
+  'app.intro.step3.bold': 'Décoder',
+  'app.intro.step3.after': '.',
+  'app.intro.dismissAria': 'Masquer ce message',
 
   'mappa.heading': 'Carte des pseudonymes',
   'mappa.subheading': 'Chaque vrai nom de votre document et le pseudonyme qui le remplace. Vous pouvez corriger, ajouter ou supprimer des paires.',
