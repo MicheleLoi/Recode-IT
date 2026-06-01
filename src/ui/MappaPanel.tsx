@@ -255,7 +255,7 @@ export function MappaPanel(): JSX.Element {
             {sourceEntries.map((entry, idx) => {
               if (entry.isFalsePositive === true) return null
               return (
-                <tr key={`${idx}-${entry.pseudonym}`} data-testid={`mappa-row-${idx}`}>
+                <tr key={idx} data-testid={`mappa-row-${idx}`}>
                   <td>
                     <input
                       type="text"
