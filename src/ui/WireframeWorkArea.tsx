@@ -213,10 +213,26 @@ export function mergeEntries(
 
 type Props = {
   initialMode?: MacroMode
+  /**
+   * Pre-populated text for the originale panel (Livello 1 → Livello 2
+   * handoff). When set, the work area starts with this text already loaded.
+   * Used by TwoLevelShell after the user clicks "Continua →" on the landing.
+   */
+  initialText?: string
+  /**
+   * When true, renders MappaPanel as a 3rd column inside the panels grid
+   * (wireframe 2-livelli spec: "mappa come pannello laterale — co-locate").
+   * The existing mappa-section at the bottom is hidden when this is active
+   * to avoid duplication.
+   * Default: false (backward compat with existing single-page flow).
+   */
+  showMappaLaterale?: boolean
 }
 
 export function WireframeWorkArea({
   initialMode = 'codifica',
+  initialText,
+  showMappaLaterale = false,
 }: Props): JSX.Element {
   const { t, docLanguage: language, setDocLanguage } = useLanguage()
   const { user, masterKey } = useAuth()
@@ -233,7 +249,10 @@ export function WireframeWorkArea({
   const [mode, setMode] = useState<MacroMode>(initialMode)
 
   /* ── panel content (preserved across mode switches) ────────────────────── */
-  const [originaleText, setOriginaleText] = useState('')
+  // initialText from Livello 1 handoff (landing → work area).
+  // useState lazy init: se initialText è presente al mount, pre-popola il
+  // pannello originale senza un render aggiuntivo.
+  const [originaleText, setOriginaleText] = useState(() => initialText ?? '')
   const [pseudonimizzatoText, setPseudonimizzatoText] = useState('')
   // Decodifica preview banner / cta visibility — true after a Decodifica run
   // in free tier with non-empty output. `decodificaTruncated` value is
@@ -2066,8 +2085,9 @@ export function WireframeWorkArea({
         </div>
       )}
 
-      {/* ── 2 panels side-by-side ─────────────────────────────────────── */}
-      <div className="wireframe-panels">
+      {/* ── 2 panels side-by-side (+ mappa laterale come 3a colonna se
+          showMappaLaterale=true — wireframe flusso_2livelli spec) ────── */}
+      <div className={`wireframe-panels${showMappaLaterale ? ' wireframe-panels--with-mappa' : ''}`}>
         {/* SX: Originale */}
         <div
           className={`wireframe-panel wireframe-panel--originale${dragOver && mode === 'codifica' ? ' wireframe-panel--dragover' : ''}`}
@@ -2467,6 +2487,21 @@ export function WireframeWorkArea({
             )}
           </div>
         </div>
+
+        {/* ── Mappa laterale — 3a colonna (solo quando showMappaLaterale=true)
+            Wireframe flusso_2livelli: mappa co-locate con i pannelli, visibile
+            nella stessa schermata, senza scroll. Il badge LIVE/PONTE + la
+            direzione cambiano con la modalità (Codifica → live; Decodifica →
+            ponte inverso) — gestito internamente da MappaPanel che legge
+            la active mapping dal context. */}
+        {showMappaLaterale && (
+          <div
+            className="wireframe-mappa-laterale"
+            data-testid="wireframe-mappa-laterale"
+          >
+            <MappaPanel />
+          </div>
+        )}
       </div>
 
       {/* ── Decodifica preview CTA (free tier, has output) ────────────── */}
@@ -2580,8 +2615,8 @@ export function WireframeWorkArea({
         </label>
       </div>
 
-      {/* ── Mappa cards ──────────────────────────────────────────────── */}
-      <div className="wireframe-mappa-section">
+      {/* ── Mappa cards — nascosta in 2-livelli (mappa è già laterale nella 3a colonna) */}
+      <div className="wireframe-mappa-section" style={showMappaLaterale ? { display: 'none' } : undefined}>
         <div className="wireframe-mappa-cards">
           <button
             type="button"

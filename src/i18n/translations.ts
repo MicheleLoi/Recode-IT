@@ -618,6 +618,17 @@ const it: Catalog = {
   'wireframe.scannedPdf.body': "Questo PDF è una scansione (non ha testo selezionabile). L'OCR per fotocopie e PDF scannerizzati è nel piano Pro, in arrivo. Per ora carica una versione con testo selezionabile.",
   'wireframe.scannedPdf.ok': 'Capito',
 
+  // ────────────────────────── Livello 1 — Landing (2-level redesign) ──────────────────────────
+  // Canon: MHC-Work/notes/research/recode-it/wireframes/flusso_2livelli/index.html
+  // Hero tagline + 3 trust badges + unified drop-zone CTA.
+  'landing.badge.browser': '100% nel browser',
+  'landing.badge.noUpload': 'Niente upload al server',
+  'landing.badge.gdpr': 'GDPR — dati solo sul tuo dispositivo',
+  'landing.dropzone.title': 'Incolla o trascina il tuo atto qui',
+  'landing.dropzone.hint': 'Formati supportati: .txt · .docx · .pdf — o scrivi direttamente',
+  'landing.dropzone.placeholder': 'Trascina il documento qui, o incolla il testo…',
+  'landing.dropzone.cta': 'Continua →',
+
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   // Canon: notes/research/recode-it/wireframes/bundle_crosslink_prototype_20260527.html
   // Polo E flip: free path (MHC-L bundle €0) primary, €20 standalone fallback.
@@ -1145,6 +1156,15 @@ const en: Catalog = {
   'wireframe.scannedPdf.body': 'This PDF is a scan (no selectable text). OCR for scanned PDFs is in the upcoming Pro plan. For now please upload a version with selectable text.',
   'wireframe.scannedPdf.ok': 'Got it',
 
+  // ────────────────────────── Livello 1 — Landing (2-level redesign) ──────────────────────────
+  'landing.badge.browser': '100% in the browser',
+  'landing.badge.noUpload': 'No server upload',
+  'landing.badge.gdpr': 'GDPR — data stays on your device',
+  'landing.dropzone.title': 'Paste or drag your document here',
+  'landing.dropzone.hint': 'Supported: .txt · .docx · .pdf — or type directly',
+  'landing.dropzone.placeholder': 'Drag the document here, or paste the text…',
+  'landing.dropzone.cta': 'Continue →',
+
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': 'Free Decoding when you join MHC-L (€0) — modular RegIA bundle.',
   'bundleBanner.cta': 'Learn more →',
@@ -1614,6 +1634,15 @@ const de: Catalog = {
   'wireframe.scannedPdf.body': 'Diese PDF ist ein Scan (kein auswählbarer Text). OCR für gescannte PDFs kommt im Pro-Plan. Bitte laden Sie eine Version mit auswählbarem Text.',
   'wireframe.scannedPdf.ok': 'Verstanden',
 
+  // ────────────────────────── Livello 1 — Landing (2-level redesign) ──────────────────────────
+  'landing.badge.browser': '100% im Browser',
+  'landing.badge.noUpload': 'Kein Server-Upload',
+  'landing.badge.gdpr': 'DSGVO — Daten nur auf Ihrem Gerät',
+  'landing.dropzone.title': 'Dokument hier einfügen oder ablegen',
+  'landing.dropzone.hint': 'Unterstützt: .txt · .docx · .pdf — oder direkt tippen',
+  'landing.dropzone.placeholder': 'Dokument hier ablegen oder Text einfügen…',
+  'landing.dropzone.cta': 'Weiter →',
+
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': 'Dekodierung gratis mit MHC-L-Beitritt (€0) — modulares RegIA-Bundle.',
   'bundleBanner.cta': 'Mehr erfahren →',
@@ -2082,6 +2111,15 @@ const fr: Catalog = {
   'wireframe.scannedPdf.title': 'PDF scanné détecté',
   'wireframe.scannedPdf.body': "Ce PDF est un scan (aucun texte sélectionnable). L'OCR pour PDF scannés arrive avec le plan Pro. Pour l'instant chargez une version avec du texte sélectionnable.",
   'wireframe.scannedPdf.ok': 'Compris',
+
+  // ────────────────────────── Livello 1 — Landing (2-level redesign) ──────────────────────────
+  'landing.badge.browser': '100% dans le navigateur',
+  'landing.badge.noUpload': 'Aucun envoi au serveur',
+  'landing.badge.gdpr': 'RGPD — données uniquement sur votre appareil',
+  'landing.dropzone.title': 'Collez ou déposez votre document ici',
+  'landing.dropzone.hint': 'Formats : .txt · .docx · .pdf — ou tapez directement',
+  'landing.dropzone.placeholder': 'Déposez le document ici ou collez le texte…',
+  'landing.dropzone.cta': 'Continuer →',
 
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': "Décodage gratuit avec l'adhésion MHC-L (€0) — bundle modulaire RegIA.",

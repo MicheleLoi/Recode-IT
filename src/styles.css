@@ -4707,3 +4707,247 @@ code {
     grid-template-columns: 1fr;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+ * FLUSSO 2-LIVELLI — Landing Level + TwoLevelShell
+ * Canon: MHC-Work/notes/research/recode-it/wireframes/flusso_2livelli/
+ * index.html (2026-06-02)
+ * ════════════════════════════════════════════════════════════════════ */
+
+/* ── TwoLevelShell wrapper ─────────────────────────────────────────── */
+.two-level-work {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.two-level-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--wf-text-muted, #6b7280);
+  background: transparent;
+  border: 1px solid var(--wf-border, #d1d5db);
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  margin-bottom: 12px;
+  align-self: flex-start;
+  transition: color 0.15s, border-color 0.15s;
+}
+.two-level-back-btn:hover {
+  color: var(--ink, #1b2230);
+  border-color: var(--wf-brand-blue, #2563eb);
+}
+
+/* ── LandingLevel root ─────────────────────────────────────────────── */
+.landing-level {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* ── Landing Hero ──────────────────────────────────────────────────── */
+.landing-hero {
+  position: relative;
+  border-radius: var(--wf-radius, 10px);
+  overflow: hidden;
+  background: linear-gradient(135deg, #c4cae8 0%, #e7d5f0 50%, #f3d8c8 100%);
+  padding: 48px 48px 40px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.landing-hero__text {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.landing-hero__brand {
+  font-size: 52px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--regia-blue-dark, #1c4a8b);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.landing-hero__tagline {
+  margin: 0;
+  font-size: 17px;
+  color: #2f3848;
+  font-weight: 500;
+  line-height: 1.4;
+  max-width: 640px;
+}
+
+/* ── Trust badges ──────────────────────────────────────────────────── */
+.landing-badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.landing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--wf-accent-soft, #eff6ff);
+  color: var(--wf-brand-blue, #2563eb);
+  border: 1px solid #bfdbfe;
+}
+
+.landing-badge__icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* ── Unified drop-zone ─────────────────────────────────────────────── */
+.landing-dropzone {
+  border: 2px dashed var(--wf-border, #d1d5db);
+  border-radius: var(--wf-radius, 10px);
+  background: var(--wf-bg, #ffffff);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: text;
+  transition: border-color 0.15s, background 0.15s;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.landing-dropzone--dragover {
+  border-color: var(--wf-brand-blue, #2563eb);
+  background: var(--wf-accent-soft, #eff6ff);
+}
+
+.landing-dropzone__icon {
+  font-size: 32px;
+  line-height: 1;
+  margin-bottom: 2px;
+  user-select: none;
+}
+
+.landing-dropzone__title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink, #1b2230);
+  text-align: center;
+}
+
+.landing-dropzone__hint {
+  font-size: 14px;
+  color: var(--wf-text-muted, #6b7280);
+  text-align: center;
+}
+
+.landing-dropzone__textarea {
+  width: 100%;
+  min-height: 140px;
+  border: 1px solid var(--wf-border, #d1d5db);
+  border-radius: 7px;
+  background: var(--wf-panel-bg, #fafafa);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 14px;
+  resize: vertical;
+  color: var(--ink, #1b2230);
+  outline: none;
+  line-height: 1.6;
+  padding: 12px 14px;
+  margin-top: 6px;
+  transition: border-color 0.15s;
+}
+
+.landing-dropzone__textarea:focus {
+  border-color: var(--wf-brand-blue, #2563eb);
+  outline: 2px solid rgba(37, 99, 235, 0.15);
+  outline-offset: 0;
+}
+
+.landing-dropzone__textarea::placeholder {
+  color: var(--wf-grey-muted-text, #9ca3af);
+  font-style: italic;
+}
+
+.landing-dropzone__cta {
+  margin-top: 8px;
+  padding: 12px 30px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--wf-radius, 10px);
+  background: var(--wf-brand-blue, #2563eb);
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.landing-dropzone__cta:disabled {
+  background: var(--wf-grey-muted-text, #9ca3af);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.landing-dropzone__cta:not(:disabled):hover {
+  background: var(--wf-brand-blue-hover, #1d4ed8);
+}
+
+/* ── 3-column panels grid (showMappaLaterale) ─────────────────────── */
+/* When mappa laterale is active, override the default 2-col grid to
+   1fr 1fr 320px (Originale | Pseudonimizzato | Mappa). */
+.wireframe-panels--with-mappa {
+  grid-template-columns: 1fr 1fr 320px;
+}
+
+/* Override MappaPanel inset when mounted inside wireframe-mappa-laterale */
+.wireframe-mappa-laterale {
+  border: 1px solid var(--wf-border, #d1d5db);
+  border-radius: var(--wf-radius, 10px);
+  background: var(--wf-bg, #ffffff);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 340px;
+}
+
+.wireframe-mappa-laterale .mappa-panel,
+.wireframe-mappa-laterale .panel {
+  border: none;
+  box-shadow: none;
+  margin: 0;
+  flex: 1;
+}
+
+/* Mobile: stack all 3 columns vertically */
+@media (max-width: 768px) {
+  .wireframe-panels--with-mappa {
+    grid-template-columns: 1fr;
+  }
+  .landing-hero {
+    padding: 32px 24px 28px;
+    min-height: 140px;
+  }
+  .landing-hero__brand {
+    font-size: 38px;
+  }
+  .landing-hero__tagline {
+    font-size: 15px;
+  }
+}
