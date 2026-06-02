@@ -39,11 +39,7 @@ import {
   type DragEvent,
   type ChangeEvent,
 } from 'react'
-import {
-  BRAND_BY_LANG,
-  TAGLINE_BY_LANG,
-  useLanguage,
-} from './LanguageContext'
+import { useLanguage } from './LanguageContext'
 import { extractText, SUPPORTED_EXTENSIONS } from '../extraction/extract'
 
 type Props = {
@@ -54,7 +50,7 @@ type Props = {
 const ACCEPTED_EXTENSIONS = SUPPORTED_EXTENSIONS
 
 export function LandingLevel({ onContinue }: Props): JSX.Element {
-  const { t, uiLanguage } = useLanguage()
+  const { t } = useLanguage()
   const [text, setText] = useState('')
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -120,13 +116,8 @@ export function LandingLevel({ onContinue }: Props): JSX.Element {
 
   return (
     <div className="landing-level" data-testid="landing-level">
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <div className="landing-hero">
-        <div className="landing-hero__text">
-          <h1 className="landing-hero__brand">{BRAND_BY_LANG[uiLanguage]}</h1>
-          <p className="landing-hero__tagline">{TAGLINE_BY_LANG[uiLanguage]}</p>
-        </div>
-      </div>
+      {/* Hero rimosso (item 3, SID-20260602): brand+tagline già presenti
+          nell'header globale AppHeader. La landing parte dai badge + intro. */}
 
       {/* ── Trust badges ────────────────────────────────────────────── */}
       <div className="landing-badges" aria-label="Garanzie di privacy">
