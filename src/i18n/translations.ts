@@ -453,7 +453,7 @@ const it: Catalog = {
   // segnala che la scelta si applica solo alle entità NUOVE: prefix
   // "Nuovi/Nuove" in rosso desaturato + rest invariato. Split in 2 chiavi
   // per evitare HTML embedded in i18n (rendering: <span class="…-new">prefix</span> rest).
-  // Solo IT — EN/DE/FR fallback a IT via t().
+  // EN/DE/FR tradotti (release/2level-onboarding-de — DE NER ship).
   'wireframe.modifier.places.newPrefix': 'Nuovi',
   'wireframe.modifier.places.newRest':
     'luoghi (riconoscimento automatico, meno preciso)',
@@ -477,7 +477,7 @@ const it: Catalog = {
   // preserved perché la corrispondente category nel dropdown "sostituisci
   // anche" è OFF. L'utente le vede evidenziate sulla mappa ma non
   // sostituite — sembra un bug. Il suggerimento conta + propone include+
-  // rerun in un click. IT only per vincolo (EN/DE/FR fallback IT canonical).
+  // rerun in un click. EN/DE/FR tradotti (release/2level-onboarding-de).
   'wireframe.suggestion.aria':
     'Suggerimento: entità rilevate ma non sostituite',
   'wireframe.suggestion.singleLead': 'Hai {count} {label} non sostituite',
@@ -516,8 +516,8 @@ const it: Catalog = {
   // "Ricomincia con un nuovo documento" SOTTO (azione = closeActive() +
   // reset doc). Il banner usa il copy dual-model verbatim ratificato
   // 2026-05-31: esplicita che le scelte valgono per i prossimi documenti
-  // mentre le sostituzioni già fatte restano stabili. IT only; EN/DE/FR
-  // fallback IT.
+  // mentre le sostituzioni già fatte restano stabili. EN/DE/FR tradotti
+  // (release/2level-onboarding-de).
   'wireframe.modifier.btn.locked':
     'le tue scelte valgono per i prossimi documenti che pseudonimizzi',
   'wireframe.modifier.lockedBanner.line1':
@@ -760,6 +760,13 @@ const en: Catalog = {
   'banner.active.empty': 'still empty',
   'banner.active.countOne': '1 pseudonym',
   'banner.active.countMany': '{n} pseudonyms',
+  // Rename affordance on the active-mapping banner.
+  'banner.active.rename': 'Rename',
+  'banner.active.renameTitle': 'Change the name of the active mapping',
+  'banner.active.renamePlaceholder': 'New mapping name',
+  'banner.active.renameConfirm': 'OK',
+  'banner.active.renameCancel': 'Cancel',
+  'banner.active.savedAt': 'saved {time}',
 
   // ────────────────────────── Dashboard "My mappings" (free tier) ──────────────────────────
   // PENDING @comm review (2026-05-26): EN strings = brief proposals.
@@ -1112,7 +1119,23 @@ const en: Catalog = {
   'wireframe.modifier.courts': 'Courts (automatic detection, less precise)',
   'wireframe.modifier.cap': 'Postal codes',
   'wireframe.modifier.date': 'Dates',
+  // newPrefix + newRest = split label shown when the category surfaces NEW
+  // detections the user can opt into ("New places (automatic detection, less
+  // precise)"). Prefix is bold-able; rest carries the noun + caveat.
+  'wireframe.modifier.places.newPrefix': 'New',
+  'wireframe.modifier.places.newRest': 'places (automatic detection, less precise)',
+  'wireframe.modifier.organizations.newPrefix': 'New',
+  'wireframe.modifier.organizations.newRest':
+    'organizations (automatic detection, less precise)',
+  'wireframe.modifier.courts.newPrefix': 'New',
+  'wireframe.modifier.courts.newRest':
+    'courts (automatic detection, less precise)',
+  'wireframe.modifier.cap.newPrefix': 'New',
+  'wireframe.modifier.cap.newRest': 'postal codes',
+  'wireframe.modifier.date.newPrefix': 'New',
+  'wireframe.modifier.date.newRest': 'dates',
   'wireframe.modifier.applyBtn': 'Apply',
+  'wireframe.modifier.applyingBtn': 'Applying…',
   'wireframe.modifier.lockedBanner.line1':
     "The substitutions you've already made (e.g. Marco→Tizio) stay as they are.",
   'wireframe.modifier.lockedBanner.line2.q': 'Want to anonymize more?',
@@ -1121,6 +1144,36 @@ const en: Catalog = {
   'wireframe.modifier.lockedBanner.line3':
     'For entities already seen and left in the clear: click {0} in the {1}, then press {2}.',
   'wireframe.modifier.lockedBanner.mapLink': 'Map',
+  // Locked state of the "also replace" dropdown when an active mapping with
+  // entities exists: the collapsed button changes label + colour.
+  'wireframe.modifier.btn.locked':
+    'your choices apply to the next documents you pseudonymize',
+  'wireframe.modifier.restartLink': '→ Start over with a new document',
+  // ───────── Category-gating suggestion banner ─────────
+  // Inline hint when the NER detects Pass-2 entities (place / organization /
+  // court) that stay preserved because the matching "also replace" toggle is
+  // OFF. Counts them + offers include+rerun in one click.
+  // label.* = plural category noun for the count (e.g. "3 towns/streets").
+  // toggleLabel.* = reference to the dropdown toggle (titlecase, plural).
+  'wireframe.suggestion.aria':
+    'Suggestion: entities detected but not replaced',
+  'wireframe.suggestion.singleLead': 'You have {count} {label} not replaced',
+  'wireframe.suggestion.singleTail':
+    'because "{label}" is not active in the substitutions.',
+  'wireframe.suggestion.multiLead': 'You have entities detected but not replaced:',
+  'wireframe.suggestion.multiTail': 'Do you want to include them in the substitutions?',
+  'wireframe.suggestion.label.places': 'towns/streets',
+  'wireframe.suggestion.label.organizations': 'organizations',
+  'wireframe.suggestion.label.courts': 'courts',
+  'wireframe.suggestion.toggleLabel.places': 'Places',
+  'wireframe.suggestion.toggleLabel.organizations': 'Organizations',
+  'wireframe.suggestion.toggleLabel.courts': 'Courts',
+  'wireframe.suggestion.includeBtnSingle': 'Yes, include {label}',
+  'wireframe.suggestion.includeBtnMulti': 'Include {label}',
+  'wireframe.suggestion.articled.places': 'places',
+  'wireframe.suggestion.articled.organizations': 'organizations',
+  'wireframe.suggestion.articled.courts': 'courts',
+  'wireframe.suggestion.dismissAria': 'Dismiss suggestion for this session',
   'wireframe.panel.originale': 'original',
   'wireframe.panel.pseudonimizzato': 'pseudonymized',
   'wireframe.placeholder.originale.codifica': 'Drop the document here, or paste the text',
@@ -1192,6 +1245,15 @@ const en: Catalog = {
   'wireframe.save.errorGeneric': 'Unexpected error while saving.',
   'wireframe.save.tooltipFree': 'Save the mapping in the browser of this computer.',
   'wireframe.save.tooltipPro': 'Save the encrypted mapping on the server.',
+  // Pseudonym-memory section (founder ratifica Opzione B SID-20260530): focus
+  // on memory + future reuse — honest microcopy on what is lost (manual) vs
+  // kept (auto). autoLabelPrefix precedes a date stamp ("Mapping of <date>").
+  'wireframe.save.sectionHeading': 'Pseudonym memory',
+  'wireframe.save.primary': 'Keep pseudonyms for next time',
+  'wireframe.save.autoSaveLabel': 'Automatic saving',
+  'wireframe.save.autoSaveDisabledHint': 'Automatic saving on. The name→pseudonym matches stay even if you close the window.',
+  'wireframe.save.manualHint': 'Without saving, every time you close the window the name→pseudonym matches are lost.',
+  'wireframe.save.autoLabelPrefix': 'Mapping of',
   'wireframe.scannedPdf.title': 'Scanned PDF detected',
   'wireframe.scannedPdf.body': 'This PDF is a scan (no selectable text). OCR for scanned PDFs is in the upcoming Pro plan. For now please upload a version with selectable text.',
   'wireframe.scannedPdf.ok': 'Got it',
@@ -1306,6 +1368,13 @@ const de: Catalog = {
   'banner.active.empty': 'noch leer',
   'banner.active.countOne': '1 Pseudonym',
   'banner.active.countMany': '{n} Pseudonyme',
+  // Umbenennen-Funktion im Banner des aktiven Mappings.
+  'banner.active.rename': 'Umbenennen',
+  'banner.active.renameTitle': 'Name des aktiven Mappings ändern',
+  'banner.active.renamePlaceholder': 'Neuer Mapping-Name',
+  'banner.active.renameConfirm': 'OK',
+  'banner.active.renameCancel': 'Abbrechen',
+  'banner.active.savedAt': 'gespeichert {time}',
 
   // ────────────────────────── Dashboard "Meine Mappings" (free tier) ──────────────────────────
   // PENDING @comm review (2026-05-26): DE strings = brief proposals.
@@ -1622,7 +1691,22 @@ const de: Catalog = {
     'Gerichte (automatische Erkennung, weniger genau)',
   'wireframe.modifier.cap': 'Postleitzahlen',
   'wireframe.modifier.date': 'Datumsangaben',
+  // newPrefix + newRest = geteiltes Label, wenn die Kategorie NEUE Treffer
+  // zeigt, die der Nutzer einbeziehen kann.
+  'wireframe.modifier.places.newPrefix': 'Neue',
+  'wireframe.modifier.places.newRest': 'Orte (automatische Erkennung, weniger genau)',
+  'wireframe.modifier.organizations.newPrefix': 'Neue',
+  'wireframe.modifier.organizations.newRest':
+    'Organisationen (automatische Erkennung, weniger genau)',
+  'wireframe.modifier.courts.newPrefix': 'Neue',
+  'wireframe.modifier.courts.newRest':
+    'Gerichte (automatische Erkennung, weniger genau)',
+  'wireframe.modifier.cap.newPrefix': 'Neue',
+  'wireframe.modifier.cap.newRest': 'Postleitzahlen',
+  'wireframe.modifier.date.newPrefix': 'Neue',
+  'wireframe.modifier.date.newRest': 'Datumsangaben',
   'wireframe.modifier.applyBtn': 'Anwenden',
+  'wireframe.modifier.applyingBtn': 'Wird angewendet…',
   'wireframe.modifier.lockedBanner.line1':
     'Die bereits vorgenommenen Ersetzungen (z. B. Marco→Tizio) bleiben unverändert.',
   'wireframe.modifier.lockedBanner.line2.q': 'Möchten Sie mehr anonymisieren?',
@@ -1631,6 +1715,36 @@ const de: Catalog = {
   'wireframe.modifier.lockedBanner.line3':
     'Für Entitäten, die bereits erkannt und im Klartext belassen wurden: {0} in der {1} klicken, dann {2} drücken.',
   'wireframe.modifier.lockedBanner.mapLink': 'Karte',
+  // Gesperrter Zustand des Dropdowns „auch ersetzen", wenn ein aktives
+  // Mapping mit Entitäten existiert.
+  'wireframe.modifier.btn.locked':
+    'Ihre Auswahl gilt für die nächsten Dokumente, die Sie pseudonymisieren',
+  'wireframe.modifier.restartLink': '→ Mit einem neuen Dokument neu beginnen',
+  // ───────── Hinweisbanner zur Kategorie-Filterung ─────────
+  // Inline-Hinweis, wenn die NER Pass-2-Entitäten (Ort / Organisation /
+  // Gericht) erkennt, die unersetzt bleiben, weil der zugehörige Schalter
+  // „auch ersetzen" AUS ist. Zählt sie + bietet Einbeziehen+Neulauf in einem
+  // Klick. label.* = Kategorie-Plural für die Zählung. toggleLabel.* =
+  // Verweis auf den Dropdown-Schalter (Titelschreibung, Plural).
+  'wireframe.suggestion.aria':
+    'Hinweis: Entitäten erkannt, aber nicht ersetzt',
+  'wireframe.suggestion.singleLead': 'Sie haben {count} {label} nicht ersetzt',
+  'wireframe.suggestion.singleTail':
+    'weil „{label}" in den Ersetzungen nicht aktiv ist.',
+  'wireframe.suggestion.multiLead': 'Sie haben Entitäten erkannt, aber nicht ersetzt:',
+  'wireframe.suggestion.multiTail': 'Möchten Sie sie in die Ersetzungen einbeziehen?',
+  'wireframe.suggestion.label.places': 'Städte/Straßen',
+  'wireframe.suggestion.label.organizations': 'Organisationen',
+  'wireframe.suggestion.label.courts': 'Gerichte',
+  'wireframe.suggestion.toggleLabel.places': 'Orte',
+  'wireframe.suggestion.toggleLabel.organizations': 'Organisationen',
+  'wireframe.suggestion.toggleLabel.courts': 'Gerichte',
+  'wireframe.suggestion.includeBtnSingle': 'Ja, {label} einbeziehen',
+  'wireframe.suggestion.includeBtnMulti': '{label} einbeziehen',
+  'wireframe.suggestion.articled.places': 'Orte',
+  'wireframe.suggestion.articled.organizations': 'Organisationen',
+  'wireframe.suggestion.articled.courts': 'Gerichte',
+  'wireframe.suggestion.dismissAria': 'Hinweis für diese Sitzung ausblenden',
   'wireframe.panel.originale': 'original',
   'wireframe.panel.pseudonimizzato': 'pseudonymisiert',
   'wireframe.placeholder.originale.codifica': 'Dokument hierher ziehen oder Text einfügen',
@@ -1702,6 +1816,14 @@ const de: Catalog = {
   'wireframe.save.errorGeneric': 'Unerwarteter Fehler beim Speichern.',
   'wireframe.save.tooltipFree': 'Mapping im Browser dieses Computers speichern.',
   'wireframe.save.tooltipPro': 'Verschlüsseltes Mapping auf dem Server speichern.',
+  // Pseudonym-Gedächtnis-Bereich: Fokus auf Gedächtnis + spätere Nutzung,
+  // ehrliche Mikrotexte. autoLabelPrefix steht vor einem Datum.
+  'wireframe.save.sectionHeading': 'Pseudonym-Gedächtnis',
+  'wireframe.save.primary': 'Pseudonyme für das nächste Mal behalten',
+  'wireframe.save.autoSaveLabel': 'Automatisches Speichern',
+  'wireframe.save.autoSaveDisabledHint': 'Automatisches Speichern aktiv. Die Zuordnungen Name→Pseudonym bleiben erhalten, auch wenn Sie das Fenster schließen.',
+  'wireframe.save.manualHint': 'Ohne Speichern gehen die Zuordnungen Name→Pseudonym jedes Mal verloren, wenn Sie das Fenster schließen.',
+  'wireframe.save.autoLabelPrefix': 'Mapping vom',
   'wireframe.scannedPdf.title': 'Gescanntes PDF erkannt',
   'wireframe.scannedPdf.body': 'Diese PDF ist ein Scan (kein auswählbarer Text). OCR für gescannte PDFs kommt im Pro-Plan. Bitte laden Sie eine Version mit auswählbarem Text.',
   'wireframe.scannedPdf.ok': 'Verstanden',
@@ -1816,6 +1938,13 @@ const fr: Catalog = {
   'banner.active.empty': 'encore vide',
   'banner.active.countOne': '1 pseudonyme',
   'banner.active.countMany': '{n} pseudonymes',
+  // Fonction de renommage dans le bandeau du mapping actif.
+  'banner.active.rename': 'Renommer',
+  'banner.active.renameTitle': 'Changer le nom du mapping actif',
+  'banner.active.renamePlaceholder': 'Nouveau nom du mapping',
+  'banner.active.renameConfirm': 'OK',
+  'banner.active.renameCancel': 'Annuler',
+  'banner.active.savedAt': 'enregistré {time}',
 
   // ────────────────────────── Dashboard "Mes mappings" (free tier) ──────────────────────────
   // PENDING @comm review (2026-05-26): FR strings = brief proposals.
@@ -2132,7 +2261,22 @@ const fr: Catalog = {
     'Tribunaux (détection automatique, moins précise)',
   'wireframe.modifier.cap': 'Codes postaux',
   'wireframe.modifier.date': 'Dates',
+  // newPrefix + newRest = libellé scindé lorsque la catégorie fait apparaître
+  // de NOUVELLES détections que l'utilisateur peut inclure.
+  'wireframe.modifier.places.newPrefix': 'Nouveaux',
+  'wireframe.modifier.places.newRest': 'lieux (détection automatique, moins précise)',
+  'wireframe.modifier.organizations.newPrefix': 'Nouvelles',
+  'wireframe.modifier.organizations.newRest':
+    'organisations (détection automatique, moins précise)',
+  'wireframe.modifier.courts.newPrefix': 'Nouveaux',
+  'wireframe.modifier.courts.newRest':
+    'tribunaux (détection automatique, moins précise)',
+  'wireframe.modifier.cap.newPrefix': 'Nouveaux',
+  'wireframe.modifier.cap.newRest': 'codes postaux',
+  'wireframe.modifier.date.newPrefix': 'Nouvelles',
+  'wireframe.modifier.date.newRest': 'dates',
   'wireframe.modifier.applyBtn': 'Appliquer',
+  'wireframe.modifier.applyingBtn': 'Application en cours…',
   'wireframe.modifier.lockedBanner.line1':
     'Les substitutions déjà effectuées (par ex. Marco→Tizio) restent inchangées.',
   'wireframe.modifier.lockedBanner.line2.q': 'Vous voulez anonymiser plus ?',
@@ -2141,6 +2285,36 @@ const fr: Catalog = {
   'wireframe.modifier.lockedBanner.line3':
     'Pour les entités déjà vues et laissées en clair : cliquez {0} dans la {1}, puis appuyez sur {2}.',
   'wireframe.modifier.lockedBanner.mapLink': 'Carte',
+  // État verrouillé du menu « remplacer aussi » lorsqu'un mapping actif avec
+  // des entités existe.
+  'wireframe.modifier.btn.locked':
+    'vos choix s\'appliquent aux prochains documents que vous pseudonymisez',
+  'wireframe.modifier.restartLink': '→ Recommencer avec un nouveau document',
+  // ───────── Bandeau de suggestion lié au filtrage par catégorie ─────────
+  // Indication en ligne lorsque la NER détecte des entités Pass-2 (lieu /
+  // organisation / tribunal) qui restent non remplacées parce que le bouton
+  // « remplacer aussi » correspondant est sur OFF. Les compte + propose
+  // inclure+relancer en un clic. label.* = nom de catégorie au pluriel pour le
+  // décompte. toggleLabel.* = référence au bouton du menu (majuscule, pluriel).
+  'wireframe.suggestion.aria':
+    'Suggestion : entités détectées mais non remplacées',
+  'wireframe.suggestion.singleLead': 'Vous avez {count} {label} non remplacés',
+  'wireframe.suggestion.singleTail':
+    'car « {label} » n\'est pas actif dans les substitutions.',
+  'wireframe.suggestion.multiLead': 'Vous avez des entités détectées mais non remplacées :',
+  'wireframe.suggestion.multiTail': 'Voulez-vous les inclure dans les substitutions ?',
+  'wireframe.suggestion.label.places': 'villes/rues',
+  'wireframe.suggestion.label.organizations': 'organisations',
+  'wireframe.suggestion.label.courts': 'tribunaux',
+  'wireframe.suggestion.toggleLabel.places': 'Lieux',
+  'wireframe.suggestion.toggleLabel.organizations': 'Organisations',
+  'wireframe.suggestion.toggleLabel.courts': 'Tribunaux',
+  'wireframe.suggestion.includeBtnSingle': 'Oui, inclure {label}',
+  'wireframe.suggestion.includeBtnMulti': 'Inclure {label}',
+  'wireframe.suggestion.articled.places': 'les lieux',
+  'wireframe.suggestion.articled.organizations': 'les organisations',
+  'wireframe.suggestion.articled.courts': 'les tribunaux',
+  'wireframe.suggestion.dismissAria': 'Ignorer la suggestion pour cette session',
   'wireframe.panel.originale': 'original',
   'wireframe.panel.pseudonimizzato': 'pseudonymisé',
   'wireframe.placeholder.originale.codifica': 'Glissez le document ici, ou collez le texte',
@@ -2212,6 +2386,14 @@ const fr: Catalog = {
   'wireframe.save.errorGeneric': "Erreur inattendue lors de l'enregistrement.",
   'wireframe.save.tooltipFree': 'Enregistrer le mapping dans le navigateur de cet ordinateur.',
   'wireframe.save.tooltipPro': 'Enregistrer le mapping chiffré sur le serveur.',
+  // Section mémoire des pseudonymes : accent sur la mémoire + usage futur,
+  // micro-textes honnêtes. autoLabelPrefix précède une date.
+  'wireframe.save.sectionHeading': 'Mémoire des pseudonymes',
+  'wireframe.save.primary': 'Conserver les pseudonymes pour la prochaine fois',
+  'wireframe.save.autoSaveLabel': 'Enregistrement automatique',
+  'wireframe.save.autoSaveDisabledHint': 'Enregistrement automatique actif. Les correspondances nom→pseudonyme sont conservées même si vous fermez la fenêtre.',
+  'wireframe.save.manualHint': 'Sans enregistrer, chaque fois que vous fermez la fenêtre les correspondances nom→pseudonyme sont perdues.',
+  'wireframe.save.autoLabelPrefix': 'Mapping du',
   'wireframe.scannedPdf.title': 'PDF scanné détecté',
   'wireframe.scannedPdf.body': "Ce PDF est un scan (aucun texte sélectionnable). L'OCR pour PDF scannés arrive avec le plan Pro. Pour l'instant chargez une version avec du texte sélectionnable.",
   'wireframe.scannedPdf.ok': 'Compris',
