@@ -37,11 +37,21 @@ import {
 } from './onboarding/onboarding-shared'
 
 type Level = 'landing' | 'work'
+type WorkMode = 'codifica' | 'decodifica'
 
 export function TwoLevelShell(): JSX.Element {
   const { t } = useLanguage()
   const [level, setLevel] = useState<Level>('landing')
   const [initialText, setInitialText] = useState<string>('')
+
+  // Work-area macro mode is owned HERE (lifted out of WireframeWorkArea) so the
+  // onboarding tour can drive the CODIFICA→DECODIFICA mode-tab switch at step 6,
+  // the same way `level` lets it drive the L1→L2 hand-off. WireframeWorkArea is
+  // rendered controlled (mode + onModeChange) below; user clicks on the mode
+  // tabs flow back through onModeChange and update this state too, so manual use
+  // and tour-driven switches share one source of truth. Default 'codifica' (the
+  // natural beginning: the user arrives with a document to pseudonymize).
+  const [workMode, setWorkMode] = useState<WorkMode>('codifica')
 
   // Onboarding "guida a bolle" — runs once on first access. The tour spans both
   // levels (bubbles 1-3 on landing, bubble 4 in the work area). TwoLevelShell
@@ -60,15 +70,20 @@ export function TwoLevelShell(): JSX.Element {
   const handleBackToLanding = useCallback(() => {
     setInitialText('')
     setLevel('landing')
+    // Returning to the start also resets the work mode to the natural beginning
+    // (PSEUDONIMIZZA), so the next entry into Level 2 starts in CODIFICA.
+    setWorkMode('codifica')
   }, [])
 
   // Replay bridge: the "?" button in AppHeader (a sibling outside this subtree)
   // dispatches ONBOARDING_REPLAY_EVENT. We reset to the landing level so bubble
-  // 1's target exists, then re-open the tour from the start.
+  // 1's target exists (and to CODIFICA so a replay walks the flow from the
+  // start), then re-open the tour from step 0.
   useEffect(() => {
     const onReplay = () => {
       setInitialText('')
       setLevel('landing')
+      setWorkMode('codifica')
       // Force a fresh mount of the tour so it restarts at step 0 even if it was
       // already active (toggle off→on across a microtask).
       setTourActive(false)
@@ -81,15 +96,27 @@ export function TwoLevelShell(): JSX.Element {
   const handleTourFinish = useCallback(() => {
     writeOnboardingDone()
     setTourActive(false)
+    // On finish, reset the work area to CODIFICA (PSEUDONIMIZZA) so the user
+    // starts at the natural beginning — step 6 left it on DECODIFICA.
+    setWorkMode('codifica')
   }, [])
 
   const handleTourSkip = useCallback(() => {
     writeOnboardingDone()
     setTourActive(false)
+    // Same reset on skip: never strand the user in DECODIFICA after the tour.
+    setWorkMode('codifica')
   }, [])
 
   const requestLevel = useCallback((next: Level) => {
     setLevel((prev) => (prev === next ? prev : next))
+  }, [])
+
+  // Work-mode hand-off target for the tour (mirrors requestLevel). Also the
+  // controlled WorkArea's onModeChange handler, so user tab clicks and the
+  // tour's step-6 switch update the same state.
+  const requestWorkMode = useCallback((next: WorkMode) => {
+    setWorkMode((prev) => (prev === next ? prev : next))
   }, [])
 
   // The tour is rendered as an overlay sibling so it survives the landing↔work
@@ -99,6 +126,8 @@ export function TwoLevelShell(): JSX.Element {
     <OnboardingTour
       currentLevel={level}
       onRequestLevel={requestLevel}
+      currentWorkMode={workMode}
+      onRequestWorkMode={requestWorkMode}
       onFinish={handleTourFinish}
       onSkip={handleTourSkip}
     />
@@ -127,8 +156,13 @@ export function TwoLevelShell(): JSX.Element {
         >
           {t('shell.backToStart')}
         </button>
+        {/* Controlled mode: TwoLevelShell owns `workMode` so the onboarding
+            tour can flip CODIFICA↔DECODIFICA (step 6). User tab clicks flow
+            back via onModeChange → requestWorkMode, keeping one source of
+            truth. */}
         <WireframeWorkArea
-          initialMode="codifica"
+          mode={workMode}
+          onModeChange={requestWorkMode}
           initialText={initialText}
           showMappaLaterale={true}
         />

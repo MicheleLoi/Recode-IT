@@ -226,6 +226,19 @@ export function mergeEntries(
 type Props = {
   initialMode?: MacroMode
   /**
+   * Controlled macro mode (optional). When provided, the work area renders this
+   * mode and reports user-initiated mode changes via `onModeChange` instead of
+   * owning the state itself. This is the work-area analogue of TwoLevelShell's
+   * controlled `level`: it lets the onboarding tour drive the
+   * CODIFICA→DECODIFICA mode-tab switch (step 6) from the parent, mirroring the
+   * existing L1→L2 hand-off. When omitted, the work area falls back to its own
+   * internal state seeded from `initialMode` (backward compat — the standalone
+   * test mounts it uncontrolled).
+   */
+  mode?: MacroMode
+  /** Notifies the parent when the user (or the tour) changes the macro mode. */
+  onModeChange?: (mode: MacroMode) => void
+  /**
    * Pre-populated text for the originale panel (Livello 1 → Livello 2
    * handoff). When set, the work area starts with this text already loaded.
    * Used by TwoLevelShell after the user clicks "Continua →" on the landing.
@@ -243,6 +256,8 @@ type Props = {
 
 export function WireframeWorkArea({
   initialMode = 'codifica',
+  mode: modeProp,
+  onModeChange,
   initialText,
   showMappaLaterale = false,
 }: Props): JSX.Element {
@@ -257,8 +272,22 @@ export function WireframeWorkArea({
   } = useActiveMapping()
   const authCtx = useAuth()
 
-  /* ── macro mode ────────────────────────────────────────────────────────── */
-  const [mode, setMode] = useState<MacroMode>(initialMode)
+  /* ── macro mode (controlled-with-fallback) ─────────────────────────────────
+     When `modeProp` is supplied the parent owns the mode (TwoLevelShell, so the
+     onboarding tour can flip CODIFICA↔DECODIFICA the same way it flips the L1→L2
+     level). Otherwise we keep our own state seeded from `initialMode`. Every
+     mode change goes through `changeMode`, which updates the internal fallback
+     (no-op visually when controlled) AND notifies the parent — so a single
+     code path serves both wirings and the button onClicks don't branch. */
+  const [modeInternal, setModeInternal] = useState<MacroMode>(initialMode)
+  const mode: MacroMode = modeProp ?? modeInternal
+  const changeMode = useCallback(
+    (next: MacroMode) => {
+      setModeInternal(next)
+      onModeChange?.(next)
+    },
+    [onModeChange],
+  )
 
   /* ── panel content (preserved across mode switches) ────────────────────── */
   // initialText from Livello 1 handoff (landing → work area).
@@ -1376,23 +1405,31 @@ export function WireframeWorkArea({
         aria-label={t('macro.ariaLabel')}
         data-testid="wireframe-mode-tabs"
       >
+        {/* PSEUDONIMIZZA (codifica) mode tab. testid `wireframe-tab-codifica`
+            is the onboarding bubble-4 anchor (ONBOARDING_STEPS[3]); the tour
+            resolves it via querySelector('[data-testid="…"]'). Renamed from
+            the former `wireframe-macro-codifica` so a single canonical testid
+            serves both the tour and the test suite. */}
         <button
           type="button"
           role="tab"
           aria-selected={mode === 'codifica'}
           className={`wireframe-mode-tab${mode === 'codifica' ? ' is-active' : ''}`}
-          onClick={() => setMode('codifica')}
-          data-testid="wireframe-macro-codifica"
+          onClick={() => changeMode('codifica')}
+          data-testid="wireframe-tab-codifica"
         >
           {t('wireframe.action.pseudonimize')}
         </button>
+        {/* DECODIFICA mode tab. testid `wireframe-tab-decodifica` is the
+            onboarding bubble-6 anchor (ONBOARDING_STEPS[5]); reaching step 6
+            drives onRequestWorkMode('decodifica') which flips this tab on. */}
         <button
           type="button"
           role="tab"
           aria-selected={mode === 'decodifica'}
           className={`wireframe-mode-tab${mode === 'decodifica' ? ' is-active' : ''}`}
-          onClick={() => setMode('decodifica')}
-          data-testid="wireframe-macro-decodifica"
+          onClick={() => changeMode('decodifica')}
+          data-testid="wireframe-tab-decodifica"
         >
           {t('wireframe.action.decodifica')}
         </button>
@@ -2236,9 +2273,14 @@ export function WireframeWorkArea({
             ponte inverso) — gestito internamente da MappaPanel che legge
             la active mapping dal context. */}
         {showMappaLaterale && (
+          /* testid `wireframe-mappa-panel` is the onboarding bubble-5 anchor
+             (ONBOARDING_STEPS[4], placement 'left'). It points at the Mappa
+             column where the name→pseudonym correspondence lives. The
+             `wireframe-mappa-laterale` CSS class is unchanged (styles.css
+             depends on it); only the testid carries the stable tour name. */
           <div
             className="wireframe-mappa-laterale"
-            data-testid="wireframe-mappa-laterale"
+            data-testid="wireframe-mappa-panel"
           >
             <MappaPanel />
           </div>

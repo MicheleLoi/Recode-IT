@@ -70,8 +70,8 @@ describe('WireframeWorkArea — layout + macro toggle', () => {
   it('renders 2-macro toggle + toolbar + 2 panels + mappa cards', () => {
     renderWithProviders()
     expect(screen.getByTestId('wireframe-workarea')).toBeInTheDocument()
-    expect(screen.getByTestId('wireframe-macro-codifica')).toBeInTheDocument()
-    expect(screen.getByTestId('wireframe-macro-decodifica')).toBeInTheDocument()
+    expect(screen.getByTestId('wireframe-tab-codifica')).toBeInTheDocument()
+    expect(screen.getByTestId('wireframe-tab-decodifica')).toBeInTheDocument()
     expect(screen.getByTestId('wireframe-action-btn')).toBeInTheDocument()
     expect(screen.getByTestId('wireframe-panel-originale')).toBeInTheDocument()
     expect(screen.getByTestId('wireframe-panel-pseudonimizzato')).toBeInTheDocument()
@@ -81,16 +81,16 @@ describe('WireframeWorkArea — layout + macro toggle', () => {
 
   it('defaults to codifica mode; toggle switches to decodifica', () => {
     renderWithProviders()
-    expect(screen.getByTestId('wireframe-macro-codifica')).toHaveAttribute(
+    expect(screen.getByTestId('wireframe-tab-codifica')).toHaveAttribute(
       'aria-selected',
       'true',
     )
-    fireEvent.click(screen.getByTestId('wireframe-macro-decodifica'))
-    expect(screen.getByTestId('wireframe-macro-decodifica')).toHaveAttribute(
+    fireEvent.click(screen.getByTestId('wireframe-tab-decodifica'))
+    expect(screen.getByTestId('wireframe-tab-decodifica')).toHaveAttribute(
       'aria-selected',
       'true',
     )
-    expect(screen.getByTestId('wireframe-macro-codifica')).toHaveAttribute(
+    expect(screen.getByTestId('wireframe-tab-codifica')).toHaveAttribute(
       'aria-selected',
       'false',
     )
@@ -101,14 +101,14 @@ describe('WireframeWorkArea — layout + macro toggle', () => {
     const sx = screen.getByTestId('wireframe-textarea-originale') as HTMLTextAreaElement
     fireEvent.change(sx, { target: { value: 'qualche testo' } })
     expect(sx.value).toBe('qualche testo')
-    fireEvent.click(screen.getByTestId('wireframe-macro-decodifica'))
+    fireEvent.click(screen.getByTestId('wireframe-tab-decodifica'))
     // After switch, content is still in the originale field (read-only in
     // decodifica mode, but still present).
     const sxAgain = screen.getByTestId(
       'wireframe-textarea-originale',
     ) as HTMLTextAreaElement
     expect(sxAgain.value).toBe('qualche testo')
-    fireEvent.click(screen.getByTestId('wireframe-macro-codifica'))
+    fireEvent.click(screen.getByTestId('wireframe-tab-codifica'))
     const sxBack = screen.getByTestId(
       'wireframe-textarea-originale',
     ) as HTMLTextAreaElement
@@ -126,7 +126,7 @@ describe('WireframeWorkArea — layout + macro toggle', () => {
     expect(dxPanel.querySelector('.wireframe-panel__label')?.textContent).toMatch(
       /pseudonimizzato/i,
     )
-    fireEvent.click(screen.getByTestId('wireframe-macro-decodifica'))
+    fireEvent.click(screen.getByTestId('wireframe-tab-decodifica'))
     // Labels MUST remain stable in Decodifica too (founder direttiva
     // SID-20260527: panel labels semantici stabili, è il flusso che si
     // inverte, non i labels).
@@ -295,7 +295,7 @@ describe('WireframeWorkArea — Codifica flow', () => {
   it('"sostituisci anche" row is HIDDEN in Decodifica mode (no "anche" in decoding)', () => {
     renderWithProviders()
     expect(screen.getByTestId('wireframe-modifier-btn')).toBeInTheDocument()
-    fireEvent.click(screen.getByTestId('wireframe-macro-decodifica'))
+    fireEvent.click(screen.getByTestId('wireframe-tab-decodifica'))
     expect(screen.queryByTestId('wireframe-modifier-btn')).not.toBeInTheDocument()
   })
 
@@ -311,7 +311,7 @@ describe('WireframeWorkArea — Codifica flow', () => {
     expect(screen.getByTestId('wireframe-modifier-btn')).toBeInTheDocument()
     // Switch to decodifica → the inline BundleBanner appears in the slot;
     // "sostituisci anche" disappears (mutually exclusive).
-    fireEvent.click(screen.getByTestId('wireframe-macro-decodifica'))
+    fireEvent.click(screen.getByTestId('wireframe-tab-decodifica'))
     expect(screen.queryByTestId('wireframe-modifier-btn')).not.toBeInTheDocument()
     const banner = screen.getByTestId('bundle-banner')
     expect(banner).toBeInTheDocument()
@@ -342,7 +342,7 @@ describe('WireframeWorkArea — Decodifica flow', () => {
     expect(screen.getByTestId('wireframe-action-btn').textContent).toMatch(
       /PSEUDONIMIZZA/,
     )
-    fireEvent.click(screen.getByTestId('wireframe-macro-decodifica'))
+    fireEvent.click(screen.getByTestId('wireframe-tab-decodifica'))
     expect(screen.getByTestId('wireframe-action-btn').textContent).toMatch(
       /DECODIFICA/,
     )
@@ -350,14 +350,14 @@ describe('WireframeWorkArea — Decodifica flow', () => {
 
   it('anonymous user in Decodifica with empty input → button stays disabled', () => {
     renderWithProviders()
-    fireEvent.click(screen.getByTestId('wireframe-macro-decodifica'))
+    fireEvent.click(screen.getByTestId('wireframe-tab-decodifica'))
     const actionBtn = screen.getByTestId('wireframe-action-btn') as HTMLButtonElement
     expect(actionBtn.disabled).toBe(true)
   })
 
   it('anonymous user in Decodifica with input shows sign-in nudge after switching macro', () => {
     renderWithProviders()
-    fireEvent.click(screen.getByTestId('wireframe-macro-decodifica'))
+    fireEvent.click(screen.getByTestId('wireframe-tab-decodifica'))
     expect(screen.getByTestId('wireframe-decodifica-anon')).toBeInTheDocument()
   })
 })

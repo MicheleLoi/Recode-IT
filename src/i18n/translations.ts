@@ -645,14 +645,19 @@ const it: Catalog = {
   'shell.backToStart': '← Torna all\'inizio / Nuovo documento',
 
   // ────────────────────────── Onboarding "guida a bolle" (primo accesso) ──────────────────────────
-  // Coachmark tour custom (no libreria terza): 4 bolle ancorate a elementi reali.
-  // Bolle 1-3 in Livello 1 (drop-zone / badge privacy / Continua), bolla 4 al
-  // primo arrivo in Livello 2 (pulsantoni PSEUDONIMIZZA/DECODIFICA + Mappa).
+  // Coachmark tour custom (no libreria terza): 6 bolle ancorate a elementi reali,
+  // copre ENTRAMBE le direzioni del flusso. Bolle 1-3 in Livello 1 (drop-zone /
+  // badge privacy / Continua); bolle 4-5 in Livello 2 modo CODIFICA (tab
+  // PSEUDONIMIZZA / pannello Mappa); bolla 6 in Livello 2 modo DECODIFICA (arrivare
+  // alla bolla 6 switcha davvero l'area in Decodifica). Copy DESCRITTIVO/impersonale:
+  // l'overlay è modale, l'utente clicca Avanti/Fine, non agisce ora sugli elementi.
   // localStorage key: recode_onboarding_bubbles_done (distinta da introDismissed).
-  'onboarding.bubble1.body': 'Incolla o trascina qui il documento. Resta tutto nel tuo browser.',
-  'onboarding.bubble2.body': '100% in locale: nessun dato lascia il tuo dispositivo.',
-  'onboarding.bubble3.body': 'Pronto? Premi Continua per l\'area di lavoro.',
-  'onboarding.bubble4.body': 'Pseudonimizza i nomi, correggi le coppie nella Mappa (resta solo da te), e con Decodifica li rimetti.',
+  'onboarding.bubble1.body': 'Tutto parte da qui: il documento si incolla o si trascina in questo riquadro. Resta nel tuo browser — non viene caricato da nessuna parte.',
+  'onboarding.bubble2.body': 'Il lavoro è 100% locale: nessun dato lascia il tuo dispositivo.',
+  'onboarding.bubble3.body': 'Con «Continua» si entra nell\'area di lavoro.',
+  'onboarding.bubble4.body': 'Codifica: i nomi reali diventano pseudonimi. Il testo protetto si copia e si incolla nell\'AI.',
+  'onboarding.bubble5.body': 'La corrispondenza nome → pseudonimo resta solo qui, nel tuo browser: è la chiave per il ritorno.',
+  'onboarding.bubble6.body': 'Il verso inverso: la risposta dell\'AI si incolla in «Decodifica» e gli pseudonimi ridiventano i nomi veri.',
   'onboarding.next': 'Avanti',
   'onboarding.skip': 'Salta',
   'onboarding.finish': 'Fine',
@@ -1213,10 +1218,12 @@ const en: Catalog = {
   'shell.backToStart': '← Back to start / New document',
 
   // ────────────────────────── Onboarding bubble guide (first access) (EN) ──────────────────────────
-  'onboarding.bubble1.body': 'Paste or drag your document here. Everything stays in your browser.',
-  'onboarding.bubble2.body': '100% local: no data leaves your device.',
-  'onboarding.bubble3.body': 'Ready? Press Continue for the work area.',
-  'onboarding.bubble4.body': 'Pseudonymize the names, fix the pairs in the Map (it stays only with you), and Decode puts them back.',
+  'onboarding.bubble1.body': 'It all starts here: the document is pasted or dragged into this box. It stays in your browser — it is never uploaded anywhere.',
+  'onboarding.bubble2.body': 'The work is 100% local: no data leaves your device.',
+  'onboarding.bubble3.body': 'With «Continue» you enter the work area.',
+  'onboarding.bubble4.body': 'Encoding: real names become pseudonyms. The protected text is copied and pasted into the AI.',
+  'onboarding.bubble5.body': 'The name → pseudonym correspondence stays only here, in your browser: it is the key for the way back.',
+  'onboarding.bubble6.body': 'The reverse direction: the AI\'s reply is pasted into «Decode» and the pseudonyms turn back into the real names.',
   'onboarding.next': 'Next',
   'onboarding.skip': 'Skip',
   'onboarding.finish': 'Done',
@@ -1719,10 +1726,12 @@ const de: Catalog = {
   'shell.backToStart': '← Zurück zum Anfang / Neues Dokument',
 
   // ────────────────────────── Onboarding-Blasenführung (Erstzugriff) (DE) ──────────────────────────
-  'onboarding.bubble1.body': 'Fügen Sie Ihr Dokument hier ein oder ziehen Sie es hierher. Alles bleibt in Ihrem Browser.',
-  'onboarding.bubble2.body': '100% lokal: keine Daten verlassen Ihr Gerät.',
-  'onboarding.bubble3.body': 'Bereit? Klicken Sie auf Weiter, um zum Arbeitsbereich zu gelangen.',
-  'onboarding.bubble4.body': 'Pseudonymisieren Sie die Namen, korrigieren Sie die Paare in der Tabelle (sie bleibt nur bei Ihnen), und mit Dekodieren setzen Sie sie zurück.',
+  'onboarding.bubble1.body': 'Alles beginnt hier: Das Dokument wird in dieses Feld eingefügt oder hineingezogen. Es bleibt in Ihrem Browser — es wird nirgendwohin hochgeladen.',
+  'onboarding.bubble2.body': 'Die Verarbeitung ist 100% lokal: keine Daten verlassen Ihr Gerät.',
+  'onboarding.bubble3.body': 'Mit «Weiter» gelangt man in den Arbeitsbereich.',
+  'onboarding.bubble4.body': 'Kodierung: Aus echten Namen werden Pseudonyme. Der geschützte Text wird kopiert und in die KI eingefügt.',
+  'onboarding.bubble5.body': 'Die Zuordnung Name → Pseudonym bleibt nur hier, in Ihrem Browser: Sie ist der Schlüssel für den Rückweg.',
+  'onboarding.bubble6.body': 'Die umgekehrte Richtung: Die Antwort der KI wird in «Dekodieren» eingefügt, und die Pseudonyme werden wieder zu den echten Namen.',
   'onboarding.next': 'Weiter',
   'onboarding.skip': 'Überspringen',
   'onboarding.finish': 'Fertig',
@@ -2225,10 +2234,12 @@ const fr: Catalog = {
   'shell.backToStart': '← Retour au début / Nouveau document',
 
   // ────────────────────────── Guide à bulles (premier accès) (FR) ──────────────────────────
-  'onboarding.bubble1.body': 'Collez ou déposez votre document ici. Tout reste dans votre navigateur.',
-  'onboarding.bubble2.body': '100% en local : aucune donnée ne quitte votre appareil.',
-  'onboarding.bubble3.body': 'Prêt ? Appuyez sur Continuer pour accéder à l\'espace de travail.',
-  'onboarding.bubble4.body': 'Pseudonymisez les noms, corrigez les paires dans la Table (elle reste chez vous), et Décoder les remet en place.',
+  'onboarding.bubble1.body': 'Tout part d\'ici : le document se colle ou se glisse dans ce cadre. Il reste dans votre navigateur — il n\'est téléversé nulle part.',
+  'onboarding.bubble2.body': 'Le traitement est 100% local : aucune donnée ne quitte votre appareil.',
+  'onboarding.bubble3.body': 'Avec «Continuer», on entre dans l\'espace de travail.',
+  'onboarding.bubble4.body': 'Codage : les noms réels deviennent des pseudonymes. Le texte protégé se copie et se colle dans l\'IA.',
+  'onboarding.bubble5.body': 'La correspondance nom → pseudonyme reste uniquement ici, dans votre navigateur : c\'est la clé du retour.',
+  'onboarding.bubble6.body': 'Le sens inverse : la réponse de l\'IA se colle dans «Décoder» et les pseudonymes redeviennent les vrais noms.',
   'onboarding.next': 'Suivant',
   'onboarding.skip': 'Passer',
   'onboarding.finish': 'Terminé',

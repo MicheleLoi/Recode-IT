@@ -9,18 +9,24 @@
  * Mechanism
  * ─────────
  * - The controller is driven by props from a parent that owns the level state
- *   (TwoLevelShell): `currentLevel` ('landing' | 'work'), `onRequestLevel` to
- *   advance L1→L2, and lifecycle callbacks. Steps are declared in
- *   onboarding-shared.ts; bubbles 1-3 anchor to Level-1 elements, bubble 4 to
- *   the Level-2 mode-tabs region.
+ *   AND the work-area mode (TwoLevelShell): `currentLevel` ('landing' | 'work')
+ *   + `onRequestLevel` to advance L1→L2, `currentWorkMode`
+ *   ('codifica' | 'decodifica') + `onRequestWorkMode` to flip the mode tab, and
+ *   lifecycle callbacks. Steps are declared in onboarding-shared.ts: bubbles 1-3
+ *   anchor to Level-1 elements; bubbles 4-5 to Level-2 CODIFICA elements (the
+ *   PSEUDONIMIZZA tab, the Mappa panel); bubble 6 to the DECODIFICA tab, and
+ *   reaching it actually switches the work area to DECODIFICA.
  * - Anchoring: each step names a `data-testid`. We resolve the element with
  *   document.querySelector('[data-testid="…"]') and read getBoundingClientRect().
  *   The rect is recomputed on window resize + scroll (capture phase, so inner
  *   scroll containers count) and via a short rAF poll while a target is still
- *   mounting — this is what makes the L1→L2 hand-off robust: when "Avanti" is
+ *   mounting — this is what makes both hand-offs robust: when "Avanti" is
  *   pressed on step 3, we call onRequestLevel('work'); Level 2 mounts a frame
  *   or two later, the poll picks up the new mode-tabs rect, and bubble 4 snaps
- *   into place. No element is queried before it exists.
+ *   into place. The same machinery covers the step-5→6 mode switch: advancing
+ *   onto step 6 calls onRequestWorkMode('decodifica'); the DECODIFICA panel
+ *   re-lays-out and the poll re-anchors bubble 6 to the moved DECODIFICA tab.
+ *   No element is queried before it exists.
  * - Visual: a fixed full-viewport backdrop with a transparent "spotlight" hole
  *   punched over the target (box-shadow trick), plus a bubble positioned beside
  *   the target with a small CSS arrow pointing at it. Placement auto-flips when
@@ -53,6 +59,7 @@ import {
   ONBOARDING_STEPS,
   type OnboardingPlacement,
   type OnboardingStep,
+  type OnboardingWorkMode,
 } from './onboarding-shared'
 
 type Props = {
@@ -60,6 +67,14 @@ type Props = {
   currentLevel: 'landing' | 'work'
   /** Ask the parent to switch level (used to drive the L1→L2 hand-off). */
   onRequestLevel: (level: 'landing' | 'work') => void
+  /**
+   * The work area's current macro mode (owned by TwoLevelShell, controlled prop
+   * of WireframeWorkArea). Drives the step-6 CODIFICA→DECODIFICA hand-off,
+   * exactly analogous to `currentLevel` for the L1→L2 hand-off.
+   */
+  currentWorkMode: OnboardingWorkMode
+  /** Ask the parent to switch the work-area mode tab (step-6 hand-off). */
+  onRequestWorkMode: (mode: OnboardingWorkMode) => void
   /** User pressed "Fine" on the last bubble (or otherwise completed). */
   onFinish: () => void
   /** User pressed "Salta", Esc, or the close affordance. */
@@ -161,6 +176,8 @@ function computeBubblePosition(
 export function OnboardingTour({
   currentLevel,
   onRequestLevel,
+  currentWorkMode,
+  onRequestWorkMode,
   onFinish,
   onSkip,
 }: Props): JSX.Element | null {
@@ -184,6 +201,28 @@ export function OnboardingTour({
       onRequestLevel(step.level)
     }
   }, [step, currentLevel, onRequestLevel])
+
+  // Work-area mode driver — one level deeper than the level driver above and
+  // built on the SAME contract. When the active step declares a `workMode` (only
+  // steps 4-6 do) that differs from the work area's current mode, ask the parent
+  // to flip the mode tab. Reaching step 6 (workMode 'decodifica') therefore
+  // switches the work area to DECODIFICA: its panel re-lays-out a frame or two
+  // later, the rAF poll below picks up the moved DECODIFICA-tab rect, and bubble
+  // 6 re-anchors to it — exactly the way the L1→L2 hand-off mounts the step-4
+  // target. We only act once the work level is actually mounted, so we never
+  // request a mode switch while still on the landing (the work area isn't there
+  // to receive it yet; the level effect runs first and brings it in).
+  useEffect(() => {
+    if (
+      step &&
+      step.level === 'work' &&
+      currentLevel === 'work' &&
+      step.workMode &&
+      step.workMode !== currentWorkMode
+    ) {
+      onRequestWorkMode(step.workMode)
+    }
+  }, [step, currentLevel, currentWorkMode, onRequestWorkMode])
 
   // ── Rect resolution, step 1 of 2: SYNCHRONOUS first read ──────────────────
   // Resolve the target rect *synchronously, before paint* on every step change.
