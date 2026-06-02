@@ -322,18 +322,17 @@ describe('WireframeWorkArea — Codifica flow', () => {
     expect(cta.href).toContain('micheleloi.pro/mhc-l/')
   })
 
-  it('"Nuovo documento" button clears the originale panel', () => {
+  it('"Nuovo documento" button is not present in WireframeWorkArea (lives in TwoLevelShell)', () => {
+    // The "Nuovo documento / ← Torna all'inizio" affordance was moved to
+    // TwoLevelShell (two-level-back-btn) in the 2-livelli redesign.
+    // WireframeWorkArea no longer owns this navigation action.
     renderWithProviders()
     const sx = screen.getByTestId(
       'wireframe-textarea-originale',
     ) as HTMLTextAreaElement
     fireEvent.change(sx, { target: { value: FIXTURE } })
     expect(sx.value).toBe(FIXTURE)
-    fireEvent.click(screen.getByTestId('wireframe-new-doc-btn'))
-    const sxAfter = screen.getByTestId(
-      'wireframe-textarea-originale',
-    ) as HTMLTextAreaElement
-    expect(sxAfter.value).toBe('')
+    expect(screen.queryByTestId('wireframe-new-doc-btn')).toBeNull()
   })
 })
 

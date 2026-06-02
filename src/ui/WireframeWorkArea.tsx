@@ -1908,24 +1908,10 @@ export function WireframeWorkArea({
               />
             )}
 
-            {/* New document affordance — discreet, top-right of the originale panel
-                when a document is loaded. */}
-            {mode === 'codifica' && originaleText && (
-              <button
-                type="button"
-                className="wireframe-new-doc-btn"
-                onClick={() => {
-                  setOriginaleText('')
-                  setPseudonimizzatoText('')
-                  setHasRunOnCurrentDoc(false)
-                  setEntityReviewOpen(false)
-                }}
-                data-testid="wireframe-new-doc-btn"
-                title={t('pseudo.button.newDocumentTitle')}
-              >
-                {t('wireframe.newDoc.button')}
-              </button>
-            )}
+            {/* "Nuovo documento" rimosso (item 4, SID-20260602): residuo del
+                vecchio flusso a pagina singola. L'ingresso documento è ora
+                il Livello 1 (LandingLevel); il ritorno avviene via
+                "← Torna all'inizio / Nuovo documento" in TwoLevelShell. */}
           </div>
 
           {/* Suggerimento "luoghi preservati" (founder SID-20260530).
