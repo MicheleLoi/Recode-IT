@@ -22,6 +22,10 @@ import { GIT_SHA } from './buildInfo'
 import heroUrl from './assets/hero.png'
 import { AuthProvider, useAuth } from './auth/auth-context'
 import { ActiveMappingProvider } from './auth/active-mapping-context'
+// DEV-ONLY: mock auth provider import — Vite tree-shakes the entire branch in
+// a production build because import.meta.env.DEV resolves to `false` at
+// compile time, making the conditional always false and the import unreachable.
+import { MockAuthProvider } from './mock/mock-auth-provider'
 import {
   BRAND_BY_LANG,
   LanguageProvider,
@@ -433,13 +437,24 @@ export function App(): JSX.Element {
     return <DecodificaDemoPage />
   }
 
+  // DEV-ONLY mock mode: VITE_MOCK_FULL=1 swaps AuthProvider for MockAuthProvider,
+  // giving a fully functional local test surface with the auth gate faked out
+  // (user always logged in, Decodifica always unlocked via mhc_bearer).
+  // - Flag only readable in Vite dev server (import.meta.env.DEV === true).
+  // - In any production build DEV=false, so the entire branch is dead code
+  //   and Vite tree-shakes both this condition and the MockAuthProvider import.
+  // - All other code (NER engine, regex, reverse-substitution) runs unmodified.
+  // This branch lives ONLY on mock/e2e-test-build — never merge to main.
+  const isMockFull = import.meta.env.DEV && import.meta.env.VITE_MOCK_FULL === '1'
+  const AuthGate = isMockFull ? MockAuthProvider : AuthProvider
+
   return (
     <LanguageProvider>
-      <AuthProvider>
+      <AuthGate>
         <ActiveMappingProvider>
           <AppInner />
         </ActiveMappingProvider>
-      </AuthProvider>
+      </AuthGate>
     </LanguageProvider>
   )
 }
