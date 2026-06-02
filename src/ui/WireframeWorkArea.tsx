@@ -66,6 +66,11 @@ import {
 import { anonymize } from '../engine/engine'
 import { manualAnnotate, type ManualCategory } from '../engine/manual_annotate'
 import { NerRunner, type NerProgressEvent } from '../engine/ner_runner'
+// DEV-ONLY: sample document + stub flag for the e2e-test-build branch. Every
+// reference is gated behind MOCK_NER_ENABLED below; a production build inlines
+// import.meta.env.DEV === false, so the branch is dead code and Vite
+// tree-shakes both this import and mock-ner.ts out of the prod bundle.
+import { MOCK_SAMPLE_DOCUMENT } from '../mock/mock-ner'
 import { PseudonymMapper } from '../engine/pseudonym_mapper'
 import { extractText, SUPPORTED_EXTENSIONS } from '../extraction/extract'
 import type { MappingEntry, NerDetection } from '../types/engine'
@@ -87,6 +92,14 @@ type MacroMode = 'codifica' | 'decodifica'
 
 const DECODIFICA_PREVIEW_LIMIT = 150
 const ACCEPTED_EXTENSIONS = SUPPORTED_EXTENSIONS
+
+// DEV-ONLY e2e stub gate — mirrors App.tsx / ner_runner.ts EXACTLY. True only
+// on the Vite dev server with VITE_MOCK_FULL=1 (npm run dev:mock). A production
+// build inlines import.meta.env.DEV === false, so the "Carica testo di prova"
+// control below is dead code and tree-shaken out, along with the mock-ner
+// import. Never reaches prod.
+const MOCK_NER_ENABLED =
+  import.meta.env.DEV && import.meta.env.VITE_MOCK_FULL === '1'
 
 // Dropdown "Sostituisci anche" — esattamente 5 interruttori VERI e
 // INDIPENDENTI, default OFF (founder criterio canonico `_org/decision_log.md`
@@ -1873,6 +1886,31 @@ export function WireframeWorkArea({
                 ora dentro la hero drop-zone full-width sopra le colonne. Il
                 file input nascosto è montato nella hero (Codifica o Decodifica
                 a seconda del mode) → fileInputRef è sempre disponibile. */}
+
+            {/* DEV-ONLY (mock/e2e-test-build): one-click loader for the
+                predefined Italian legal-style sample document. Rendered ONLY
+                when import.meta.env.DEV && VITE_MOCK_FULL === '1' (npm run
+                dev:mock) AND in codifica mode with an empty input — so it does
+                not obstruct a real document. Tree-shaken out of any prod build
+                (MOCK_NER_ENABLED is compile-time false). Loads the sample into
+                the input via setOriginaleText; the stub NER then detects the
+                four targets on PSEUDONIMIZZA. */}
+            {MOCK_NER_ENABLED && mode === 'codifica' && !originaleText && (
+              <div
+                className="wireframe-mock-sample"
+                data-testid="wireframe-mock-load-sample"
+              >
+                <button
+                  type="button"
+                  className="btn btn--secondary"
+                  onClick={() => setOriginaleText(MOCK_SAMPLE_DOCUMENT)}
+                  data-testid="wireframe-mock-load-sample-btn"
+                  title="DEV-ONLY: carica un documento di prova con tutte le entità target"
+                >
+                  Carica testo di prova
+                </button>
+              </div>
+            )}
 
             {/* When document is loaded AND in codifica mode, show DocumentView
                 (highlighted entities inline) instead of textarea — but only
