@@ -620,14 +620,29 @@ const it: Catalog = {
 
   // ────────────────────────── Livello 1 — Landing (2-level redesign) ──────────────────────────
   // Canon: MHC-Work/notes/research/recode-it/wireframes/flusso_2livelli/index.html
-  // Hero tagline + 3 trust badges + unified drop-zone CTA.
+  // Hero tagline + 3 trust badges + intro section + unified drop-zone CTA.
   'landing.badge.browser': '100% nel browser',
   'landing.badge.noUpload': 'Niente upload al server',
   'landing.badge.gdpr': 'GDPR — dati solo sul tuo dispositivo',
-  'landing.dropzone.title': 'Incolla o trascina il tuo atto qui',
+
+  // L1-b — Intro section: headline + 2 step + trust points
+  // Copy verbatim da communication/recode-it/site_copy_draft_20260524.md
+  'landing.intro.headline': 'Pseudonimizza i dati prima di mandarli all\'AI',
+  'landing.intro.step1.label': '1 — Codifica',
+  'landing.intro.step1.body': 'Incolla il documento. Recode sostituisce i nomi reali con pseudonimi (es. Mario Rossi → Tizio Caio) e tiene una mappa di chi è chi che resta solo nel tuo browser. Copi il testo pseudonimizzato e lavori con l\'AI.',
+  'landing.intro.step2.label': '2 — Decodifica',
+  'landing.intro.step2.body': 'L\'AI ti risponde con gli pseudonimi. Incolla la risposta in Recode: la app sostituisce gli pseudonimi con i nomi veri e ti restituisce il testo finale.',
+  'landing.intro.trust': 'Niente da installare. Niente file da caricare su server. Zero provider AI. Zero analytics. Zero tracking.',
+  'landing.intro.gdpr': 'La mappa resta solo nel tuo browser.',
+
+  'landing.dropzone.title': 'Incolla o trascina il tuo documento qui',
   'landing.dropzone.hint': 'Formati supportati: .txt · .docx · .pdf — o scrivi direttamente',
+  'landing.dropzone.uploadLink': '… o clicca per caricare un file',
   'landing.dropzone.placeholder': 'Trascina il documento qui, o incolla il testo…',
   'landing.dropzone.cta': 'Continua →',
+
+  // ────────────────────────── TwoLevelShell — back button ──────────────────────────
+  'shell.backToStart': '← Torna all\'inizio / Nuovo documento',
 
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   // Canon: notes/research/recode-it/wireframes/bundle_crosslink_prototype_20260527.html
@@ -1160,10 +1175,24 @@ const en: Catalog = {
   'landing.badge.browser': '100% in the browser',
   'landing.badge.noUpload': 'No server upload',
   'landing.badge.gdpr': 'GDPR — data stays on your device',
+
+  // L1-b — Intro section (EN)
+  'landing.intro.headline': 'Pseudonymize your data before sending it to AI',
+  'landing.intro.step1.label': '1 — Encode',
+  'landing.intro.step1.body': 'Paste the document. Recode replaces real names with pseudonyms (e.g. Mario Rossi → Tizio Caio) and keeps a map of who is who that stays only in your browser. Copy the pseudonymized text and work with the AI.',
+  'landing.intro.step2.label': '2 — Decode',
+  'landing.intro.step2.body': 'The AI responds with the pseudonyms. Paste the response into Recode: the app puts the real names back and gives you the final text.',
+  'landing.intro.trust': 'Nothing to install. No files uploaded to a server. Zero AI providers. Zero analytics. Zero tracking.',
+  'landing.intro.gdpr': 'The map stays only in your browser.',
+
   'landing.dropzone.title': 'Paste or drag your document here',
   'landing.dropzone.hint': 'Supported: .txt · .docx · .pdf — or type directly',
+  'landing.dropzone.uploadLink': '… or click to upload a file',
   'landing.dropzone.placeholder': 'Drag the document here, or paste the text…',
   'landing.dropzone.cta': 'Continue →',
+
+  // ────────────────────────── TwoLevelShell — back button (EN) ──────────────────────────
+  'shell.backToStart': '← Back to start / New document',
 
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': 'Free Decoding when you join MHC-L (€0) — modular RegIA bundle.',
@@ -1638,10 +1667,24 @@ const de: Catalog = {
   'landing.badge.browser': '100% im Browser',
   'landing.badge.noUpload': 'Kein Server-Upload',
   'landing.badge.gdpr': 'DSGVO — Daten nur auf Ihrem Gerät',
+
+  // L1-b — Intro section (DE)
+  'landing.intro.headline': 'Pseudonymisieren Sie Ihre Daten, bevor Sie sie an KI senden',
+  'landing.intro.step1.label': '1 — Kodieren',
+  'landing.intro.step1.body': 'Fügen Sie das Dokument ein. Recode ersetzt echte Namen durch Pseudonyme (z. B. Mario Rossi → Tizio Caio) und führt eine Zuordnungstabelle, die nur in Ihrem Browser verbleibt. Kopieren Sie den pseudonymisierten Text und arbeiten Sie mit der KI.',
+  'landing.intro.step2.label': '2 — Dekodieren',
+  'landing.intro.step2.body': 'Die KI antwortet mit den Pseudonymen. Fügen Sie die Antwort in Recode ein: die App setzt die echten Namen wieder ein und gibt Ihnen den fertigen Text zurück.',
+  'landing.intro.trust': 'Nichts zu installieren. Keine Dateien werden auf Server hochgeladen. Kein KI-Anbieter. Keine Analyse. Kein Tracking.',
+  'landing.intro.gdpr': 'Die Tabelle verbleibt nur in Ihrem Browser.',
+
   'landing.dropzone.title': 'Dokument hier einfügen oder ablegen',
   'landing.dropzone.hint': 'Unterstützt: .txt · .docx · .pdf — oder direkt tippen',
+  'landing.dropzone.uploadLink': '… oder klicken, um eine Datei hochzuladen',
   'landing.dropzone.placeholder': 'Dokument hier ablegen oder Text einfügen…',
   'landing.dropzone.cta': 'Weiter →',
+
+  // ────────────────────────── TwoLevelShell — back button (DE) ──────────────────────────
+  'shell.backToStart': '← Zurück zum Anfang / Neues Dokument',
 
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': 'Dekodierung gratis mit MHC-L-Beitritt (€0) — modulares RegIA-Bundle.',
@@ -2116,10 +2159,24 @@ const fr: Catalog = {
   'landing.badge.browser': '100% dans le navigateur',
   'landing.badge.noUpload': 'Aucun envoi au serveur',
   'landing.badge.gdpr': 'RGPD — données uniquement sur votre appareil',
+
+  // L1-b — Intro section (FR)
+  'landing.intro.headline': 'Pseudonymisez vos données avant de les envoyer à l\'IA',
+  'landing.intro.step1.label': '1 — Encoder',
+  'landing.intro.step1.body': 'Collez le document. Recode remplace les vrais noms par des pseudonymes (ex. Mario Rossi → Tizio Caio) et conserve une table de correspondance qui reste uniquement dans votre navigateur. Copiez le texte pseudonymisé et travaillez avec l\'IA.',
+  'landing.intro.step2.label': '2 — Décoder',
+  'landing.intro.step2.body': 'L\'IA vous répond avec les pseudonymes. Collez la réponse dans Recode : l\'app remet les vrais noms en place et vous rend le texte final.',
+  'landing.intro.trust': 'Rien à installer. Aucun fichier envoyé sur un serveur. Zéro fournisseur IA. Zéro analytics. Zéro tracking.',
+  'landing.intro.gdpr': 'La table reste uniquement dans votre navigateur.',
+
   'landing.dropzone.title': 'Collez ou déposez votre document ici',
   'landing.dropzone.hint': 'Formats : .txt · .docx · .pdf — ou tapez directement',
+  'landing.dropzone.uploadLink': '… ou cliquez pour charger un fichier',
   'landing.dropzone.placeholder': 'Déposez le document ici ou collez le texte…',
   'landing.dropzone.cta': 'Continuer →',
+
+  // ────────────────────────── TwoLevelShell — back button (FR) ──────────────────────────
+  'shell.backToStart': '← Retour au début / Nouveau document',
 
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': "Décodage gratuit avec l'adhésion MHC-L (€0) — bundle modulaire RegIA.",

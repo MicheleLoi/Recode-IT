@@ -78,7 +78,6 @@ import {
   exportToWord,
   formatExportFilename,
 } from './exportDocument'
-import { IntroBanner } from './IntroBanner'
 import { type Language, SUPPORTED_LANGUAGES, useLanguage } from './LanguageContext'
 import { MappaPanel } from './MappaPanel'
 import { ModelLoadingState, type ModelLoadPhase } from './ModelLoadingState'
@@ -338,19 +337,9 @@ export function WireframeWorkArea({
 
   /* ── Hero drop-zone tabs (founder direttiva SID-20260601-085130) ───────
      Hero full-width sopra le colonne, integrata nella pagina LIVE.
-     - Codifica: default 'file' (l'utente carica un documento).
-     - Decodifica: default 'paste' (l'utente incolla la risposta dell'AI).
-     Cambiando tab si rivela inline il widget appropriato (drop-zone /
-     textarea inline). Sotto sempre bottone ghost "↻ Nuovo documento /
-     Nuova decodifica" — affordance per ricominciare anche in stato vuoto.
-     Pattern recuperato dal pre-pivot commit 7fd5202 (.drop-hero +
-     .drop-zone--hero + .btn--ghost), adattato per integrarsi. */
-  const [heroTabCodifica, setHeroTabCodifica] = useState<'file' | 'paste'>('file')
-  const [heroTabDecodifica, setHeroTabDecodifica] = useState<'file' | 'paste'>(
-    'paste',
-  )
-  const heroPasteAreaRefCodifica = useRef<HTMLTextAreaElement>(null)
-  const heroPasteAreaRefDecodifica = useRef<HTMLTextAreaElement>(null)
+     L2-a (SID-20260602): drop-hero rimosso — upload è gestito in LandingLevel.
+     I quattro state/ref (heroTabCodifica/Decodifica, heroPasteAreaRefCodifica/
+     Decodifica) erano esclusivi del drop-hero; rimossi insieme al drop-hero. */
 
   /* ── mappa cards ───────────────────────────────────────────────────────── */
   const [selectedCard, setSelectedCard] = useState<'locali' | null>(null)
@@ -1360,327 +1349,55 @@ export function WireframeWorkArea({
       data-testid="wireframe-workarea"
       data-decodifica-truncated={decodificaTruncated ? 'true' : 'false'}
     >
-      {/* ── Intro banner Variante E (cosa fa + 3 step come si usa) ────────
-          Banner unico dismissibile. Persiste dismiss via
-          localStorage 'recode-it.introDismissed'. Posizione: PRIMO blocco
-          della work area, sotto la login-bar di AppHeader e SOPRA la toolbar
-          2 modalità (.wireframe-macro-row). Vale per entrambe le modalità
-          (codifica / decodifica) — l'intro è generale al prodotto.
-          Canon: founder direttiva SID-20260601-085130 + wireframe
-          MHC-Work/notes/research/recode-it/wireframes/header_copy_preview/
-          (Variante E). Copy use-case-avvocato (`@comm` ratificata). */}
-      <IntroBanner />
-      {/* ── 2-macro toggle ────────────────────────────────────────────── */}
+      {/* ── L2-e: IntroBanner rimosso — il contenuto "come si usa" è espanso
+          in LandingLevel (L1-b). Non si ripete in L2.
+          ── L2-c: macro-row con etichette verbose rimossa — le etichette
+          "Sostituisci con pseudonimo" / "Rimetti a posto gli originali"
+          erano doppioni ridondanti dei pulsantoni PSEUDONIMIZZA / DECODIFICA.
+          Sostituita con un tab-toggle compatto che riusa le stesse label
+          brevi (PSEUDONIMIZZA / DECODIFICA) dei pulsantoni azione — non
+          ridondanza, è il selettore di MODE che precede l'azione. ─── */}
       <div
-        className="wireframe-macro-row"
+        className="wireframe-mode-tabs"
         role="tablist"
         aria-label={t('macro.ariaLabel')}
+        data-testid="wireframe-mode-tabs"
       >
         <button
           type="button"
           role="tab"
           aria-selected={mode === 'codifica'}
-          className={`wireframe-macro-btn${mode === 'codifica' ? ' is-active' : ''}`}
+          className={`wireframe-mode-tab${mode === 'codifica' ? ' is-active' : ''}`}
           onClick={() => setMode('codifica')}
           data-testid="wireframe-macro-codifica"
         >
-          {t('macro.codifica')}
+          {t('wireframe.action.pseudonimize')}
         </button>
         <button
           type="button"
           role="tab"
           aria-selected={mode === 'decodifica'}
-          className={`wireframe-macro-btn${mode === 'decodifica' ? ' is-active' : ''}`}
+          className={`wireframe-mode-tab${mode === 'decodifica' ? ' is-active' : ''}`}
           onClick={() => setMode('decodifica')}
           data-testid="wireframe-macro-decodifica"
         >
-          {t('macro.decodifica')}
+          {t('wireframe.action.decodifica')}
         </button>
       </div>
 
-      {/* ── Hero drop-zone full-width (founder direttiva SID-20260601-085130,
-          riordino SID-20260601 post-deploy 7cc0b8c: spostata SOPRA toolbar
-          PSEUDONIMIZZA/DECODIFICA — primo blocco contenuto sotto la toolbar
-          2 modalità, in entrambe le modalità).
-          Pattern recuperato dal pre-pivot commit 7fd5202 e adattato per
-          integrarsi nella pagina LIVE.
-          - Codifica: tabs "Carica file" (default) / "Incolla testo". Drop-zone
-            dashed con icona ⬆ + headline + hint formati + bottone primary
-            "Carica documento". Divider "oppure" + bottone ghost "↻ Nuovo
-            documento" sempre visibile (anche in stato vuoto).
-          - Decodifica: tabs "Carica file" / "Incolla testo" (default). Drop-zone
-            con icona 📋 + headline "Incolla qui la risposta dell'AI" + hint +
-            bottone primary "Incolla testo". Divider + ghost "↻ Nuova decodifica".
-          Mantenere il pill nel pannello originale (Codifica) NON è più
-          necessario: la sua funzione è dentro la hero (pill rimosso dal body
-          originale qui sotto). */}
-      {mode === 'codifica' && (
-        <div className="drop-hero" data-testid="drop-hero-codifica">
-          <div className="drop-hero__tabs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={heroTabCodifica === 'file'}
-              className={`drop-hero__tab${
-                heroTabCodifica === 'file' ? ' is-active' : ''
-              }`}
-              onClick={() => setHeroTabCodifica('file')}
-              data-testid="drop-hero-tab-file-codifica"
-            >
-              {t('wireframe.hero.codifica.tab.file')}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={heroTabCodifica === 'paste'}
-              className={`drop-hero__tab${
-                heroTabCodifica === 'paste' ? ' is-active' : ''
-              }`}
-              onClick={() => {
-                setHeroTabCodifica('paste')
-                // Focus immediato sulla textarea inline (tab paste).
-                window.setTimeout(
-                  () => heroPasteAreaRefCodifica.current?.focus(),
-                  0,
-                )
-              }}
-              data-testid="drop-hero-tab-paste-codifica"
-            >
-              {t('wireframe.hero.codifica.tab.paste')}
-            </button>
-          </div>
-          {/* Tab "Carica file" — drop-zone dashed. Display:none invece di unmount
-              per non perdere referenze testid/event handler tra switch tab. */}
-          <div
-            className={`drop-zone--hero${dragOver ? ' is-dragover' : ''}`}
-            onClick={() => fileInputRef.current?.click()}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            style={{
-              display: heroTabCodifica === 'file' ? undefined : 'none',
-            }}
-            data-testid="drop-hero-zone-codifica"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                fileInputRef.current?.click()
-              }
-            }}
-          >
-            <div className="drop-zone__icon" aria-hidden>
-              ⬆
-            </div>
-            <div className="drop-zone__headline">
-              {t('wireframe.hero.codifica.headline')}
-            </div>
-            <p className="drop-zone__hint">
-              {t('wireframe.hero.codifica.hint')}
-            </p>
-            <button
-              type="button"
-              className="btn-primary drop-zone__cta"
-              onClick={(e) => {
-                e.stopPropagation()
-                fileInputRef.current?.click()
-              }}
-              data-testid="drop-hero-cta-codifica"
-            >
-              {t('wireframe.hero.codifica.cta')}
-            </button>
-          </div>
-          {/* Tab "Incolla testo" — textarea inline che scrive su originaleText. */}
-          <div
-            className="drop-hero__paste"
-            style={{
-              display: heroTabCodifica === 'paste' ? undefined : 'none',
-            }}
-          >
-            <textarea
-              ref={heroPasteAreaRefCodifica}
-              className="drop-hero__paste-area"
-              value={originaleText}
-              onChange={(e) => {
-                const next = e.target.value
-                // Empty → non-empty = paste/typed-first-char via hero.
-                // Trigger scroll + pulse sul wrapper PSEUDONIMIZZA. La ref-flag
-                // garantisce single-shot (no re-scroll su ogni keystroke).
-                if (originaleText.length === 0 && next.length > 0) {
-                  scrollToActionSection()
-                }
-                setOriginaleText(next)
-              }}
-              placeholder={t('wireframe.placeholder.originale.codifica')}
-              data-testid="drop-hero-paste-codifica"
-              rows={6}
-            />
-          </div>
-          <div className="hero-divider">{t('wireframe.hero.codifica.divider')}</div>
-          <button
-            type="button"
-            className="btn-ghost"
-            onClick={() => {
-              setOriginaleText('')
-              setPseudonimizzatoText('')
-              setHasRunOnCurrentDoc(false)
-              setEntityReviewOpen(false)
-              setHeroTabCodifica('file')
-            }}
-            data-testid="drop-hero-newdoc-codifica"
-          >
-            {t('wireframe.hero.codifica.newdoc')}
-          </button>
-          {/* File input nascosto — riusato dalla drop-zone della hero (e dal
-              pill legacy se ancora presente nel pannello). */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".txt,.md,.docx,.pdf,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            onChange={handleFileInput}
-            style={{ display: 'none' }}
-            data-testid="wireframe-file-input"
-          />
-        </div>
-      )}
-      {mode === 'decodifica' && (
-        <div className="drop-hero" data-testid="drop-hero-decodifica">
-          <div className="drop-hero__tabs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={heroTabDecodifica === 'file'}
-              className={`drop-hero__tab${
-                heroTabDecodifica === 'file' ? ' is-active' : ''
-              }`}
-              onClick={() => setHeroTabDecodifica('file')}
-              data-testid="drop-hero-tab-file-decodifica"
-            >
-              {t('wireframe.hero.codifica.tab.file')}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={heroTabDecodifica === 'paste'}
-              className={`drop-hero__tab${
-                heroTabDecodifica === 'paste' ? ' is-active' : ''
-              }`}
-              onClick={() => {
-                setHeroTabDecodifica('paste')
-                window.setTimeout(
-                  () => heroPasteAreaRefDecodifica.current?.focus(),
-                  0,
-                )
-              }}
-              data-testid="drop-hero-tab-paste-decodifica"
-            >
-              {t('wireframe.hero.codifica.tab.paste')}
-            </button>
-          </div>
-          {/* Tab "Carica file" — fallback minore in Decodifica: l'AI risponde
-              normalmente in testo da incollare. Riusa stesso file input nascosto
-              ma deve essere mounted: lo replichiamo qui scoped al mode. */}
-          <div
-            className="drop-zone--hero"
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              display: heroTabDecodifica === 'file' ? undefined : 'none',
-            }}
-            data-testid="drop-hero-zone-decodifica-file"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                fileInputRef.current?.click()
-              }
-            }}
-          >
-            <div className="drop-zone__icon" aria-hidden>
-              ⬆
-            </div>
-            <div className="drop-zone__headline">
-              {t('wireframe.hero.codifica.headline')}
-            </div>
-            <p className="drop-zone__hint">
-              {t('wireframe.hero.codifica.hint')}
-            </p>
-            <button
-              type="button"
-              className="btn-primary drop-zone__cta"
-              onClick={(e) => {
-                e.stopPropagation()
-                fileInputRef.current?.click()
-              }}
-              data-testid="drop-hero-cta-decodifica-file"
-            >
-              {t('wireframe.hero.codifica.cta')}
-            </button>
-          </div>
-          {/* Tab "Incolla testo" — caso d'uso primario Decodifica: incolla
-              risposta AI nel pseudonimizzatoText. */}
-          <div
-            className="drop-zone--hero drop-zone--hero-paste"
-            style={{
-              display: heroTabDecodifica === 'paste' ? undefined : 'none',
-            }}
-            data-testid="drop-hero-zone-decodifica-paste"
-          >
-            <div className="drop-zone__icon" aria-hidden>
-              📋
-            </div>
-            <div className="drop-zone__headline">
-              {t('wireframe.hero.decodifica.headline')}
-            </div>
-            <p className="drop-zone__hint">
-              {t('wireframe.hero.decodifica.hint')}
-            </p>
-            <textarea
-              ref={heroPasteAreaRefDecodifica}
-              className="drop-hero__paste-area"
-              value={pseudonimizzatoText}
-              onChange={(e) => {
-                const next = e.target.value
-                // Empty → non-empty = paste/typed-first-char via hero.
-                // Trigger scroll + pulse sul wrapper DECODIFICA.
-                // La ref-flag garantisce single-shot (no re-scroll su keystroke).
-                if (pseudonimizzatoText.length === 0 && next.length > 0) {
-                  scrollToActionSection()
-                }
-                setPseudonimizzatoText(next)
-                setHasRunDecodifica(false)
-              }}
-              placeholder={t('wireframe.placeholder.pseudonimizzato.decodifica')}
-              data-testid="drop-hero-paste-decodifica"
-              rows={6}
-            />
-          </div>
-          <div className="hero-divider">{t('wireframe.hero.codifica.divider')}</div>
-          <button
-            type="button"
-            className="btn-ghost"
-            onClick={() => {
-              setOriginaleText('')
-              setPseudonimizzatoText('')
-              setHasRunDecodifica(false)
-              setHeroTabDecodifica('paste')
-            }}
-            data-testid="drop-hero-newdoc-decodifica"
-          >
-            {t('wireframe.hero.decodifica.newdoc')}
-          </button>
-          {/* File input — montato anche in decodifica per la tab "Carica file". */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".txt,.md,.docx,.pdf,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            onChange={handleFileInput}
-            style={{ display: 'none' }}
-            data-testid="wireframe-file-input"
-          />
-        </div>
-      )}
+      {/* ── L2-a: drop-hero rimosso — upload already handled at Livello 1.
+          The hidden file input is kept below for panel drag-drop (handleDrop
+          on wireframe-panels) and future programmatic access. ────────── */}
+      {/* Hidden file input — referenced by fileInputRef; panel onDrop still
+          works via handleDrop → handleFiles which calls extractText directly. */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".txt,.md,.docx,.pdf,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        onChange={handleFileInput}
+        style={{ display: 'none' }}
+        data-testid="wireframe-file-input"
+      />
 
       {/* ── Toolbar: PSEUDONIMIZZA/DECODIFICA + sostituisci anche ────────
            Anchor id dinamico via `mode` (founder direttiva

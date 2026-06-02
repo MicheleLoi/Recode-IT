@@ -2522,7 +2522,48 @@ code {
   padding: 0;
 }
 
-/* ── 2 macro buttons ────────────────────────────────────────────── */
+/* ── Compact mode-tabs (L2-c replacement, SID-20260602) ─────────── */
+/* Replaces the verbose wireframe-macro-row (SID-20260602): compact
+   tab-strip using the short PSEUDONIMIZZA / DECODIFICA labels from
+   wireframe.action.* translation keys. Not a full-height action
+   button — just a tab selector. The real action still lives in
+   wireframe-action-btn inside wireframe-toolbar below. */
+.wireframe-mode-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--wf-border, #d1d5db);
+  padding-bottom: 0;
+  margin-bottom: 4px;
+}
+
+.wireframe-mode-tab {
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  background: none;
+  color: var(--wf-text-muted, #6b7280);
+  cursor: pointer;
+  font-family: inherit;
+  border-radius: 6px 6px 0 0;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+
+.wireframe-mode-tab:hover:not(.is-active) {
+  color: var(--ink, #1b2230);
+  background: var(--wf-panel-bg, #fafafa);
+}
+
+.wireframe-mode-tab.is-active {
+  color: var(--wf-brand-blue, #2563eb);
+  border-bottom-color: var(--wf-brand-blue, #2563eb);
+  background: none;
+}
+
+/* ── 2 macro buttons (legacy — kept for backward compat) ─────────── */
 .wireframe-macro-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4906,6 +4947,107 @@ code {
 
 .landing-dropzone__cta:not(:disabled):hover {
   background: var(--wf-brand-blue-hover, #1d4ed8);
+}
+
+/* ── L1-a: upload-per-click link ─────────────────────────────────── */
+.landing-dropzone__upload-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--wf-brand-blue, #2563eb);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+  margin-top: 2px;
+}
+
+.landing-dropzone__upload-link:hover {
+  color: var(--wf-brand-blue-hover, #1d4ed8);
+}
+
+.landing-dropzone__upload-arrow {
+  font-size: 14px;
+  font-style: normal;
+  line-height: 1;
+}
+
+/* ── L1-b: Intro section ─────────────────────────────────────────── */
+.landing-intro {
+  background: var(--wf-bg, #ffffff);
+  border: 1px solid var(--wf-border, #d1d5db);
+  border-radius: var(--wf-radius, 10px);
+  padding: 28px 32px 24px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.landing-intro__headline {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink, #1b2230);
+  margin: 0 0 18px;
+  line-height: 1.3;
+}
+
+.landing-intro__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.landing-intro__step {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.landing-intro__step-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--wf-brand-blue, #2563eb);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.landing-intro__step-body {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink, #1b2230);
+  line-height: 1.55;
+}
+
+.landing-intro__trust {
+  margin: 0;
+  font-size: 13px;
+  color: var(--wf-text-muted, #6b7280);
+  line-height: 1.5;
+}
+
+/* ── L2-b: prominent back button ─────────────────────────────────── */
+.two-level-back-btn--prominent {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--wf-radius, 10px);
+  border: 1.5px solid var(--wf-border, #d1d5db);
+  background: var(--wf-bg, #ffffff);
+  color: var(--ink, #1b2230);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  margin-bottom: 8px;
+}
+
+.two-level-back-btn--prominent:hover {
+  border-color: var(--wf-brand-blue, #2563eb);
+  color: var(--wf-brand-blue, #2563eb);
+  background: var(--wf-accent-soft, #eff6ff);
 }
 
 /* ── 3-column panels grid (showMappaLaterale) ─────────────────────── */

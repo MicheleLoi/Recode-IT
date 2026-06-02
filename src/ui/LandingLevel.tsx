@@ -6,8 +6,14 @@
  * Layout:
  *   - Hero (branding, tagline) — riusa gli stili .app__hero di AppHeader
  *   - 3 trust badge: 100% nel browser / Niente upload al server / GDPR
+ *   - Intro section: headline "Pseudonimizza i dati prima di mandarli all'AI"
+ *     + 2 step (Codifica / Decodifica) + trust points.
+ *     Copy verbatim da communication/recode-it/site_copy_draft_20260524.md
+ *     (§"Cosa fa, in due tempi"). i18n 4 lingue (keys landing.intro.*).
  *   - Drop-zone unificata con textarea interna + bottone "Continua →" DENTRO
  *     la drop-zone, disabilitato se textarea vuota, abilitato al primo input.
+ *   - L1-a: upload-per-click leggibile — freccia-su + testo "… o clicca per
+ *     caricare" sotto la textarea (link cliccabile, chiaro).
  *   - L'utente incolla/trascina il documento → "Continua →" attivo → click →
  *     il testo viene passato al Livello 2 (WireframeWorkArea via onContinue).
  *
@@ -23,7 +29,7 @@
  * .txt/.md/.docx/.pdf). Sul drop si estrae il testo via extractText e si
  * chiama onContinue immediatamente (non serve premere "Continua →").
  *
- * Canon SID: flusso_2livelli/index.html (2026-06-02).
+ * Canon SID: flusso_2livelli/index.html (2026-06-02). Refinement SID-20260602.
  */
 
 import {
@@ -138,6 +144,27 @@ export function LandingLevel({ onContinue }: Props): JSX.Element {
         </span>
       </div>
 
+      {/* ── Intro section (L1-b) ─────────────────────────────────────
+          Copy verbatim da site_copy_draft_20260524.md §"Cosa fa, in due tempi".
+          Headline + 2 step (Codifica / Decodifica) + trust points.
+          Posizione: dopo i badge, prima della drop-zone. ──────────── */}
+      <div className="landing-intro" data-testid="landing-intro">
+        <h2 className="landing-intro__headline">{t('landing.intro.headline')}</h2>
+        <div className="landing-intro__steps">
+          <div className="landing-intro__step">
+            <span className="landing-intro__step-label">{t('landing.intro.step1.label')}</span>
+            <p className="landing-intro__step-body">{t('landing.intro.step1.body')}</p>
+          </div>
+          <div className="landing-intro__step">
+            <span className="landing-intro__step-label">{t('landing.intro.step2.label')}</span>
+            <p className="landing-intro__step-body">{t('landing.intro.step2.body')}</p>
+          </div>
+        </div>
+        <p className="landing-intro__trust">
+          {t('landing.intro.trust')} {t('landing.intro.gdpr')}
+        </p>
+      </div>
+
       {/* ── Unified drop-zone ────────────────────────────────────────── */}
       <div
         className={`landing-dropzone${dragOver ? ' landing-dropzone--dragover' : ''}`}
@@ -154,18 +181,6 @@ export function LandingLevel({ onContinue }: Props): JSX.Element {
         role="region"
         aria-label={t('landing.dropzone.title')}
       >
-        <div
-          className="landing-dropzone__icon"
-          aria-hidden
-          onClick={(e) => {
-            e.stopPropagation()
-            fileInputRef.current?.click()
-          }}
-          style={{ cursor: 'pointer' }}
-          title="Carica file"
-        >
-          🗂
-        </div>
         <div className="landing-dropzone__title">{t('landing.dropzone.title')}</div>
         <div className="landing-dropzone__hint">{t('landing.dropzone.hint')}</div>
 
@@ -183,6 +198,22 @@ export function LandingLevel({ onContinue }: Props): JSX.Element {
           rows={6}
         />
 
+        {/* L1-a: upload-per-click leggibile — freccia-su + testo esplicito.
+            Posizione: sotto la textarea, sopra il bottone Continua.
+            Non più icona 🗂 sgranata: un link con affordance visiva chiara. */}
+        <button
+          type="button"
+          className="landing-dropzone__upload-link"
+          onClick={(e) => {
+            e.stopPropagation()
+            fileInputRef.current?.click()
+          }}
+          data-testid="landing-upload-link"
+        >
+          <span className="landing-dropzone__upload-arrow" aria-hidden>↑</span>
+          {t('landing.dropzone.uploadLink')}
+        </button>
+
         <button
           type="button"
           className="landing-dropzone__cta"
@@ -196,7 +227,7 @@ export function LandingLevel({ onContinue }: Props): JSX.Element {
           {loading ? '…' : t('landing.dropzone.cta')}
         </button>
 
-        {/* Hidden file input — triggered by icon click */}
+        {/* Hidden file input — triggered by upload-link button */}
         <input
           ref={fileInputRef}
           type="file"
