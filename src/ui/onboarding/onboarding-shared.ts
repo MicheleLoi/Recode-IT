@@ -95,14 +95,30 @@ export type OnboardingStep = {
 }
 
 /**
- * The six bubbles, in order, covering BOTH directions of the flow:
+ * The eight bubbles, in order, covering BOTH directions of the flow:
  *   1-3  Level 1 (landing): drop-zone · privacy badges · "Continua →"
  *   4-5  Level 2 (work), CODIFICA mode: the PSEUDONIMIZZA mode tab · the Mappa
  *        panel (where the name→pseudonym correspondence lives)
- *   6    Level 2 (work), DECODIFICA mode: the DECODIFICA mode tab — reaching
- *        this step ACTUALLY switches the work area to DECODIFICA (via the
- *        workMode hand-off) so the user sees the reverse panel, not just a
- *        pointer at the tab.
+ *   6-8  Level 2 (work), DECODIFICA mode — the reverse direction, walked end to
+ *        end:
+ *     6  the DECODIFICA mode tab — reaching this step ACTUALLY switches the
+ *        work area to DECODIFICA (via the workMode hand-off) so the user lands
+ *        on the reverse page, not just a pointer at the tab. It is the *entry*
+ *        to the decodifica walk.
+ *     7  the Decodifica INPUT — the editable field where the AI's reply (still
+ *        carrying the pseudonyms) is pasted. In the work area's decodifica
+ *        layout this is the DX panel body (the pseudonimizzato side becomes the
+ *        editable input when the flow inverts).
+ *     8  the Decodifica OUTPUT — the read-only field where the real names
+ *        reappear, ready to copy. In the decodifica layout this is the SX panel
+ *        body (the originale side becomes the reconstructed output).
+ *
+ * Steps 6-8 all declare workMode 'decodifica', so the CODIFICA→DECODIFICA
+ * switch fires EXACTLY ONCE (advancing onto step 6); steps 7 and 8 stay in
+ * decodifica with no re-switch. The input/output bodies render even when empty
+ * (the textareas show placeholders), so their targets resolve immediately via
+ * the existing useLayoutEffect read + rAF poll anchoring — no element is queried
+ * before it exists.
  *
  * Copy is DESCRIPTIVE/impersonal narration (the overlay is modal — the user
  * clicks through with Avanti/Fine, they do not act on these elements now).
@@ -146,11 +162,35 @@ export const ONBOARDING_STEPS: ReadonlyArray<OnboardingStep> = [
     placement: 'left',
   },
   {
+    // ENTRY to the decodifica walk: reaching this step flips the work area to
+    // DECODIFICA (workMode hand-off), then bubbles 7-8 tour the page it reveals.
     id: 'decodifica-tab',
     level: 'work',
     workMode: 'decodifica',
     targetTestId: 'wireframe-tab-decodifica',
     bodyKey: 'onboarding.bubble6.body',
     placement: 'bottom',
+  },
+  {
+    // Decodifica INPUT — paste the AI reply (still pseudonymized). DX panel body
+    // (the pseudonimizzato side, editable when the flow inverts). 'top' so the
+    // bubble sits above the input; auto-flips to 'bottom' near the viewport top.
+    id: 'decodifica-input',
+    level: 'work',
+    workMode: 'decodifica',
+    targetTestId: 'wireframe-decodifica-input',
+    bodyKey: 'onboarding.bubble7.body',
+    placement: 'top',
+  },
+  {
+    // Decodifica OUTPUT — the real names reappear here, ready to copy. SX panel
+    // body (the originale side, read-only reconstructed output). 'top' mirrors
+    // the input step; auto-flips if it would overflow.
+    id: 'decodifica-output',
+    level: 'work',
+    workMode: 'decodifica',
+    targetTestId: 'wireframe-decodifica-output',
+    bodyKey: 'onboarding.bubble8.body',
+    placement: 'top',
   },
 ]

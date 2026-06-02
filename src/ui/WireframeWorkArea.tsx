@@ -1918,7 +1918,19 @@ export function WireframeWorkArea({
               </span>
             </div>
           )}
-          <div className="wireframe-panel__body">
+          {/* testid `wireframe-decodifica-output` is the onboarding bubble-8
+              anchor (ONBOARDING_STEPS[7]). In DECODIFICA mode this SX (originale)
+              body holds the read-only OUTPUT textarea where the real names
+              reappear; the tour spotlights the body so the frame hugs the
+              input/output region (the panel label sits above, outside it). The
+              body always renders (codifica + decodifica, with/without text), so
+              the rect resolves immediately once decodifica mode is mounted. The
+              `wireframe-panel__body` class is unchanged (styles.css depends on
+              it); only the tour testid is added. */}
+          <div
+            className="wireframe-panel__body"
+            data-testid="wireframe-decodifica-output"
+          >
             {/* Pill upload RIMOSSO (SID-20260601-085130): la sua funzione è
                 ora dentro la hero drop-zone full-width sopra le colonne. Il
                 file input nascosto è montato nella hero (Codifica o Decodifica
@@ -2174,7 +2186,18 @@ export function WireframeWorkArea({
           <div className="wireframe-panel__label">
             {t('wireframe.panel.pseudonimizzato')}
           </div>
-          <div className="wireframe-panel__body">
+          {/* testid `wireframe-decodifica-input` is the onboarding bubble-7
+              anchor (ONBOARDING_STEPS[6]). In DECODIFICA mode this DX
+              (pseudonimizzato) body holds the editable INPUT textarea where the
+              user pastes the AI reply (still carrying pseudonyms); the tour
+              spotlights the body so the frame hugs the input region. Like the SX
+              body it always renders across modes, so the rect resolves as soon
+              as decodifica is mounted. `wireframe-panel__body` class unchanged
+              (styles.css depends on it); only the tour testid is added. */}
+          <div
+            className="wireframe-panel__body"
+            data-testid="wireframe-decodifica-input"
+          >
             {/* Copia output a un click (Fix 1) — Codifica: il pannello
                 pseudonimizzato è l'output. Bottone floating top-left, sopra
                 DocumentView/textarea (il padding-top:44px riserva la fascia).
