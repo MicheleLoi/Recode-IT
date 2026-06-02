@@ -3,8 +3,8 @@
  * library: react-joyride / shepherd / driver.js / intro.js are all avoided per
  * spec). A small React component + CSS (.onboarding-* in styles.css) only.
  *
- * REAL PRODUCTION feature — NOT mock-gated. It runs for every first-time user,
- * independent of import.meta.env.DEV / VITE_MOCK_FULL.
+ * REAL PRODUCTION feature. It runs for every first-time user, independent of
+ * import.meta.env.DEV.
  *
  * Mechanism
  * ─────────

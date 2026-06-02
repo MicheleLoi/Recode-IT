@@ -19,29 +19,6 @@
 
 import type { NerDetection } from '../types/engine'
 import { getModelUrl, type Language } from '../ui/LanguageContext'
-// DEV-ONLY: deterministic NER stub. The import is static, but every USE of it
-// is gated behind MOCK_NER_ENABLED (see below), which is a compile-time-false
-// constant in any production build — so Vite tree-shakes both the guarded
-// branches and this module out of the prod bundle, exactly like the auth mock.
-import { mockNerPredict } from '../mock/mock-ner'
-
-/**
- * DEV-ONLY e2e stub switch. When true, {@link NerRunner.init} does NOT spawn
- * the Web Worker (no ONNX / transformers.js import) and {@link NerRunner.predict}
- * returns a fixed set of detections instantly. Mirrors the auth mock gate in
- * `App.tsx` EXACTLY: both conditions required.
- *
- *   - `import.meta.env.DEV` — true only on the Vite dev server; a production
- *     build statically inlines `false`, making this constant `false` and the
- *     guarded branches dead code (tree-shaken out, mock-ner.ts dropped).
- *   - `import.meta.env.VITE_MOCK_FULL === '1'` — explicit opt-in flag set by
- *     `.env.mock` (loaded via `npm run dev:mock` → `vite --mode mock`).
- *
- * When this is false, the NER path below is byte-for-byte the original
- * behaviour — the real Worker is created and used.
- */
-const MOCK_NER_ENABLED =
-  import.meta.env.DEV && import.meta.env.VITE_MOCK_FULL === '1'
 
 /** Progress information forwarded from the NER worker during init(). */
 export type NerProgressEvent = {
@@ -233,14 +210,6 @@ export class NerRunner {
    */
   async init(onProgress?: (event: NerProgressEvent) => void): Promise<void> {
     if (this.ready) return
-    // DEV-ONLY e2e stub: do NOT create the Worker (no ONNX/transformers import,
-    // which stalls on the dev server). Mark ready so call sites (PseudonymizePanel,
-    // WireframeWorkArea) transition nerStatus → idle and proceed to predict().
-    // Tree-shaken in prod (MOCK_NER_ENABLED is compile-time false).
-    if (MOCK_NER_ENABLED) {
-      this.ready = true
-      return
-    }
     if (typeof Worker === 'undefined') {
       throw new Error(
         "Worker API not available in this environment — NER cannot start.",
@@ -347,18 +316,6 @@ export class NerRunner {
    * pipeline downstream, so the user always gets a usable result.
    */
   async predict(text: string): Promise<NerPredictResult> {
-    // DEV-ONLY e2e stub: return fixed detections instantly, no worker, no
-    // chunking, no ONNX. Offsets are already in input-text space (the stub
-    // scans the full text), so no chunk re-basing is needed. Tree-shaken in
-    // prod (MOCK_NER_ENABLED is compile-time false).
-    if (MOCK_NER_ENABLED) {
-      return {
-        detections: mockNerPredict(text),
-        partial: false,
-        failedChunkRanges: [],
-      }
-    }
-
     const chunks = splitIntoChunks(text, 800)
 
     const attemptChunk = async (

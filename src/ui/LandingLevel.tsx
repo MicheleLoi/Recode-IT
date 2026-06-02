@@ -41,11 +41,6 @@ import {
 } from 'react'
 import { useLanguage } from './LanguageContext'
 import { extractText, SUPPORTED_EXTENSIONS } from '../extraction/extract'
-// DEV-ONLY: predefined sample document for the e2e-test-build branch. Gated
-// behind MOCK_NER_ENABLED below; a production build inlines
-// import.meta.env.DEV === false, so the loader button is dead code and Vite
-// tree-shakes both this import and mock-ner.ts out of the prod bundle.
-import { MOCK_SAMPLE_DOCUMENT } from '../mock/mock-ner'
 
 type Props = {
   /** Called when the user clicks "Continua →" or drops a file. */
@@ -53,13 +48,6 @@ type Props = {
 }
 
 const ACCEPTED_EXTENSIONS = SUPPORTED_EXTENSIONS
-
-// DEV-ONLY e2e stub gate — mirrors App.tsx / ner_runner.ts EXACTLY. True only
-// on the Vite dev server with VITE_MOCK_FULL=1 (npm run dev:mock). A production
-// build inlines import.meta.env.DEV === false → the "Carica testo di prova"
-// button below is tree-shaken out. Never reaches prod.
-const MOCK_NER_ENABLED =
-  import.meta.env.DEV && import.meta.env.VITE_MOCK_FULL === '1'
 
 export function LandingLevel({ onContinue }: Props): JSX.Element {
   const { t } = useLanguage()
@@ -220,31 +208,6 @@ export function LandingLevel({ onContinue }: Props): JSX.Element {
           <span className="landing-dropzone__upload-arrow" aria-hidden>↑</span>
           {t('landing.dropzone.uploadLink')}
         </button>
-
-        {/* DEV-ONLY (mock/e2e-test-build): one-click loader for the predefined
-            Italian legal-style sample document. Rendered ONLY when
-            import.meta.env.DEV && VITE_MOCK_FULL === '1' (npm run dev:mock).
-            Tree-shaken out of any prod build (MOCK_NER_ENABLED compile-time
-            false). Fills the landing textarea so the existing "Continua →" CTA
-            activates and the user follows the normal flow into Level 2 with the
-            sample pre-loaded; the stub NER then detects the four targets on
-            PSEUDONIMIZZA. */}
-        {MOCK_NER_ENABLED && (
-          <button
-            type="button"
-            className="landing-dropzone__upload-link"
-            onClick={(e) => {
-              e.stopPropagation()
-              setText(MOCK_SAMPLE_DOCUMENT)
-              setError(null)
-            }}
-            data-testid="landing-mock-load-sample-btn"
-            title="DEV-ONLY: carica un documento di prova con tutte le entità target"
-          >
-            <span className="landing-dropzone__upload-arrow" aria-hidden>🧪</span>
-            Carica testo di prova
-          </button>
-        )}
 
         <button
           type="button"
