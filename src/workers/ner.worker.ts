@@ -123,7 +123,12 @@ const DEFAULT_FALLBACK_THRESHOLD = 0.4
  * IT (DistilBERT-italian-cased): 5-class IO scheme.
  * EN (Xenova/bert-base-NER from dslim): 9-class BIO scheme — B-/I- prefixes
  * are normalized away at decode time so the same IO-style decoder handles
- * both. Same for DE/FR when they ship.
+ * both. Same for DE.
+ *
+ * DE (domischwimmbeck/bert-base-german-cased-fine-tuned-ner): 9-class BIO
+ * scheme (B-LOC/B-ORG/B-OTH/B-PER + I- variants + O). OTH maps to MISC —
+ * not in LABEL_MAP so silently dropped (same as IT MISC). Verified against
+ * de_bertgerman_ner_q8/config.json (research SID-20260602).
  */
 const ID2LABEL_BY_LANG: Record<string, Record<number, string>> = {
   it: {
@@ -143,6 +148,17 @@ const ID2LABEL_BY_LANG: Record<string, Record<number, string>> = {
     6: 'I-ORG',
     7: 'B-LOC',
     8: 'I-LOC',
+  },
+  de: {
+    0: 'B-LOC',
+    1: 'B-ORG',
+    2: 'B-OTH',
+    3: 'B-PER',
+    4: 'I-LOC',
+    5: 'I-ORG',
+    6: 'I-OTH',
+    7: 'I-PER',
+    8: 'O',
   },
 }
 
@@ -684,17 +700,23 @@ async function predictChunk(
 
   // Build feeds. The exported graph takes int64 tensors.
   //
-  // BERT-family models (e.g. Xenova/bert-base-NER for English) require a
-  // third input `token_type_ids` — a sequence of zeros for single-sentence
-  // tasks. DistilBERT-family models (e.g. osiria/distilbert-italian-cased-ner)
-  // do NOT take this input. We decide based on the active language rather
-  // than introspecting `session.inputNames` because the onnxruntime-web
-  // ReadonlyArray exposed there does not always report as a plain JS Array
-  // and the introspection-based path silently produced empty feeds.
+  // BERT-family models require a third input `token_type_ids` (zeros for
+  // single-sentence tasks). DistilBERT-family models do NOT.
+  //
+  // BERT_FAMILY_LANGS tracks which language codes use BERT-family models:
+  //   EN — dslim/bert-base-NER (BERT-base)          → needs token_type_ids
+  //   DE — bert-base-german-cased (domischwimmbeck)  → needs token_type_ids
+  //   IT — osiria/distilbert-italian-cased-ner       → no token_type_ids
+  //
+  // We decide based on the active language rather than introspecting
+  // `session.inputNames` because the onnxruntime-web ReadonlyArray exposed
+  // there does not always report as a plain JS Array and the
+  // introspection-based path silently produced empty feeds.
   //
   // Single source of truth for "which language uses which architecture":
   // tracked alongside ID2LABEL_BY_LANG via CURRENT_LANG, set by init().
-  const isBertFamily = CURRENT_LANG !== 'it'
+  const BERT_FAMILY_LANGS = new Set(['en', 'de'])
+  const isBertFamily = BERT_FAMILY_LANGS.has(CURRENT_LANG)
   const feeds: Record<string, any> = {
     input_ids: new ort.Tensor('int64', bigInt64(enc.inputIds), [1, L]),
     attention_mask: new ort.Tensor('int64', bigInt64(enc.attentionMask), [1, L]),

@@ -151,6 +151,13 @@ import {
   STREET_POOL_EN,
 } from './pools_en'
 
+import {
+  PERSON_POOL_DE,
+  COMPANY_POOL_DE,
+  CITY_POOL_DE,
+  STREET_POOL_DE,
+} from './pools_de'
+
 export type LanguagePools = {
   PERSON_POOL: string[]
   COMPANY_POOL: string[]
@@ -170,6 +177,12 @@ const POOLS_BY_LANG: Record<string, LanguagePools> = {
     COMPANY_POOL: COMPANY_POOL_EN,
     CITY_POOL: CITY_POOL_EN,
     STREET_POOL: STREET_POOL_EN,
+  },
+  de: {
+    PERSON_POOL: PERSON_POOL_DE,
+    COMPANY_POOL: COMPANY_POOL_DE,
+    CITY_POOL: CITY_POOL_DE,
+    STREET_POOL: STREET_POOL_DE,
   },
 }
 
