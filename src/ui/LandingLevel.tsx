@@ -132,7 +132,11 @@ export function LandingLevel({ onContinue }: Props): JSX.Element {
           nell'header globale AppHeader. La landing parte dai badge + intro. */}
 
       {/* ── Trust badges ────────────────────────────────────────────── */}
-      <div className="landing-badges" aria-label="Garanzie di privacy">
+      {/* data-testid anchors onboarding bubble 2 (ONBOARDING_STEPS[1]); without
+          it the tour's querySelector('[data-testid="landing-badges"]') returned
+          null and step 2's rect never resolved (the spotlight/bubble stayed
+          hidden). The class name alone is not a stable anchor for the tour. */}
+      <div className="landing-badges" data-testid="landing-badges" aria-label="Garanzie di privacy">
         <span className="landing-badge">
           <span className="landing-badge__icon" aria-hidden>🔒</span>
           {t('landing.badge.browser')}

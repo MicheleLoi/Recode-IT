@@ -644,6 +644,24 @@ const it: Catalog = {
   // ────────────────────────── TwoLevelShell — back button ──────────────────────────
   'shell.backToStart': '← Torna all\'inizio / Nuovo documento',
 
+  // ────────────────────────── Onboarding "guida a bolle" (primo accesso) ──────────────────────────
+  // Coachmark tour custom (no libreria terza): 4 bolle ancorate a elementi reali.
+  // Bolle 1-3 in Livello 1 (drop-zone / badge privacy / Continua), bolla 4 al
+  // primo arrivo in Livello 2 (pulsantoni PSEUDONIMIZZA/DECODIFICA + Mappa).
+  // localStorage key: recode_onboarding_bubbles_done (distinta da introDismissed).
+  'onboarding.bubble1.body': 'Incolla o trascina qui il documento. Resta tutto nel tuo browser.',
+  'onboarding.bubble2.body': '100% in locale: nessun dato lascia il tuo dispositivo.',
+  'onboarding.bubble3.body': 'Pronto? Premi Continua per l\'area di lavoro.',
+  'onboarding.bubble4.body': 'Pseudonimizza i nomi, correggi le coppie nella Mappa (resta solo da te), e con Decodifica li rimetti.',
+  'onboarding.next': 'Avanti',
+  'onboarding.skip': 'Salta',
+  'onboarding.finish': 'Fine',
+  'onboarding.step': 'Passo {n} di {total}',
+  'onboarding.regionAria': 'Guida introduttiva',
+  'onboarding.closeAria': 'Chiudi la guida',
+  'onboarding.replayTitle': 'Rivedi la guida introduttiva',
+  'onboarding.replayAria': 'Rivedi la guida introduttiva',
+
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   // Canon: notes/research/recode-it/wireframes/bundle_crosslink_prototype_20260527.html
   // Polo E flip: free path (MHC-L bundle €0) primary, €20 standalone fallback.
@@ -1194,6 +1212,20 @@ const en: Catalog = {
   // ────────────────────────── TwoLevelShell — back button (EN) ──────────────────────────
   'shell.backToStart': '← Back to start / New document',
 
+  // ────────────────────────── Onboarding bubble guide (first access) (EN) ──────────────────────────
+  'onboarding.bubble1.body': 'Paste or drag your document here. Everything stays in your browser.',
+  'onboarding.bubble2.body': '100% local: no data leaves your device.',
+  'onboarding.bubble3.body': 'Ready? Press Continue for the work area.',
+  'onboarding.bubble4.body': 'Pseudonymize the names, fix the pairs in the Map (it stays only with you), and Decode puts them back.',
+  'onboarding.next': 'Next',
+  'onboarding.skip': 'Skip',
+  'onboarding.finish': 'Done',
+  'onboarding.step': 'Step {n} of {total}',
+  'onboarding.regionAria': 'Getting-started guide',
+  'onboarding.closeAria': 'Close the guide',
+  'onboarding.replayTitle': 'Replay the getting-started guide',
+  'onboarding.replayAria': 'Replay the getting-started guide',
+
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': 'Free Decoding when you join MHC-L (€0) — modular RegIA bundle.',
   'bundleBanner.cta': 'Learn more →',
@@ -1686,6 +1718,20 @@ const de: Catalog = {
   // ────────────────────────── TwoLevelShell — back button (DE) ──────────────────────────
   'shell.backToStart': '← Zurück zum Anfang / Neues Dokument',
 
+  // ────────────────────────── Onboarding-Blasenführung (Erstzugriff) (DE) ──────────────────────────
+  'onboarding.bubble1.body': 'Fügen Sie Ihr Dokument hier ein oder ziehen Sie es hierher. Alles bleibt in Ihrem Browser.',
+  'onboarding.bubble2.body': '100% lokal: keine Daten verlassen Ihr Gerät.',
+  'onboarding.bubble3.body': 'Bereit? Klicken Sie auf Weiter, um zum Arbeitsbereich zu gelangen.',
+  'onboarding.bubble4.body': 'Pseudonymisieren Sie die Namen, korrigieren Sie die Paare in der Tabelle (sie bleibt nur bei Ihnen), und mit Dekodieren setzen Sie sie zurück.',
+  'onboarding.next': 'Weiter',
+  'onboarding.skip': 'Überspringen',
+  'onboarding.finish': 'Fertig',
+  'onboarding.step': 'Schritt {n} von {total}',
+  'onboarding.regionAria': 'Einführungsleitfaden',
+  'onboarding.closeAria': 'Leitfaden schließen',
+  'onboarding.replayTitle': 'Einführungsleitfaden erneut ansehen',
+  'onboarding.replayAria': 'Einführungsleitfaden erneut ansehen',
+
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': 'Dekodierung gratis mit MHC-L-Beitritt (€0) — modulares RegIA-Bundle.',
   'bundleBanner.cta': 'Mehr erfahren →',
@@ -2177,6 +2223,20 @@ const fr: Catalog = {
 
   // ────────────────────────── TwoLevelShell — back button (FR) ──────────────────────────
   'shell.backToStart': '← Retour au début / Nouveau document',
+
+  // ────────────────────────── Guide à bulles (premier accès) (FR) ──────────────────────────
+  'onboarding.bubble1.body': 'Collez ou déposez votre document ici. Tout reste dans votre navigateur.',
+  'onboarding.bubble2.body': '100% en local : aucune donnée ne quitte votre appareil.',
+  'onboarding.bubble3.body': 'Prêt ? Appuyez sur Continuer pour accéder à l\'espace de travail.',
+  'onboarding.bubble4.body': 'Pseudonymisez les noms, corrigez les paires dans la Table (elle reste chez vous), et Décoder les remet en place.',
+  'onboarding.next': 'Suivant',
+  'onboarding.skip': 'Passer',
+  'onboarding.finish': 'Terminé',
+  'onboarding.step': 'Étape {n} sur {total}',
+  'onboarding.regionAria': 'Guide de démarrage',
+  'onboarding.closeAria': 'Fermer le guide',
+  'onboarding.replayTitle': 'Revoir le guide de démarrage',
+  'onboarding.replayAria': 'Revoir le guide de démarrage',
 
   // ────────────────────────── Bundle cross-link (SID-20260527 Polo E) ──────────────────────────
   'bundleBanner.text': "Décodage gratuit avec l'adhésion MHC-L (€0) — bundle modulaire RegIA.",

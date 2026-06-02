@@ -5093,3 +5093,244 @@ code {
     font-size: 15px;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+ * ONBOARDING "guida a bolle" — first-access coachmark tour
+ * Component: src/ui/onboarding/OnboardingTour.tsx (custom, no 3rd-party lib).
+ * Visual language borrowed from .wireframe-modal (radius/shadow/dim) +
+ * IntroBanner / RegIA-blue buttons. The overlay sits ABOVE the wireframe
+ * upsell modal (z-index 100) so the tour is never occluded.
+ * ════════════════════════════════════════════════════════════════════ */
+
+/* Full-viewport overlay. Fixed + inset:0 so the spotlight/bubble position
+   against the viewport (they carry inline top/left). pointer-events:auto on the
+   container blocks clicks reaching the app beneath; the spotlight hole re-opens
+   nothing (the tour is modal) but the bubble's own controls stay clickable. */
+.onboarding-tour {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+/* Plain dim shown for the frame(s) before the target rect resolves (e.g. during
+   the L1→L2 hand-off): a flat semi-transparent veil, no hole. Matches the
+   wireframe-modal backdrop tint so the two never look like different products. */
+.onboarding-tour__backdrop-plain {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: 1000;
+  animation: onboarding-fade-in 0.15s ease;
+}
+
+/* Spotlight: a transparent box positioned over the target (inline top/left/
+   width/height). Its huge box-shadow paints the dim over EVERYTHING outside the
+   box, leaving the target bright. pointer-events:none so it never eats clicks;
+   rounded corners + a hairline ring give the highlight a deliberate edge. */
+.onboarding-tour__spotlight {
+  position: fixed;
+  z-index: 1000;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 9999px rgba(15, 23, 42, 0.5),
+    0 0 0 2px rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+  transition: top 0.18s ease, left 0.18s ease, width 0.18s ease, height 0.18s ease;
+}
+
+/* Coachmark card. Positioned by inline top/left (so position:fixed is required);
+   visibility flips to visible only once a position is computed, to avoid a
+   one-frame paint at (0,0). Card tone = .wireframe-modal (white, --wf-radius,
+   deep soft shadow). */
+.onboarding-tour__bubble {
+  position: fixed;
+  z-index: 1002;
+  box-sizing: border-box;
+  max-width: 320px;
+  width: max-content;
+  min-width: 240px;
+  padding: 18px 20px 16px;
+  background: var(--wf-bg, #ffffff);
+  border: 1px solid var(--wf-border, #d1d5db);
+  border-radius: var(--wf-radius, 10px);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+  color: var(--ink, #1a2632);
+  animation: onboarding-fade-in 0.18s ease;
+}
+
+/* Arrow: a CSS triangle on the side of the bubble FACING the target. The
+   component sets --top/--bottom/--left/--right = the side the arrow lives on
+   (opposite of the bubble's placement). Two stacked triangles (border + fill)
+   give a 1px border that matches the card edge. */
+.onboarding-tour__bubble::before,
+.onboarding-tour__bubble::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 9px solid transparent;
+}
+
+/* Arrow pointing UP (bubble sits BELOW the target). */
+.onboarding-tour__bubble--top::after {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: var(--wf-bg, #ffffff);
+}
+.onboarding-tour__bubble--top::before {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-1px);
+  border-bottom-color: var(--wf-border, #d1d5db);
+}
+
+/* Arrow pointing DOWN (bubble sits ABOVE the target). */
+.onboarding-tour__bubble--bottom::after {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: var(--wf-bg, #ffffff);
+}
+.onboarding-tour__bubble--bottom::before {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(1px);
+  border-top-color: var(--wf-border, #d1d5db);
+}
+
+/* Arrow pointing LEFT (bubble sits to the RIGHT of the target). */
+.onboarding-tour__bubble--left::after {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-right-color: var(--wf-bg, #ffffff);
+}
+.onboarding-tour__bubble--left::before {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(-1px);
+  border-right-color: var(--wf-border, #d1d5db);
+}
+
+/* Arrow pointing RIGHT (bubble sits to the LEFT of the target). */
+.onboarding-tour__bubble--right::after {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: var(--wf-bg, #ffffff);
+}
+.onboarding-tour__bubble--right::before {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(1px);
+  border-left-color: var(--wf-border, #d1d5db);
+}
+
+.onboarding-tour__close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--wf-text-muted, #6b7280);
+  cursor: pointer;
+  padding: 4px 7px;
+  border-radius: 6px;
+  font-family: inherit;
+}
+.onboarding-tour__close:hover,
+.onboarding-tour__close:focus-visible {
+  background: var(--wf-grey-muted-bg, #f3f4f6);
+  color: var(--ink, #1a2632);
+  outline: none;
+}
+
+.onboarding-tour__body {
+  margin: 0 0 16px;
+  padding-right: 18px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink, #1a2632);
+}
+
+.onboarding-tour__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.onboarding-tour__step-indicator {
+  font-size: 12px;
+  color: var(--wf-text-muted, #6b7280);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.onboarding-tour__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.onboarding-tour__skip,
+.onboarding-tour__next {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 7px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+/* Secondary: subtle, text-forward — mirrors .two-level-back-btn. */
+.onboarding-tour__skip {
+  background: transparent;
+  border: 1px solid var(--wf-border, #d1d5db);
+  color: var(--wf-text-muted, #6b7280);
+}
+.onboarding-tour__skip:hover,
+.onboarding-tour__skip:focus-visible {
+  color: var(--ink, #1a2632);
+  border-color: var(--regia-blue, #2563eb);
+  outline: none;
+}
+
+/* Primary: RegIA blue, matches the brand CTA buttons. */
+.onboarding-tour__next {
+  background: var(--regia-blue, #2563eb);
+  border: 1px solid var(--regia-blue, #2563eb);
+  color: #ffffff;
+}
+.onboarding-tour__next:hover,
+.onboarding-tour__next:focus-visible {
+  background: var(--regia-blue-dark, #1e40af);
+  border-color: var(--regia-blue-dark, #1e40af);
+  outline: none;
+}
+.onboarding-tour__next:focus-visible,
+.onboarding-tour__skip:focus-visible,
+.onboarding-tour__close:focus-visible {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
+}
+
+@keyframes onboarding-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .onboarding-tour__bubble {
+    max-width: calc(100vw - 24px);
+    min-width: 0;
+  }
+}
