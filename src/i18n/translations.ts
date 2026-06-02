@@ -39,6 +39,7 @@ const it: Catalog = {
   'lang.doc.option.en': 'Inglese',
   'lang.doc.option.de': 'Tedesco',
   'lang.doc.option.fr': 'Francese',
+  'lang.doc.comingSoon': 'in arrivo',
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Mapping attivo:',
@@ -747,6 +748,7 @@ const en: Catalog = {
   'lang.doc.option.en': 'English',
   'lang.doc.option.de': 'German',
   'lang.doc.option.fr': 'French',
+  'lang.doc.comingSoon': 'coming soon',
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Active mapping:',
@@ -1355,6 +1357,7 @@ const de: Catalog = {
   'lang.doc.option.en': 'Englisch',
   'lang.doc.option.de': 'Deutsch',
   'lang.doc.option.fr': 'Französisch',
+  'lang.doc.comingSoon': 'in Kürze',
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Aktives Mapping:',
@@ -1925,6 +1928,7 @@ const fr: Catalog = {
   'lang.doc.option.en': 'Anglais',
   'lang.doc.option.de': 'Allemand',
   'lang.doc.option.fr': 'Français',
+  'lang.doc.comingSoon': 'prochainement',
 
   // ────────────────────────── Active-mapping banner ──────────────────────────
   'banner.active.label': 'Mapping actif :',

@@ -2358,8 +2358,8 @@ export function WireframeWorkArea({
       {/* ── Lingua documento row (founder direttiva (c) SID-20260527) ──
           Spostato dall'AppHeader secondary row al slot prototype-canonical
           tra Decodifica CTA e Mappa cards. Zero duplicazione (rimosso da
-          App.tsx AppHeader contestualmente). FR/DE marcate "(in arrivo)"
-          disabled per Phase 2/3 NER procurement pending. */}
+          App.tsx AppHeader contestualmente). DE shipped (NER deployed);
+          solo FR resta marcata "(in arrivo)" disabled — modello FR pending. */}
       <div className="wireframe-lang-row">
         <label className="wireframe-lang-cell">
           <span className="wireframe-lang-label">{t('lang.doc.label')}</span>
@@ -2371,11 +2371,11 @@ export function WireframeWorkArea({
             onChange={(e) => setDocLanguage(e.target.value as Language)}
           >
             {SUPPORTED_LANGUAGES.map((lng) => {
-              const isUnavailable = lng === 'fr' || lng === 'de'
+              const isUnavailable = lng === 'fr'
               const baseLabel = `${lng.toUpperCase()} — ${t(`lang.doc.option.${lng}`)}`
               return (
                 <option key={lng} value={lng} disabled={isUnavailable}>
-                  {isUnavailable ? `${baseLabel} (in arrivo)` : baseLabel}
+                  {isUnavailable ? `${baseLabel} (${t('lang.doc.comingSoon')})` : baseLabel}
                 </option>
               )
             })}
