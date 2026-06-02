@@ -77,6 +77,21 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['onnxruntime-web', '@xenova/transformers'],
   },
+  // Deduplicate onnxruntime-common to the version bundled with onnxruntime-web
+  // (1.26.x). Without this, Vite dev-server resolves the top-level
+  // node_modules/onnxruntime-common (1.14 — hoisted from @xenova/transformers)
+  // while onnxruntime-web 1.26 needs its own 1.26 copy. In production/build
+  // mode Rollup code-splits both imports into a shared chunk that uses a single
+  // module instance, so the mismatch only bites in dev. The alias forces both
+  // consumers to the same 1.26 module at dev time.
+  resolve: {
+    alias: {
+      'onnxruntime-common': resolve(
+        __dirname,
+        'node_modules/onnxruntime-web/node_modules/onnxruntime-common',
+      ),
+    },
+  },
   // COOP/COEP intentionally NOT set. They will be needed when we enable
   // multi-threaded WASM via SharedArrayBuffer (later phase); enabling them
   // requires that every embedded subresource set Cross-Origin-Resource-Policy.
